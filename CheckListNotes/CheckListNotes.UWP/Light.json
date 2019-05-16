@@ -1,0 +1,13 @@
+﻿{
+    "TitleFontColor": "#000",
+    "TitleBackgroundColor": "#00f",
+    "CellFontColor": "#fff",
+    "CellBackgroundColor": "#800",
+    "CellBorderColor": "#fff",
+    "ButtonFontColor": "#fff",
+    "ButtonBackgroundColor": "#080",
+    "EditiorFontColor": "#fff",
+    "EditorBackgroundColor": "#008",
+    "ViewBoxColor": "#777",
+    "PageBackgroundColor": "#fff"
+}

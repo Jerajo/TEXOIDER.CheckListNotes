@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ViewCell
+    x:Class="CheckListNotes.Pages.UserControls.TaskCell"
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters">
+
+    <Grid ColumnSpacing="0" RowSpacing="0">
+        <!--#region Resources-->
+        <Grid.Resources>
+            <ResourceDictionary>
+                <c:DoubleToGridLengthConverter x:Key="DoubleToGridLength" />
+                <c:StringToBoolConverter x:Key="StringToBool" />
+                <c:InverseBoolConverter x:Key="InverseBool" />
+            </ResourceDictionary>
+        </Grid.Resources>
+        <!--#endregion-->
+
+        <!--#region Background Content-->
+        <Grid
+            x:Name="GridEdit"
+            Padding="20"
+            BackgroundColor="Green"
+            Opacity="0"
+            TranslationX="-100">
+            <Label
+                Text="Editar"
+                TextColor="White"
+                VerticalOptions="Center" />
+        </Grid>
+        <Grid
+            x:Name="GridDelete"
+            Padding="20"
+            BackgroundColor="Red"
+            Opacity="0"
+            TranslationX="100">
+            <Label
+                HorizontalOptions="End"
+                Text="Eliminar"
+                TextColor="White"
+                VerticalOptions="Center" />
+        </Grid>
+        <!--#endregion-->
+
+        <!--#region Content-->
+        <Frame
+            x:Name="FrameCell"
+            Margin="10,0"
+            BackgroundColor="{Binding TaskBackgroundColor}"
+            BorderColor="#888"
+            HasShadow="False">
+            <Grid>
+                <!--#region Columns and Rows-->
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <!--#endregion-->
+
+                <!--#region Text-->
+                <StackLayout>
+                    <FlexLayout>
+                        <Label
+                            FontAttributes="Bold"
+                            FontSize="14"
+                            Text="{Binding Name}"
+                            TextColor="White"
+                            VerticalOptions="StartAndExpand" />
+                    </FlexLayout>
+                    <Label
+                        FontSize="12"
+                        IsVisible="{Binding ExpirationDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}"
+                        Text="{Binding ExpirationDateText}"
+                        TextColor="White"
+                        VerticalOptions="EndAndExpand" />
+                    <Label
+                        FontSize="12"
+                        IsVisible="{Binding CompletedDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}"
+                        Text="{Binding CompletedDateText}"
+                        TextColor="White"
+                        VerticalOptions="EndAndExpand" />
+                </StackLayout>
+                <!--#endregion-->
+
+                <!--#region Swich-->
+                <Switch
+                    x:Name="SwitchIsCompleted"
+                    Grid.Column="1"
+                    IsTabStop="False"
+                    IsToggled="{Binding IsChecked, Mode=TwoWay}" />
+                <!--#endregion-->
+            </Grid>
+        </Frame>
+        <!--#endregion-->
+    </Grid>
+
+</ViewCell>

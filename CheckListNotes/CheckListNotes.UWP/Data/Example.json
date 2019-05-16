@@ -1,0 +1,13 @@
+﻿{
+    "CheckListTasksModel": {
+        "Id": 1,
+        "Name": "Example",
+        "CheckListTasks": [
+            { "Id": 1, "Name": "One", "IsCheked": false, "Expiration": null },
+            { "Id": 2, "Name": "Two", "IsCheked": false, "Expiration": null },
+            { "Id": 3, "Name": "Thee", "IsCheked": false, "Expiration": null },
+            { "Id": 4, "Name": "Four", "IsCheked": true, "Expiration": null },
+            { "Id": 5, "Name": "Five", "IsCheked": true, "Expiration": null }
+        ]
+    }
+}

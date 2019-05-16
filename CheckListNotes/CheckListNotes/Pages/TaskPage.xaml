@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="CheckListNotes.Pages.TaskPage"
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters">
+
+    <!--#region Resources-->
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <c:InverseBoolConverter x:Key="InverseBool" />
+            <c:StringToBoolConverter x:Key="StringToBool" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    <!--#endregion-->
+
+    <Grid>
+        <!--#region Rows-->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <!--#endregion-->
+
+        <!--#region Header-->
+        <Grid>
+            <!--#region Columns-->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <!--#endregion-->
+
+            <Button Command="{Binding GoBack}" Text="Back" />
+            <Label
+                Grid.Column="1"
+                FontAttributes="Bold"
+                FontSize="Large"
+                Text="{Binding PageTitle}"
+                VerticalOptions="EndAndExpand"
+                VerticalTextAlignment="Center" />
+        </Grid>
+        <!--#endregion-->
+
+        <!--#region Body-->
+        <Grid Grid.Row="1" Padding="10">
+            <!--#region Rows-->
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <!--#endregion-->
+
+            <!--#region Content-->
+            <ScrollView HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Default">
+                <StackLayout BindingContext="{Binding Task}">
+                    <Label Text="Nombre de la tarea" />
+                    <Editor
+                        AutoSize="TextChanges"
+                        IsSpellCheckEnabled="True"
+                        IsTabStop="True"
+                        IsTextPredictionEnabled="True"
+                        Keyboard="Text"
+                        MaxLength="500"
+                        Placeholder="Nueva tarea"
+                        Text="{Binding Name}" />
+                    <BoxView
+                        HeightRequest="1"
+                        HorizontalOptions="FillAndExpand"
+                        Opacity="0.2"
+                        Color="Gray" />
+                    <Grid Padding="0,0,10,0">
+                        <StackLayout HorizontalOptions="StartAndExpand">
+                            <Label Text="Tiene expiración" />
+                            <Switch x:Name="SwitchHasExpiration" IsToggled="{Binding HasExpiration}" />
+                        </StackLayout>
+                        <StackLayout HorizontalOptions="EndAndExpand" IsVisible="{Binding IsToggled, Source={x:Reference SwitchHasExpiration}}">
+                            <Label Text="Es diario" />
+                            <Switch x:Name="SwitchIsDaily" IsToggled="{Binding IsDaily}" />
+                        </StackLayout>
+                        <BoxView
+                            HeightRequest="1"
+                            HorizontalOptions="FillAndExpand"
+                            Opacity="0.2"
+                            VerticalOptions="End"
+                            Color="Gray" />
+                    </Grid>
+                    <StackLayout IsVisible="{Binding IsToggled, Source={x:Reference SwitchHasExpiration}}">
+                        <StackLayout IsVisible="{Binding IsToggled, Source={x:Reference SwitchIsDaily}, Converter={StaticResource InverseBool}}">
+                            <Label Text="Día de expiración" />
+                            <DatePicker Date="{Binding ExpirationDate}" />
+                            <BoxView
+                                HeightRequest="1"
+                                HorizontalOptions="FillAndExpand"
+                                Opacity="0.2"
+                                Color="Gray" />
+                        </StackLayout>
+                        <Label Text="Hora de expiración" />
+                        <TimePicker Time="{Binding Expiration}" />
+                        <BoxView
+                            HeightRequest="1"
+                            HorizontalOptions="FillAndExpand"
+                            Opacity="0.2"
+                            Color="Gray" />
+                        <Label Text="Notificación" />
+                        <Picker ItemsSource="{Binding NotifyOnDisplayNames, Mode=OneTime}" SelectedItem="{Binding SelectedNotificationTimeIndex}" />
+                        <BoxView
+                            HeightRequest="1"
+                            HorizontalOptions="FillAndExpand"
+                            Opacity="0.2"
+                            Color="Gray" />
+                    </StackLayout>
+                    <Label Text="Está completado" />
+                    <Switch x:Name="SwitchIsChecked" IsToggled="{Binding IsChecked}" />
+                </StackLayout>
+            </ScrollView>
+            <!--#endregion-->
+
+            <!--#region Footer-->
+            <StackLayout Grid.Row="1">
+                <Button Command="{Binding Save}" Text="Guardar" />
+                <Button
+                    Command="{Binding Remove}"
+                    IsVisible="{Binding IsEditing, Mode=OneWay}"
+                    Text="Elinimar" />
+            </StackLayout>
+            <!--#endregion-->
+        </Grid>
+        <!--#endregion-->
+    </Grid>
+
+</ContentPage>
