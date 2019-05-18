@@ -7,7 +7,6 @@ using CheckListNotes.Models;
 using PortableClasses.Enums;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using CheckListNotes.Models.Enums;
 using PortableClasses.Implementations;
 using CheckListNotes.Models.Interfaces;
 using CheckListNotes.PageModels.Commands;
@@ -97,7 +96,7 @@ namespace CheckListNotes.PageModels
             var model = new CheckTaskModel
             {
                 Id = CheckListModel.LastId + 1,
-                NotifyOn = NotificationTime.None,
+                NotifyOn = ToastTypesTime.None,
                 ExpirationDate = DateTime.Now.AddHours(5),
                 IsChecked = (TabIndex > 0) ? true : false
             };
@@ -254,7 +253,7 @@ namespace CheckListNotes.PageModels
                     if (item.IsChecked)
                     {
                         if (IsDisposing) return;
-                        if (item.NotifyOn != NotificationTime.None)
+                        if (item.NotifyOn != ToastTypesTime.None)
                             GlobalDataService.UnregisterToast(item.ToastId);
 
                         var newItem = new CheckTaskVieModel
@@ -277,7 +276,7 @@ namespace CheckListNotes.PageModels
                     else
                     {
                         if (IsDisposing) return;
-                        if (item.NotifyOn != NotificationTime.None)
+                        if (item.NotifyOn != ToastTypesTime.None)
                         {
                             item.ToastId = $"{item.Id}-{Randomizer.Next(1000000)}";
                             var toast = new ToastModel
@@ -287,7 +286,7 @@ namespace CheckListNotes.PageModels
                                 Body = item.Name,
                                 Time = item.ReminderTime.Value
                             };
-                            GlobalDataService.RegisterToast(toast, ToastType.Notification);
+                            GlobalDataService.RegisterToast(toast, (ToastTypes)Config.Current.NotificationType);
                         }
                         var newItem = new CheckTaskVieModel
                         {

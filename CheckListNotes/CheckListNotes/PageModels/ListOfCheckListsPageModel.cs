@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Linq;
-using Xamarin.Forms;
 using PropertyChanged;
 using System.Windows.Input;
 using CheckListNotes.Models;
+using System.ComponentModel;
 using PortableClasses.Enums;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using PortableClasses.Implementations;
 using CheckListNotes.Models.Interfaces;
 using CheckListNotes.PageModels.Commands;
-using System.ComponentModel;
+using Xamarin.Forms;
+using Xamarin.Essentials;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace CheckListNotes.PageModels
 {
@@ -221,8 +224,6 @@ namespace CheckListNotes.PageModels
 
         private void InitializeComponet()
         {
-            Config.Current.PropertyChanged += ConfigChanged;
-
             var tempList = GlobalDataService.ListOfList;
             var viewModelList = tempList.Select(m => new CheckListViewModel
             {
@@ -237,12 +238,6 @@ namespace CheckListNotes.PageModels
             //And so on...
 
             PageTitle = "Grupo de listas";
-        }
-
-        private async void ConfigChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName != nameof(Config.Current.AppTheme)) return;
-            await base.ReloadUI();
         }
 
         private bool ValidateNewCheckListName(string name)

@@ -1,6 +1,12 @@
-﻿namespace CheckListNotes.Models.Enums
+﻿namespace PortableClasses.Enums
 {
-    public enum NotificationTime
+    public enum ToastTypes
+    {
+        Alarm = 0,
+        Notification = 1
+    }
+
+    public enum ToastTypesTime
     {
         AHourBefore = 0,
         HalfHourBefore = 1,

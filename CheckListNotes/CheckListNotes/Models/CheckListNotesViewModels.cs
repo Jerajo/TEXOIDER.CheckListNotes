@@ -5,7 +5,6 @@ using PropertyChanged;
 using PortableClasses.Enums;
 using PortableClasses.Extensions;
 using System.Collections.Generic;
-using CheckListNotes.Models.Enums;
 
 namespace CheckListNotes.Models
 {
@@ -18,7 +17,7 @@ namespace CheckListNotes.Models
         private DateTime? expirationDate;
         public bool isAnimating = false;
         private string selectedNotificationTimeIndex;
-        private NotificationTime notifyOn;
+        private ToastTypesTime notifyOn;
 
         #endregion
 
@@ -51,33 +50,33 @@ namespace CheckListNotes.Models
                 else ExpirationDate = expirationDate?.Date;
             }
         }
-        public NotificationTime NotifyOn
+        public ToastTypesTime NotifyOn
         {
-            get => (ReminderTime != null) ? notifyOn : NotificationTime.None;
+            get => (ReminderTime != null) ? notifyOn : ToastTypesTime.None;
             set
             {
                 notifyOn = value;
                 switch (notifyOn)
                 {
-                    case NotificationTime.AHourBefore:
+                    case ToastTypesTime.AHourBefore:
                         ReminderTime = ExpirationDate?.AddHours(-1);
                         break;
-                    case NotificationTime.HalfHourBefore:
+                    case ToastTypesTime.HalfHourBefore:
                         ReminderTime = ExpirationDate?.AddMinutes(-30);
                         break;
-                    case NotificationTime.FifteenMinutesBefore:
+                    case ToastTypesTime.FifteenMinutesBefore:
                         ReminderTime = ExpirationDate?.AddMinutes(-15);
                         break;
-                    case NotificationTime.FifteenMinutesAfter:
+                    case ToastTypesTime.FifteenMinutesAfter:
                         ReminderTime = ExpirationDate?.AddMinutes(15);
                         break;
-                    case NotificationTime.HalfHourAfter:
+                    case ToastTypesTime.HalfHourAfter:
                         ReminderTime = ExpirationDate?.AddHours(1);
                         break;
-                    case NotificationTime.AHourAfter:
+                    case ToastTypesTime.AHourAfter:
                         ReminderTime = ExpirationDate?.AddMinutes(30);
                         break;
-                    case NotificationTime.None:
+                    case ToastTypesTime.None:
                     default:
                         ReminderTime = null;
                         break;
@@ -99,7 +98,7 @@ namespace CheckListNotes.Models
                 if (value && expiration == null) Expiration = DateTime.Now.TimeOfDay;
                 else if (!value && expiration != null)
                 {
-                    NotifyOn = NotificationTime.None;
+                    NotifyOn = ToastTypesTime.None;
                     Expiration = null;
                     IsDaily = false;
                 }
@@ -172,27 +171,6 @@ namespace CheckListNotes.Models
             }
         }
 
-        public Color TaskBackgroundColor
-        {
-            get
-            {
-                if (HasExpiration)
-                {
-                    if (IsCompleted)
-                    {
-                        if (CompletedDate <= ExpirationDate) return Color.DarkGreen;
-                        else return Color.FromHex("#444");
-                    } else
-                    {
-                        if (IsLate) return Color.DarkRed;
-                        else if (IsUrgent) return Color.DarkGoldenrod;
-                        else return Color.FromHex("#444");
-                    }
-                }
-                else return Color.FromHex("#444");
-            }
-        }
-
         #endregion
 
         #region Auxiliary Atributes
@@ -231,30 +209,9 @@ namespace CheckListNotes.Models
             set
             {
                 selectedNotificationTimeIndex = value;
-                NotifyOn = (NotificationTime)NotifyOnDisplayNames.IndexOf(value);
+                NotifyOn = (ToastTypesTime)NotifyOnDisplayNames.IndexOf(value);
             }
         }
-
-        // Esta acción se puede cambiar en opciones.
-        #region TODO: Elejir tipo de Notificación en edición.
-        
-        public ToastType NotificationType { get; set; }
-
-        public List<string> NotificationTypeDisplayNames
-        {
-            get
-            {
-                return new List<string>
-                {
-                    "Notificación",
-                    "Alarma"
-                };
-            }
-        }
-
-        public string SelectedNotificationType { get; set; }
-
-        #endregion
 
         public bool IsLate
         {
@@ -297,6 +254,57 @@ namespace CheckListNotes.Models
                 foreach (var message in Errors) errorMessage += message;
                 return errorMessage;
             }
+        }
+
+        #endregion
+
+        #region Theme
+
+        public Color TaskBackgroundColor
+        {
+            get
+            {
+                if (HasExpiration)
+                {
+                    if (IsCompleted)
+                    {
+                        if (CompletedDate <= ExpirationDate) return Color.DarkGreen;
+                        else return Color.FromHex("#444");
+                    }
+                    else
+                    {
+                        if (IsLate) return Color.DarkRed;
+                        else if (IsUrgent) return Color.DarkGoldenrod;
+                        else return Color.FromHex("#444");
+                    }
+                }
+                else return Color.FromHex("#444");
+            }
+        }
+
+        public Color LavelFontColor
+        {
+            get => Color.FromHex(Config.Current.AppTheme.LavelFontColor);
+        }
+
+        public Color EditiorFontColor
+        {
+            get => Color.FromHex(Config.Current.AppTheme.EditiorFontColor);
+        }
+
+        public Color EditorBackgroundColor
+        {
+            get => Color.FromHex(Config.Current.AppTheme.EditorBackgroundColor);
+        }
+
+        public Color EditorBorderColor
+        {
+            get => Color.FromHex(Config.Current.AppTheme.EditorBorderColor);
+        }
+
+        public Color ViewBoxColor
+        {
+            get => Color.FromHex(Config.Current.AppTheme.ViewBoxColor);
         }
 
         #endregion

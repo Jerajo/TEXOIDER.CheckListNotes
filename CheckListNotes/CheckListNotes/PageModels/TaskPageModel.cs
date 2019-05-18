@@ -5,7 +5,6 @@ using CheckListNotes.Models;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using PortableClasses.Enums;
-using CheckListNotes.Models.Enums;
 using CheckListNotes.Models.Interfaces;
 using CheckListNotes.PageModels.Commands;
 
@@ -68,10 +67,10 @@ namespace CheckListNotes.PageModels
             {
                 try
                 {
-                    if (IsEditing && OldTask.NotifyOn != NotificationTime.None)
+                    if (IsEditing && OldTask.NotifyOn != ToastTypesTime.None)
                         GlobalDataService.UnregisterToast(OldTask.ToastId);
 
-                    if (Task.NotifyOn != NotificationTime.None)
+                    if (Task.NotifyOn != ToastTypesTime.None)
                     {
                         Task.ToastId = $"{Task.Id}-{Randomizer.Next(1000000)}";
                         var toast = new ToastModel
@@ -81,7 +80,7 @@ namespace CheckListNotes.PageModels
                             Body = Task.Name,
                             Time = Task.ReminderTime.Value
                         };
-                        GlobalDataService.RegisterToast(toast, ToastType.Notification);
+                        GlobalDataService.RegisterToast(toast, (ToastTypes)Config.Current.NotificationType);
                     }
 
                     if (IsEditing) GlobalDataService.UpdateTask(Task);

@@ -92,14 +92,18 @@ namespace CheckListNotes.PageModels
 
         public override void Init(object initData)
         {
+            IsLooked = !(HasLoaded = false);
             InitializeComponent();
             base.Init(initData);
+            IsLooked = !(HasLoaded = true);
         }
 
         public override void ReverseInit(object returnedData)
         {
+            IsLooked = !(HasLoaded = false);
             InitializeComponent();
             base.ReverseInit(returnedData);
+            IsLooked = !(HasLoaded = true);
         }
 
         protected override void ViewIsDisappearing(object sender, EventArgs e)
@@ -115,8 +119,6 @@ namespace CheckListNotes.PageModels
 
         private void InitializeComponent()
         {
-            HasLoaded = false;
-
             var model = GlobalDataService.CurrentList;
             var task = GlobalDataService.CurrentTask;
 
@@ -136,8 +138,6 @@ namespace CheckListNotes.PageModels
             if (Task.HasExpiration) Task.Expiration = Task.ExpirationDate.Value.TimeOfDay;
 
             PageTitle = "Detalles de Tarea";
-
-            HasLoaded = true;
         }
 
         public Task RefreshUI() => System.Threading.Tasks.Task.Run(() => Init(null));

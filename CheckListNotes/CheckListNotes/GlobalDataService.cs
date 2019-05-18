@@ -24,10 +24,10 @@ namespace CheckListNotes
         public static void Init()
         {
             IsLoading = true;
-
-            Device.BeginInvokeOnMainThread(async () =>
+            
+            Device.BeginInvokeOnMainThread(async () => // Load Theme
             {
-                using (var stream = await FileSystem.OpenAppPackageFileAsync($"{Config.Current.ThemeSelected}.json"))
+                using (var stream = await FileSystem.OpenAppPackageFileAsync($"{Config.Current.Theme}.json"))
                 {
                     using (var reader = new StreamReader(stream))
                     {
@@ -220,11 +220,11 @@ namespace CheckListNotes
 
         #region Background Tasks
 
-        public static string RegisterToast(IToast toast, ToastType type)
+        public static string RegisterToast(IToast toast, ToastTypes type)
         {
             if (!hasLoaded) ThrowNotInitializeExeption();
             var deviceHerper = DependencyService.Get<IDeviceHelper>();
-            if (type == ToastType.Alarm) return deviceHerper.RegisterAlarm(toast); 
+            if (type == ToastTypes.Alarm) return deviceHerper.RegisterAlarm(toast); 
             else return deviceHerper.RegisterNotification(toast);
         }
 

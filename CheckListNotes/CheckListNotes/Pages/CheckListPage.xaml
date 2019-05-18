@@ -13,113 +13,122 @@
         <ResourceDictionary>
             <c:InverseBoolConverter x:Key="InverseBool" />
             <c:StringToBoolConverter x:Key="StringToBool" />
+            <c:StringToColorConverter x:Key="StringToColor" />
             <c:SelectedItemEventArgsToSelectedItemConverter x:Key="SelectedItemToCommandParameter" />
         </ResourceDictionary>
     </ContentPage.Resources>
     <!--#endregion-->
 
-    <Grid BackgroundColor="#333" RowSpacing="0">
-        <!--#region Rows-->
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <!--#endregion-->
-
-        <!--#region Header-->
-        <Grid BackgroundColor="#555">
-            <!--#region Columns-->
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <!--#endregion-->
-
-            <Button Command="{Binding GoBack}" Text="Back" />
-            <Label
-                Grid.Column="1"
-                Margin="0,10"
-                HorizontalOptions="FillAndExpand"
-                HorizontalTextAlignment="Center"
-                LineBreakMode="TailTruncation"
-                Text="{Binding PageTitle}"
-                TextColor="White" />
-            <Button
-                Grid.Column="2"
-                Command="{Binding GoToOptions}"
-                Text="Opt" />
-        </Grid>
-        <!--#endregion-->
-
-        <!--#region Body-->
-        <Grid Grid.Row="1" RowSpacing="0">
+    <ContentPage.Content>
+        <Grid BackgroundColor="{Binding PageBackgroundColor, Converter={x:StaticResource StringToColor}}" RowSpacing="0">
             <!--#region Rows-->
             <Grid.RowDefinitions>
-                <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <!--#endregion-->
 
-            <!--#region Content-->
-            <uc:TabViewControlExtended Grid.RowSpan="1" CurrentIndex="{Binding TabIndex}">
-                <uc:TabViewControlExtended.ItemSource>
-                    <tvs:TabItem HeaderText="Pendientes">
-                        <ListView
-                            HasUnevenRows="true"
-                            ItemsSource="{Binding Tasks}"
-                            SelectedItem="{Binding SelectedTask}">
-                            <ListView.Behaviors>
-                                <behavior:EventToCommandBehavior
-                                    Command="{Binding UpdateOrRemove}"
-                                    Converter="{x:StaticResource SelectedItemToCommandParameter}"
-                                    EventName="ItemSelected" />
-                                <behavior:ListViewCorrectDeselectItemBehavior />
-                            </ListView.Behaviors>
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <uc:TaskCell />
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                    </tvs:TabItem>
-                    <tvs:TabItem HeaderText="Listos">
-                        <ListView
-                            HasUnevenRows="true"
-                            ItemsSource="{Binding CheckedTasks}"
-                            SelectedItem="{Binding SelectedTask}">
-                            <ListView.Behaviors>
-                                <behavior:EventToCommandBehavior
-                                    Command="{Binding UpdateOrRemove}"
-                                    Converter="{x:StaticResource SelectedItemToCommandParameter}"
-                                    EventName="ItemSelected" />
-                                <behavior:ListViewCorrectDeselectItemBehavior />
-                            </ListView.Behaviors>
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <uc:TaskCell />
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
-                    </tvs:TabItem>
-                </uc:TabViewControlExtended.ItemSource>
-            </uc:TabViewControlExtended>
+            <!--#region Header-->
+            <Grid BackgroundColor="{Binding TitleBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
+                <!--#region Columns-->
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <!--#endregion-->
+
+                <Button
+                    BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                    Command="{Binding GoBack}"
+                    Text="Back"
+                    TextColor="{Binding ButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                <Label
+                    Grid.Column="1"
+                    Margin="0,10"
+                    HorizontalOptions="FillAndExpand"
+                    HorizontalTextAlignment="Center"
+                    LineBreakMode="TailTruncation"
+                    Text="{Binding PageTitle}"
+                    TextColor="{Binding TitleFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                <Button
+                    Grid.Column="2"
+                    BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                    Command="{Binding GoToOptions}"
+                    Text="Opt"
+                    TextColor="{Binding ButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+            </Grid>
             <!--#endregion-->
 
-            <!--#region Footer-->
-            <StackLayout
-                Grid.Row="1"
-                Padding="10,5"
-                BackgroundColor="#555">
-                <Button
-                    Command="{Binding AddNewTask}"
-                    IsTabStop="False"
-                    Text="Nuevo"
-                    TextColor="White" />
-            </StackLayout>
+            <!--#region Body-->
+            <Grid Grid.Row="1" RowSpacing="0">
+                <!--#region Rows-->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <!--#endregion-->
+
+                <!--#region Content-->
+                <uc:TabViewControlExtended Grid.RowSpan="1" CurrentIndex="{Binding TabIndex}">
+                    <uc:TabViewControlExtended.ItemSource>
+                        <tvs:TabItem HeaderText="Pendientes">
+                            <ListView
+                                HasUnevenRows="true"
+                                ItemsSource="{Binding Tasks}"
+                                SelectedItem="{Binding SelectedTask}">
+                                <ListView.Behaviors>
+                                    <behavior:EventToCommandBehavior
+                                        Command="{Binding UpdateOrRemove}"
+                                        Converter="{x:StaticResource SelectedItemToCommandParameter}"
+                                        EventName="ItemSelected" />
+                                    <behavior:ListViewCorrectDeselectItemBehavior />
+                                </ListView.Behaviors>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <uc:TaskCell />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </tvs:TabItem>
+                        <tvs:TabItem HeaderText="Listos">
+                            <ListView
+                                HasUnevenRows="true"
+                                ItemsSource="{Binding CheckedTasks}"
+                                SelectedItem="{Binding SelectedTask}">
+                                <ListView.Behaviors>
+                                    <behavior:EventToCommandBehavior
+                                        Command="{Binding UpdateOrRemove}"
+                                        Converter="{x:StaticResource SelectedItemToCommandParameter}"
+                                        EventName="ItemSelected" />
+                                    <behavior:ListViewCorrectDeselectItemBehavior />
+                                </ListView.Behaviors>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <uc:TaskCell />
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </tvs:TabItem>
+                    </uc:TabViewControlExtended.ItemSource>
+                </uc:TabViewControlExtended>
+                <!--#endregion-->
+
+                <!--#region Footer-->
+                <StackLayout
+                    Grid.Row="1"
+                    Padding="10,5"
+                    BackgroundColor="{Binding FooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
+                    <Button
+                        BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                        Command="{Binding AddNewTask}"
+                        IsTabStop="False"
+                        Text="Nuevo"
+                        TextColor="{Binding ButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                </StackLayout>
+                <!--#endregion-->
+            </Grid>
             <!--#endregion-->
         </Grid>
-        <!--#endregion-->
-    </Grid>
-
+    </ContentPage.Content>
 </ContentPage>
