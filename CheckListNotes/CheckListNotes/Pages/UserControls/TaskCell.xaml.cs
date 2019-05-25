@@ -25,6 +25,8 @@ namespace CheckListNotes.Pages.UserControls
             this.SetBinding(SelectedReasonForProperty, "SelectedReason");
 
             SwitchIsCompleted.Toggled += SwitchToggled;
+
+            Resice(); // Resise cell heght
         }
 
         #region SETTERS AND GETTERS
@@ -57,11 +59,18 @@ namespace CheckListNotes.Pages.UserControls
 
         #region Auxiliary Methods
 
+        private async void Resice()
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            ForceUpdateSize();
+        }
+
         private async void Animate(object sender, PanUpdatedEventArgs e)
         {
             if (e.StatusType == GestureStatus.Running)
             {
                 FrameCell.TranslationX = x = e.TotalX;
+
                 if (x > 0 && x < SwipeDistance)
                 {
                     GridEdit.TranslationX = (x - SwipeDistance);

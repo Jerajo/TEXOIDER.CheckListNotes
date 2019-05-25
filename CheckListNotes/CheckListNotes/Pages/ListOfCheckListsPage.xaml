@@ -19,7 +19,7 @@
     <!--#endregion-->
 
     <ContentPage.Content>
-        <Grid BackgroundColor="{Binding PageBackgroundColor, Converter={x:StaticResource StringToColor}}" RowSpacing="0">
+        <Grid BackgroundColor="{Binding AppBackgroundColor, Converter={x:StaticResource StringToColor}}" RowSpacing="0">
             <!--#region Rows-->
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -28,7 +28,7 @@
             <!--#endregion-->
 
             <!--#region Header-->
-            <Grid BackgroundColor="{Binding TitleBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
+            <Grid BackgroundColor="{Binding HeaderAndHeaderAndFooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
                 <!--#region Columns-->
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -37,18 +37,19 @@
                 <!--#endregion-->
 
                 <Label
+                    Grid.ColumnSpan="2"
                     Margin="0,10"
                     HorizontalOptions="FillAndExpand"
                     HorizontalTextAlignment="Center"
                     LineBreakMode="TailTruncation"
                     Text="{Binding PageTitle}"
-                    TextColor="{Binding TitleFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                 <Button
                     Grid.Column="1"
                     BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                     Command="{Binding GoToOptions}"
                     Text="Opt"
-                    TextColor="{Binding ButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
             </Grid>
             <!--#endregion-->
 
@@ -86,12 +87,12 @@
                 <StackLayout
                     Grid.Row="1"
                     Padding="10,5"
-                    BackgroundColor="{Binding FooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
+                    BackgroundColor="{Binding HeaderAndFooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
                     <Button
                         BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                         Command="{Binding OpenForm}"
                         Text="Nueva Lista"
-                        TextColor="{Binding ButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                 </StackLayout>
                 <!--#endregion-->
             </Grid>
@@ -101,7 +102,7 @@
             <Grid
                 x:Name="GridBlocker"
                 Grid.RowSpan="2"
-                BackgroundColor="{Binding LockerBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                BackgroundColor="#FFFFFFFF"
                 IsVisible="{Binding IsNewListFormVisible}"
                 Opacity="0.8">
                 <Grid.GestureRecognizers>
@@ -111,51 +112,55 @@
             <!--#endregion-->
 
             <!--#region New CheckList Form-->
-            <StackLayout
-                x:Name="StackLayoutForm"
+            <Frame
                 Grid.RowSpan="2"
                 Margin="20"
                 Padding="20"
                 BackgroundColor="{Binding DialogBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                BorderColor="{Binding CellBorderColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                CornerRadius="0"
+                HasShadow="False"
                 IsVisible="{Binding IsNewListFormVisible}"
                 VerticalOptions="Center">
-                <Label
-                    FontAttributes="Bold"
-                    Text="Crear Lista!"
-                    TextColor="{Binding LavelFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                <Label Text="Nombre de la lista" TextColor="{Binding LavelFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                <Entry
-                    x:Name="EditorNewCeckListName"
-                    BackgroundColor="{Binding EditorBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
-                    IsSpellCheckEnabled="True"
-                    IsTextPredictionEnabled="True"
-                    Keyboard="Text"
-                    MaxLength="50"
-                    Placeholder="Lista de Ejemplo"
-                    Text="{Binding CheckListName, Mode=OneWay}"
-                    TextColor="{Binding EditiorFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                <Grid>
-                    <!--#region Culums-->
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <!--#region-->
+                <StackLayout>
+                    <Label
+                        FontAttributes="Bold"
+                        Text="Crear Lista!"
+                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <Label Text="Nombre de la lista" TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <Entry
+                        x:Name="EditorNewCeckListName"
+                        BackgroundColor="{Binding EditorBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                        IsSpellCheckEnabled="True"
+                        IsTextPredictionEnabled="True"
+                        Keyboard="Text"
+                        MaxLength="50"
+                        Placeholder="Lista de Ejemplo"
+                        Text="{Binding CheckListName, Mode=OneWay}"
+                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <Grid>
+                        <!--#region Culums-->
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <!--#region-->
 
-                    <Button
-                        BackgroundColor="{Binding DialogAceptButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
-                        Command="{Binding Save}"
-                        CommandParameter="{Binding Text, Source={x:Reference EditorNewCeckListName}}"
-                        Text="Guardar"
-                        TextColor="{Binding DialogAceptButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                    <Button
-                        Grid.Column="1"
-                        BackgroundColor="{Binding DialogCancelButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
-                        Command="{Binding Cancel}"
-                        Text="Cancelar"
-                        TextColor="{Binding DialogCancelButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                </Grid>
-            </StackLayout>
+                        <Button
+                            BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                            Command="{Binding Save}"
+                            CommandParameter="{Binding Text, Source={x:Reference EditorNewCeckListName}}"
+                            Text="Guardar"
+                            TextColor="{Binding AceptButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                        <Button
+                            Grid.Column="1"
+                            BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                            Command="{Binding Cancel}"
+                            Text="Cancelar"
+                            TextColor="{Binding CancelButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    </Grid>
+                </StackLayout>
+            </Frame>
             <!--#endregion-->
         </Grid>
     </ContentPage.Content>

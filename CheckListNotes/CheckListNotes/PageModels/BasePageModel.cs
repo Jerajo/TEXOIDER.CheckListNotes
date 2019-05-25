@@ -22,46 +22,26 @@ namespace CheckListNotes.PageModels
 
         #region Theme
 
-        public string TitleFontColor { get => Config.Current.AppTheme?.TitleFontColor; }
-        public string TitleBackgroundColor
-        { get => Config.Current.AppTheme?.TitleBackgroundColor; }
-
-        public string CellFontColor { get => Config.Current.AppTheme?.CellFontColor; }
+        public string AppFontColor { get => Config.Current.AppTheme?.AppFontColor; }
+        public string AppBackgroundColor
+        { get => Config.Current.AppTheme?.AppBackgroundColor; }
+        public string HeaderAndHeaderAndFooterBackgroundColor
+        { get => Config.Current.AppTheme?.HeaderAndHeaderAndFooterBackgroundColor; }
         public string CellBackgroundColor
         { get => Config.Current.AppTheme?.CellBackgroundColor; }
         public string CellBorderColor { get => Config.Current.AppTheme?.CellBorderColor; }
-
-        public string EditiorFontColor { get => Config.Current.AppTheme?.EditiorFontColor; }
-        public string EditorBackgroundColor
-        { get => Config.Current.AppTheme?.EditorBackgroundColor; }
-        public string EditorBorderColor { get => Config.Current.AppTheme?.EditorBorderColor; }
-
-        public string ButtonFontColor { get => Config.Current.AppTheme?.ButtonFontColor; }
+        public string EditorBorderColor
+        { get => Config.Current.AppTheme?.EditorBorderColor; }
+        public string EditorBackgroundColor { get => Config.Current.AppTheme?.EditorBackgroundColor; }
         public string ButtonBackgroundColor
         { get => Config.Current.AppTheme?.ButtonBackgroundColor; }
-
-        public string ViewBoxColor { get => Config.Current.AppTheme?.ViewBoxColor; }
-        public string LavelFontColor { get => Config.Current.AppTheme?.LavelFontColor; }
-        public string PageBackgroundColor
-        { get => Config.Current.AppTheme?.PageBackgroundColor; }
-        public string LockerBackgroundColor
-        { get => Config.Current.AppTheme?.LockerBackgroundColor; }
-
-        public string DialogFontColor { get => Config.Current.AppTheme?.DialogFontColor; }
-        public string DialogAceptButtonFontColor
-        { get => Config.Current.AppTheme?.DialogAceptButtonFontColor; }
-        public string DialogAceptButtonBackgroundColor
-        { get => Config.Current.AppTheme?.DialogAceptButtonBackgroundColor; }
-        public string DialogCancelButtonFontColor
-        { get => Config.Current.AppTheme?.DialogCancelButtonFontColor; }
-        public string DialogCancelButtonBackgroundColor
-        { get => Config.Current.AppTheme?.DialogCancelButtonBackgroundColor; }
         public string DialogBackgroundColor
         { get => Config.Current.AppTheme?.DialogBackgroundColor; }
-
-        public string FooterFontColor { get => Config.Current.AppTheme?.FooterFontColor; }
-        public string FooterBackgroundColor
-        { get => Config.Current.AppTheme?.FooterBackgroundColor; }
+        public string AceptButtonFontColor
+        { get => Config.Current.AppTheme?.AceptButtonFontColor; }
+        public string CancelButtonFontColor
+        { get => Config.Current.AppTheme?.CancelButtonFontColor; }
+        public string ViewBoxColor { get => Config.Current.AppTheme?.ViewBoxColor; }
 
         #endregion
 
@@ -146,28 +126,18 @@ namespace CheckListNotes.PageModels
         {
             if (e.PropertyName != nameof(Config.Current.AppTheme)) return;
 
-            RaisePropertyChanged(nameof(TitleFontColor));
-            RaisePropertyChanged(nameof(TitleBackgroundColor));
-            RaisePropertyChanged(nameof(CellFontColor));
+            RaisePropertyChanged(nameof(AppFontColor));
+            RaisePropertyChanged(nameof(AppBackgroundColor));
+            RaisePropertyChanged(nameof(HeaderAndHeaderAndFooterBackgroundColor));
             RaisePropertyChanged(nameof(CellBackgroundColor));
             RaisePropertyChanged(nameof(CellBorderColor));
-            RaisePropertyChanged(nameof(EditiorFontColor));
-            RaisePropertyChanged(nameof(EditorBackgroundColor));
             RaisePropertyChanged(nameof(EditorBorderColor));
-            RaisePropertyChanged(nameof(ButtonFontColor));
+            RaisePropertyChanged(nameof(EditorBackgroundColor));
             RaisePropertyChanged(nameof(ButtonBackgroundColor));
-            RaisePropertyChanged(nameof(ViewBoxColor));
-            RaisePropertyChanged(nameof(LavelFontColor));
-            RaisePropertyChanged(nameof(PageBackgroundColor));
-            RaisePropertyChanged(nameof(LockerBackgroundColor));
-            RaisePropertyChanged(nameof(DialogFontColor));
-            RaisePropertyChanged(nameof(DialogAceptButtonFontColor));
-            RaisePropertyChanged(nameof(DialogCancelButtonFontColor));
-            RaisePropertyChanged(nameof(DialogAceptButtonBackgroundColor));
             RaisePropertyChanged(nameof(DialogBackgroundColor));
-            RaisePropertyChanged(nameof(DialogCancelButtonBackgroundColor));
-            RaisePropertyChanged(nameof(FooterFontColor));
-            RaisePropertyChanged(nameof(FooterBackgroundColor));
+            RaisePropertyChanged(nameof(AceptButtonFontColor));
+            RaisePropertyChanged(nameof(CancelButtonFontColor));
+            RaisePropertyChanged(nameof(ViewBoxColor));
         }
 
         #endregion

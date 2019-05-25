@@ -16,7 +16,7 @@
     <!--#endregion-->
 
     <ContentPage.Content>
-        <Grid BackgroundColor="{Binding PageBackgroundColor, Converter={x:StaticResource StringToColor}}" RowSpacing="0">
+        <Grid BackgroundColor="{Binding AppBackgroundColor, Converter={x:StaticResource StringToColor}}" RowSpacing="0">
             <!--#region Rows-->
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -33,19 +33,24 @@
                 </Grid.ColumnDefinitions>
                 <!--#endregion-->
 
-                <Button Command="{Binding GoBack}" Text="Back" />
+                <Button
+                    BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                    Command="{Binding GoBack}"
+                    Text="Back"
+                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                 <Label
-                    Grid.Column="1"
-                    FontAttributes="Bold"
-                    FontSize="Large"
+                    Grid.ColumnSpan="2"
+                    Margin="0,10"
+                    HorizontalOptions="FillAndExpand"
+                    HorizontalTextAlignment="Center"
+                    LineBreakMode="TailTruncation"
                     Text="{Binding PageTitle}"
-                    VerticalOptions="EndAndExpand"
-                    VerticalTextAlignment="Center" />
+                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
             </Grid>
             <!--#endregion-->
 
             <!--#region Body-->
-            <Grid Grid.Row="1" Padding="10">
+            <Grid Grid.Row="1" RowSpacing="0">
                 <!--#region Rows-->
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
@@ -55,8 +60,8 @@
 
                 <!--#region Content-->
                 <ScrollView HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Default">
-                    <StackLayout BindingContext="{Binding Task}">
-                        <Label Text="Nombre de la tarea" TextColor="{Binding LavelFontColor, Mode=OneWay}" />
+                    <StackLayout Padding="10,0" BindingContext="{Binding Task}">
+                        <Label Text="Nombre de la tarea" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                         <Editor
                             AutoSize="TextChanges"
                             BackgroundColor="{Binding EditorBackgroundColor, Mode=OneWay}"
@@ -67,53 +72,50 @@
                             MaxLength="500"
                             Placeholder="Nueva tarea"
                             Text="{Binding Name}"
-                            TextColor="{Binding EditiorFontColor, Mode=OneWay}" />
+                            TextColor="{Binding AppFontColor, Mode=OneWay}" />
                         <BoxView
                             HeightRequest="1"
                             HorizontalOptions="FillAndExpand"
-                            Opacity="0.2"
                             Color="{Binding ViewBoxColor, Mode=OneWay}" />
 
                         <Grid Padding="0,0,10,0">
                             <StackLayout HorizontalOptions="StartAndExpand">
-                                <Label Text="Tiene expiración" TextColor="{Binding LavelFontColor, Mode=OneWay}" />
+                                <Label Text="Tiene expiración" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                                 <Switch x:Name="SwitchHasExpiration" IsToggled="{Binding HasExpiration}" />
                             </StackLayout>
 
                             <StackLayout HorizontalOptions="EndAndExpand" IsVisible="{Binding IsToggled, Source={x:Reference SwitchHasExpiration}}">
-                                <Label Text="Es diario" TextColor="{Binding LavelFontColor, Mode=OneWay}" />
+                                <Label Text="Es diario" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                                 <Switch x:Name="SwitchIsDaily" IsToggled="{Binding IsDaily}" />
                             </StackLayout>
                             <BoxView
                                 HeightRequest="1"
                                 HorizontalOptions="FillAndExpand"
-                                Opacity="0.2"
+                                VerticalOptions="End"
                                 Color="{Binding ViewBoxColor, Mode=OneWay}" />
                         </Grid>
 
                         <StackLayout IsVisible="{Binding IsToggled, Source={x:Reference SwitchHasExpiration}}">
                             <StackLayout IsVisible="{Binding IsToggled, Source={x:Reference SwitchIsDaily}, Converter={StaticResource InverseBool}}">
-                                <Label Text="Día de expiración" TextColor="{Binding LavelFontColor, Mode=OneWay}" />
+                                <Label Text="Día de expiración" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                                 <DatePicker
                                     BackgroundColor="{Binding EditorBackgroundColor, Mode=OneWay}"
                                     Date="{Binding ExpirationDate}"
-                                    TextColor="{Binding EditiorFontColor, Mode=OneWay}" />
+                                    TextColor="{Binding AppFontColor, Mode=OneWay}" />
                                 <BoxView
                                     HeightRequest="1"
                                     HorizontalOptions="FillAndExpand"
-                                    Opacity="0.2"
                                     Color="{Binding ViewBoxColor, Mode=OneWay}" />
 
                             </StackLayout>
-                            <Label Text="Hora de expiración" TextColor="{Binding LavelFontColor, Mode=OneWay}" />
+                            <Label Text="Hora de expiración" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                             <TimePicker
                                 BackgroundColor="{Binding EditorBackgroundColor, Mode=OneWay}"
-                                TextColor="{Binding EditiorFontColor, Mode=OneWay}"
+                                TextColor="{Binding AppFontColor, Mode=OneWay}"
                                 Time="{Binding Expiration}" />
                             <BoxView
                                 HeightRequest="1"
                                 HorizontalOptions="FillAndExpand"
-                                Opacity="0.2"
                                 Color="{Binding ViewBoxColor, Mode=OneWay}" />
 
                             <Picker
@@ -121,34 +123,32 @@
                                 BackgroundColor="{Binding EditorBackgroundColor, Mode=OneWay}"
                                 ItemsSource="{Binding NotifyOnDisplayNames, Mode=OneTime}"
                                 SelectedItem="{Binding SelectedNotificationTimeIndex}"
-                                TextColor="{Binding EditiorFontColor, Mode=OneWay}"
-                                TitleColor="{Binding LavelFontColor, Mode=OneWay}" />
+                                TextColor="{Binding AppFontColor, Mode=OneWay}"
+                                TitleColor="{Binding AppFontColor, Mode=OneWay}" />
                             <BoxView
                                 HeightRequest="1"
                                 HorizontalOptions="FillAndExpand"
-                                Opacity="0.2"
                                 Color="{Binding ViewBoxColor, Mode=OneWay}" />
 
                         </StackLayout>
-                        <Label Text="Está completado" TextColor="{Binding LavelFontColor, Mode=OneWay}" />
-                        <Switch x:Name="SwitchIsChecked" IsToggled="{Binding IsChecked}" />
+                        <Label Text="Tiene suptareas" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                        <Switch IsToggled="{Binding IsTaskGroup}" />
+                        <Label Text="Está completado" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                        <Switch IsToggled="{Binding IsChecked}" />
                     </StackLayout>
                 </ScrollView>
                 <!--#endregion-->
 
                 <!--#region Footer-->
-                <StackLayout Grid.Row="1" BackgroundColor="{Binding FooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
+                <StackLayout
+                    Grid.Row="1"
+                    Padding="10,5"
+                    BackgroundColor="{Binding HeaderAndFooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
                     <Button
                         BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                         Command="{Binding Save}"
                         Text="Guardar"
-                        TextColor="{Binding ButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                    <Button
-                        BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
-                        Command="{Binding Remove}"
-                        IsVisible="{Binding IsEditing, Mode=OneWay}"
-                        Text="Elinimar"
-                        TextColor="{Binding ButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                        TextColor="{Binding AceptButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                 </StackLayout>
                 <!--#endregion-->
             </Grid>

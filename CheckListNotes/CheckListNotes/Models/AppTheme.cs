@@ -9,35 +9,18 @@
         #region SETTERS AND GETTERS
 
         public bool IsDisposing { get; private set; }
-
-        public string TitleFontColor { get; set; }
-        public string TitleBackgroundColor { get; set; }
-
-        public string CellFontColor { get; set; }
+        public string AppFontColor { get; set; }
+        public string AppBackgroundColor { get; set; }
+        public string HeaderAndHeaderAndFooterBackgroundColor { get; set; }
         public string CellBackgroundColor { get; set; }
         public string CellBorderColor { get; set; }
-
-        public string EditiorFontColor { get; set; }
-        public string EditorBackgroundColor { get; set; }
         public string EditorBorderColor { get; set; }
-
-        public string ButtonFontColor { get; set; }
+        public string EditorBackgroundColor { get; set; }
         public string ButtonBackgroundColor { get; set; }
-
-        public string ViewBoxColor { get; set; }
-        public string LavelFontColor { get; set; }
-        public string PageBackgroundColor { get; set; }
-        public string LockerBackgroundColor { get; set; }
-
-        public string DialogFontColor { get; set; }
-        public string DialogAceptButtonFontColor { get; set; }
-        public string DialogAceptButtonBackgroundColor { get; set; }
-        public string DialogCancelButtonFontColor { get; set; }
-        public string DialogCancelButtonBackgroundColor { get; set; }
         public string DialogBackgroundColor { get; set; }
-
-        public string FooterFontColor { get; set; }
-        public string FooterBackgroundColor { get; set; }
+        public string AceptButtonFontColor { get; set; }
+        public string CancelButtonFontColor { get; set; }
+        public string ViewBoxColor { get; set; }
 
         #endregion
 
@@ -46,26 +29,17 @@
         public void Dispose()
         {
             IsDisposing = true;
-            TitleFontColor = null;
-            TitleBackgroundColor = null;
-            CellFontColor = null;
+            HeaderAndHeaderAndFooterBackgroundColor = null;
+            HeaderAndHeaderAndFooterBackgroundColor = null;
             CellBackgroundColor = null;
             CellBorderColor = null;
-            ButtonFontColor = null;
             ButtonBackgroundColor = null;
-            EditiorFontColor = null;
-            EditorBackgroundColor = null;
+            AppFontColor = null;
             ViewBoxColor = null;
-            PageBackgroundColor = null;
-            LockerBackgroundColor = null;
-            DialogFontColor = null;
-            DialogAceptButtonFontColor = null;
-            DialogAceptButtonBackgroundColor = null;
-            DialogCancelButtonFontColor = null;
-            DialogCancelButtonBackgroundColor = null;
+            AppBackgroundColor = null;
+            AceptButtonFontColor = null;
+            CancelButtonFontColor = null;
             DialogBackgroundColor = null;
-            FooterFontColor = null;
-            FooterBackgroundColor = null;
             IsDisposing = false;
         }
 

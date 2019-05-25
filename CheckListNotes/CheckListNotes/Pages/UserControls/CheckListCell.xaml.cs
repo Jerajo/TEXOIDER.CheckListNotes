@@ -24,6 +24,8 @@ namespace CheckListNotes.Pages.UserControls
 
             this.SetBinding(IsLockedProperty, "IsAnimating");
             this.SetBinding(SelectedReasonForProperty, "SelectedReason");
+
+            Resice(); // Resise cell heght
         }
 
         #region SETTERS AND GETTERS
@@ -55,6 +57,12 @@ namespace CheckListNotes.Pages.UserControls
         #endregion
 
         #region Auxiliary Methods
+
+        private async void Resice()
+        {
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            ForceUpdateSize();
+        }
 
         private async void Animate(object sender, PanUpdatedEventArgs e)
         {

@@ -17,7 +17,8 @@ namespace CheckListNotes.Models
 
         #region Instances
 
-        public static Config Current { get; } = new Config();
+        private static Config current;
+        public static Config Current { get => current ?? (current = new Config()); }
 
         public ISettings AppSettings
         {
@@ -39,7 +40,7 @@ namespace CheckListNotes.Models
             set => AppSettings.AddOrUpdateValue(nameof(Theme), value);
         }
 
-        public IAppTheme AppTheme { get; set; }
+        public IAppTheme AppTheme { get; set; } = new AppTheme();
 
         #endregion
 
@@ -67,21 +68,21 @@ namespace CheckListNotes.Models
             set => AppSettings.AddOrUpdateValue(nameof(TouchSound), value);
         }
 
-        public string UrgentTaskColor
-        {
-            get => AppSettings.GetValueOrDefault(nameof(UrgentTaskColor), ""); //TODO:
-            set => AppSettings.AddOrUpdateValue(nameof(UrgentTaskColor), value);
-        }
-
         public string LateTaskColor
         {
-            get => AppSettings.GetValueOrDefault(nameof(LateTaskColor), ""); //TODO:
+            get => AppSettings.GetValueOrDefault(nameof(LateTaskColor), "#FFCD0000");
             set => AppSettings.AddOrUpdateValue(nameof(LateTaskColor), value);
+        }
+
+        public string UrgentTaskColor
+        {
+            get => AppSettings.GetValueOrDefault(nameof(UrgentTaskColor), "#FFCD6700");
+            set => AppSettings.AddOrUpdateValue(nameof(UrgentTaskColor), value);
         }
 
         public string CompletedTaskColor
         {
-            get => AppSettings.GetValueOrDefault(nameof(CompletedTaskColor), ""); //TODO:
+            get => AppSettings.GetValueOrDefault(nameof(CompletedTaskColor), "#FF00CD00");
             set => AppSettings.AddOrUpdateValue(nameof(CompletedTaskColor), value);
         }
 

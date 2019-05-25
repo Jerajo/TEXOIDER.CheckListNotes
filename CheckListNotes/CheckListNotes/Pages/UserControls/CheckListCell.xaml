@@ -6,6 +6,12 @@
     xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters">
 
     <Grid ColumnSpacing="0" RowSpacing="0">
+        <!--#region Rows-->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <!--#endregion-->
+
         <!--#region Resources-->
         <Grid.Resources>
             <ResourceDictionary>
@@ -45,8 +51,8 @@
         <Frame
             x:Name="FrameCell"
             Margin="10,0"
-            BackgroundColor="#444"
-            BorderColor="#888"
+            BackgroundColor="{Binding CellBackgroundColor, Mode=OneWay}"
+            BorderColor="{Binding CellBorderColor, Mode=OneWay}"
             HasShadow="False">
             <StackLayout>
                 <!--#region Text-->
@@ -54,29 +60,29 @@
                     FontAttributes="Bold"
                     FontSize="14"
                     Text="{Binding Name}"
-                    TextColor="White" />
+                    TextColor="{Binding AppFontColor, Mode=OneWay}" />
                 <Label
                     FontSize="12"
                     Text="{Binding Detail}"
-                    TextColor="White" />
+                    TextColor="{Binding AppFontColor, Mode=OneWay}" />
                 <!--#endregion-->
 
                 <!--#region Percentage-->
                 <Grid ColumnSpacing="0" RowSpacing="0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="{Binding CompletedPercentage, Converter={x:StaticResource DoubleToGridLength}}" />
-                        <ColumnDefinition Width="{Binding PendientPercentage, Converter={x:StaticResource DoubleToGridLength}}" />
+                        <ColumnDefinition Width="{Binding CompletedPercentage, Converter={x:StaticResource DoubleToGridLength}, Mode=OneWay}" />
+                        <ColumnDefinition Width="{Binding PendientPercentage, Converter={x:StaticResource DoubleToGridLength}, Mode=OneWay}" />
                     </Grid.ColumnDefinitions>
 
                     <BoxView
                         Margin="0"
                         HeightRequest="10"
-                        Color="Green" />
+                        Color="{Binding CompletedPercentageColor, Mode=OneWay}" />
                     <BoxView
                         Grid.Column="1"
                         Margin="0"
                         HeightRequest="10"
-                        Color="Gray" />
+                        Color="{Binding PendientPercentageColor, Mode=OneWay}" />
                 </Grid>
                 <!--#endregion-->
             </StackLayout>

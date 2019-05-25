@@ -1,13 +1,13 @@
 ﻿{
-    "TitleFontColor": "#fff",
-    "TitleBackgroundColor": "#330",
+    "AppFontColor": "#fff",
+    "HeaderAndHeaderAndFooterBackgroundColor": "#330",
     "CellFontColor": "#fff",
     "CellBackgroundColor": "#800",
     "CellBorderColor": "#fff",
-    "ButtonFontColor": "#fff",
+    "AppFontColor": "#fff",
     "ButtonBackgroundColor": "#080",
-    "EditiorFontColor": "#fff",
-    "EditorBackgroundColor": "#008",
+    "AppFontColor": "#fff",
+    "AppFontColor": "#008",
     "ViewBoxColor": "#777",
-    "PageBackgroundColor": "#000"
+    "AppBackgroundColor": "#000"
 }

@@ -6,6 +6,12 @@
     xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters">
 
     <Grid ColumnSpacing="0" RowSpacing="0">
+        <!--#region Rows-->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <!--#endregion-->
+
         <!--#region Resources-->
         <Grid.Resources>
             <ResourceDictionary>
@@ -46,53 +52,81 @@
         <Frame
             x:Name="FrameCell"
             Margin="10,0"
-            BackgroundColor="{Binding TaskBackgroundColor}"
-            BorderColor="#888"
+            BackgroundColor="{Binding CellBackgroundColor, Mode=OneWay}"
+            BorderColor="{Binding CellBorderColor, Mode=OneWay}"
             HasShadow="False">
-            <Grid>
-                <!--#region Columns and Rows-->
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
+            <StackLayout>
+                <!--#region Text-->
+                <Grid RowSpacing="0">
+                    <!--#region Columns and Rows-->
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <!--#endregion-->
+
+                    <!--#region Text-->
+                    <StackLayout>
+                        <FlexLayout>
+                            <Label
+                                FontAttributes="Bold"
+                                FontSize="14"
+                                Text="{Binding Name}"
+                                TextColor="{Binding AppFontColor, Mode=OneWay}"
+                                VerticalOptions="StartAndExpand" />
+                        </FlexLayout>
+                        <Label
+                            FontSize="12"
+                            IsVisible="{Binding ExpirationDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}"
+                            Text="{Binding ExpirationDateText}"
+                            TextColor="{Binding AppFontColor, Mode=OneWay}"
+                            VerticalOptions="EndAndExpand" />
+                        <Label
+                            FontSize="12"
+                            IsVisible="{Binding CompletedDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}"
+                            Text="{Binding CompletedDateText}"
+                            TextColor="{Binding AppFontColor, Mode=OneWay}"
+                            VerticalOptions="EndAndExpand" />
+                    </StackLayout>
+                    <!--#endregion-->
+
+                    <!--#region Swich-->
+                    <Switch
+                        x:Name="SwitchIsCompleted"
+                        Grid.Column="1"
+                        IsTabStop="False"
+                        IsToggled="{Binding IsChecked, Mode=TwoWay}"
+                        IsVisible="{Binding IsTaskGroup, Converter={x:StaticResource InverseBool}, Mode=OneWay}"
+                        VerticalOptions="Center" />
+                    <!--#endregion-->
+                </Grid>
                 <!--#endregion-->
 
-                <!--#region Text-->
-                <StackLayout>
-                    <FlexLayout>
-                        <Label
-                            FontAttributes="Bold"
-                            FontSize="14"
-                            Text="{Binding Name}"
-                            TextColor="White"
-                            VerticalOptions="StartAndExpand" />
-                    </FlexLayout>
+                <!--#region Percentage-->
+                <StackLayout IsVisible="{Binding IsTaskGroup, Mode=OneWay}">
                     <Label
                         FontSize="12"
-                        IsVisible="{Binding ExpirationDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}"
-                        Text="{Binding ExpirationDateText}"
-                        TextColor="White"
-                        VerticalOptions="EndAndExpand" />
-                    <Label
-                        FontSize="12"
-                        IsVisible="{Binding CompletedDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}"
-                        Text="{Binding CompletedDateText}"
-                        TextColor="White"
-                        VerticalOptions="EndAndExpand" />
+                        Text="{Binding Detail}"
+                        TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                    <Grid ColumnSpacing="0" RowSpacing="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="{Binding CompletedPercentage, Converter={x:StaticResource DoubleToGridLength}, Mode=OneWay}" />
+                            <ColumnDefinition Width="{Binding PendientPercentage, Converter={x:StaticResource DoubleToGridLength}, Mode=OneWay}" />
+                        </Grid.ColumnDefinitions>
+
+                        <BoxView
+                            Margin="0"
+                            HeightRequest="10"
+                            Color="{Binding CompletedPercentageColor, Mode=OneWay}" />
+                        <BoxView
+                            Grid.Column="1"
+                            Margin="0"
+                            HeightRequest="10"
+                            Color="{Binding PendientPercentageColor, Mode=OneWay}" />
+                    </Grid>
                 </StackLayout>
                 <!--#endregion-->
-
-                <!--#region Swich-->
-                <Switch
-                    x:Name="SwitchIsCompleted"
-                    Grid.Column="1"
-                    IsTabStop="False"
-                    IsToggled="{Binding IsChecked, Mode=TwoWay}" />
-                <!--#endregion-->
-            </Grid>
+            </StackLayout>
         </Frame>
         <!--#endregion-->
     </Grid>
