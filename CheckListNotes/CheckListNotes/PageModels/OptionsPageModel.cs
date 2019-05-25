@@ -261,10 +261,8 @@ namespace CheckListNotes.PageModels
 
         #endregion
 
-        //TODO: implement dialog color picker
         #region UrgentTaskColors
 
-        public List<string> UrgentTaskColors { get; set; }
         public string UrgentTaskColor
         {
             get => Config.Current.UrgentTaskColor;
@@ -276,10 +274,8 @@ namespace CheckListNotes.PageModels
 
         #endregion
 
-        //TODO: implement dialog color picker
         #region LateTaskColors
 
-        public List<string> LateTaskColors { get; set; }
         public string LateTaskColor
         {
             get => Config.Current.LateTaskColor;
@@ -291,10 +287,8 @@ namespace CheckListNotes.PageModels
 
         #endregion
 
-        //TODO: implement dialog color picker
         #region UrgentTaskColors
 
-        public List<string> CompletedTaskColors { get; set; }
         public string CompletedTaskColor
         {
             get => Config.Current.CompletedTaskColor;
@@ -344,10 +338,6 @@ namespace CheckListNotes.PageModels
             NotificationTypes = new List<string> { "Alarma", "Notificación" };
             NotificationSounds = new List<string> { "Desactivado", "Ring", "Thone", "Bib", "Selecciona uno" };
             TouchSounds = new List<string> { "Desactivado", "Clic", "Touch", "Selecciona uno" };
-            //TODO: Implement color picker dialog
-            UrgentTaskColors = new List<string> { "Rojo", "Naranja", "Verde" };
-            LateTaskColors = new List<string> { "Naranja", "Verde", "Rojo" };
-            CompletedTaskColors = new List<string> { "Verde", "Rojo", "Naranja" };
 
             PageTitle = "Opciones";
 
@@ -382,21 +372,6 @@ namespace CheckListNotes.PageModels
             {
                 TouchSounds.Clear();
                 TouchSounds = null;
-            }
-            if (Themes != null)
-            {
-                UrgentTaskColors.Clear();
-                UrgentTaskColors = null;
-            }
-            if (Themes != null)
-            {
-                LateTaskColors.Clear();
-                LateTaskColors = null;
-            }
-            if (Themes != null)
-            {
-                CompletedTaskColors.Clear();
-                CompletedTaskColors = null;
             }
             base.ViewIsAppearing(sender, e);
             IsDisposing = false;

@@ -3,13 +3,15 @@ using System.Linq;
 using Xamarin.Forms;
 using PropertyChanged;
 using PortableClasses.Enums;
+using System.ComponentModel;
 using PortableClasses.Extensions;
 using System.Collections.Generic;
+using PortableClasses.Implementations;
 
 namespace CheckListNotes.Models
 {
     [AddINotifyPropertyChangedInterfaceAttribute]
-    public class CheckTaskVieModel : BaseModel
+    public class CheckTaskViewModel : BaseModel
     {
         #region Atributes
 
@@ -25,11 +27,23 @@ namespace CheckListNotes.Models
 
         public int Id { get; set; }
         public string Name { get; set; }
+        public int LastSubId { get; set; }
         public string ToastId { get; set; }
         public DateTime? ReminderTime { get; set; }
         public DateTime? CompletedDate { get; set; }
-        public bool IsChecked { get; set; }
+        public List<CheckTaskModel> SubTasks { get; set; }
+        public bool IsChecked { get => IsCompleted; set => IsCompleted = value; }
         public bool IsDaily { get; set; }
+        public bool IsTaskGroup
+        {
+            get => (SubTasks != null);
+            set
+            {
+                if (value && SubTasks == null)
+                    SubTasks = new List<CheckTaskModel>();
+                else if (!value) SubTasks = null;
+            }
+        }
         public DateTime? ExpirationDate
         {
             get => expirationDate;
@@ -105,13 +119,13 @@ namespace CheckListNotes.Models
             }
         }
 
-        public bool IsCompleted
+        private bool IsCompleted
         {
             get => (CompletedDate != null);
             set
             {
-                if (value) CompletedDate = DateTime.Now;
-                else CompletedDate = null;
+                if (value && CompletedDate == null) CompletedDate = DateTime.Now;
+                else if (!value && CompletedDate != null) CompletedDate = null;
             }
         }
 
@@ -231,6 +245,66 @@ namespace CheckListNotes.Models
             }
         }
 
+        public int PendientTasks
+        {
+            get
+            {
+                if (SubTasks != null)
+                    return SubTasks.Where(m => !m.IsChecked).ToList().Count;
+                else return 0;
+            }
+        }
+
+        public double PendientPercentage
+        {
+            get
+            {
+                if (SubTasks != null)
+                {
+                    if (SubTasks.Count <= 0) return 1;
+                    var pendientTask = Convert.ToDouble(PendientTasks);
+                    var completedTask = Convert.ToDouble(CompletedTasks);
+                    var allTask = pendientTask + completedTask;
+                    return (pendientTask / allTask) * 10f;
+                }
+                else return 1;
+            }
+        }
+
+        public int CompletedTasks
+        {
+            get
+            {
+                if (SubTasks != null)
+                    return SubTasks.Where(m => m.IsChecked).ToList().Count;
+                else return 0;
+            }
+        }
+
+        public double CompletedPercentage
+        {
+            get
+            {
+                if (SubTasks != null)
+                {
+                    if (SubTasks.Count <= 0) return 0;
+                    var pendientTask = Convert.ToDouble(PendientTasks);
+                    var completedTask = Convert.ToDouble(CompletedTasks);
+                    var allTask = pendientTask + completedTask;
+                    return (completedTask / allTask) * 10f;
+                }
+                else return 0;
+            }
+        }
+
+        public string Detail
+        {
+            get
+            {
+                return $"Tareas finalizadas: {CompletedTasks} | Tareas pendientes: {PendientTasks}";
+            }
+        }
+
         public bool IsValid
         {
             get
@@ -260,7 +334,12 @@ namespace CheckListNotes.Models
 
         #region Theme
 
-        public Color TaskBackgroundColor
+        public Color AppFontColor
+        {
+            get => Color.FromHex(Config.Current.AppTheme?.AppFontColor);
+        }
+
+        public Color CellBackgroundColor
         {
             get
             {
@@ -268,43 +347,51 @@ namespace CheckListNotes.Models
                 {
                     if (IsCompleted)
                     {
-                        if (CompletedDate <= ExpirationDate) return Color.DarkGreen;
-                        else return Color.FromHex("#444");
+                        if (IsDaily && CompletedDate?.TimeOfDay <= Expiration)
+                            return Color.FromHex(Config.Current.CompletedTaskColor);
+                        else if (CompletedDate <= ExpirationDate)
+                            return Color.FromHex(Config.Current.CompletedTaskColor);
+                        else return Color.FromHex(Config.Current.AppTheme?.CellBackgroundColor);
                     }
                     else
                     {
-                        if (IsLate) return Color.DarkRed;
-                        else if (IsUrgent) return Color.DarkGoldenrod;
-                        else return Color.FromHex("#444");
+                        if (IsLate) return Color.FromHex(Config.Current.LateTaskColor);
+                        else if (IsUrgent) return Color.FromHex(Config.Current.UrgentTaskColor);
+                        else return Color.FromHex(Config.Current.AppTheme?.CellBackgroundColor);
                     }
                 }
-                else return Color.FromHex("#444");
+                else return Color.FromHex(Config.Current.AppTheme?.CellBackgroundColor);
             }
         }
 
-        public Color LavelFontColor
+        public Color CellBorderColor
         {
-            get => Color.FromHex(Config.Current.AppTheme.LavelFontColor);
-        }
-
-        public Color EditiorFontColor
-        {
-            get => Color.FromHex(Config.Current.AppTheme.EditiorFontColor);
+            get => Color.FromHex(Config.Current.AppTheme?.CellBorderColor);
         }
 
         public Color EditorBackgroundColor
         {
-            get => Color.FromHex(Config.Current.AppTheme.EditorBackgroundColor);
+            get => Color.FromHex(Config.Current.AppTheme?.EditorBackgroundColor);
         }
 
         public Color EditorBorderColor
         {
-            get => Color.FromHex(Config.Current.AppTheme.EditorBorderColor);
+            get => Color.FromHex(Config.Current.AppTheme?.EditorBorderColor);
         }
 
         public Color ViewBoxColor
         {
-            get => Color.FromHex(Config.Current.AppTheme.ViewBoxColor);
+            get => Color.FromHex(Config.Current.AppTheme?.ViewBoxColor);
+        }
+
+        public Color CompletedPercentageColor //TODO:
+        {
+            get => Color.FromHex("#0F0");
+        }
+
+        public Color PendientPercentageColor //TODO:
+        {
+            get => Color.FromHex("#888");
         }
 
         #endregion
@@ -316,11 +403,18 @@ namespace CheckListNotes.Models
         public bool isAnimating = false;
         public SelectedFor selectedReason = SelectedFor.Create;
 
+        public CheckListViewModel()
+        {
+            Config.Current.PropertyChanged += ConfigChanged;
+        }
+
         #region Base Atributes
 
         public int LastId { get; set; }
+        public bool IsTask { get; set; }
         public string Name { get; set; }
         public string OldName { get; set; }
+        public int SelectedTabIndex { get; set; }
         public List<CheckTaskModel> CheckListTasks { get; set; }
 
         #endregion
@@ -379,7 +473,7 @@ namespace CheckListNotes.Models
                     var allTask = pendientTask + completedTask;
                     return (pendientTask / allTask) * 10f;
                 }
-                else return 0;
+                else return 1;
             }
         }
 
@@ -402,6 +496,54 @@ namespace CheckListNotes.Models
         public bool NameHasChange
         {
             get => (OldName != Name);
+        }
+
+        #endregion
+
+        #region Theme
+
+        public Color AppFontColor
+        {
+            get => Color.FromHex(Config.Current.AppTheme?.AppFontColor ?? "#FF000000");
+        }
+
+        public Color CellBackgroundColor
+        {
+            get => Color.FromHex(Config.Current.AppTheme?.CellBackgroundColor ?? "#FF000000");
+        }
+
+        public Color CellBorderColor
+        {
+            get => Color.FromHex(Config.Current.AppTheme?.CellBorderColor ?? "#FF000000");
+        }
+
+        public Color CompletedPercentageColor //TODO:
+        {
+            get => Color.FromHex("#0F0");
+        }
+
+        public Color PendientPercentageColor //TODO:
+        {
+            get => Color.FromHex("#888");
+        }
+
+        #endregion
+
+        #region Methods
+
+        private void ConfigChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(Config.Current.AppTheme)) return;
+            OnPropertyChanged(nameof(AppFontColor));
+            OnPropertyChanged(nameof(CellBackgroundColor));
+            OnPropertyChanged(nameof(CellBorderColor));
+            OnPropertyChanged(nameof(CompletedPercentageColor));
+            OnPropertyChanged(nameof(PendientPercentageColor));
+        }
+
+        ~CheckListViewModel()
+        {
+            Config.Current.PropertyChanged -= ConfigChanged;
         }
 
         #endregion

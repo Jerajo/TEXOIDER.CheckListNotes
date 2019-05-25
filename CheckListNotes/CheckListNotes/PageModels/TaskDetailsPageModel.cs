@@ -17,7 +17,7 @@ namespace CheckListNotes.PageModels
 
         #region Atributes
 
-        public CheckTaskVieModel Task { get; set; }
+        public CheckTaskViewModel Task { get; set; }
 
         #endregion
 
@@ -53,8 +53,7 @@ namespace CheckListNotes.PageModels
         {
             if (!HasLoaded || IsLooked) return;
             IsLooked = true;
-            var model = GlobalDataService.GetCurrentTask(Task.Id);
-            CoreMethods.PushPageModel<TaskPageModel>(model, false, true);
+            CoreMethods.PushPageModel<TaskPageModel>(InitData, false, true);
         }
         private async void RemoveCommand()
         {
@@ -75,15 +74,14 @@ namespace CheckListNotes.PageModels
         {
             if (!HasLoaded || IsLooked) return;
             IsLooked = true;
-            await CoreMethods.PushPageModel<OptionsPageModel>(0, animate: true);
+            await CoreMethods.PushPageModel<OptionsPageModel>(InitData, animate: true);
         }
 
         private async void GoBackCommand()
         {
             if (!HasLoaded || IsLooked) return;
             IsLooked = true;
-            var tabIndex = Task.IsChecked ? 1 : 0;
-            await CoreMethods.PopPageModel(0, animate: true);
+            await CoreMethods.PopPageModel(InitData, animate: true);
         }
 
         #endregion
@@ -93,7 +91,7 @@ namespace CheckListNotes.PageModels
         public override void Init(object initData)
         {
             IsLooked = !(HasLoaded = false);
-            InitializeComponent();
+            InitializeComponent(initData);
             base.Init(initData);
             IsLooked = !(HasLoaded = true);
         }
@@ -101,7 +99,7 @@ namespace CheckListNotes.PageModels
         public override void ReverseInit(object returnedData)
         {
             IsLooked = !(HasLoaded = false);
-            InitializeComponent();
+            InitializeComponent(returnedData);
             base.ReverseInit(returnedData);
             IsLooked = !(HasLoaded = true);
         }
@@ -117,12 +115,13 @@ namespace CheckListNotes.PageModels
 
         #region Auxiliary Methods
 
-        private void InitializeComponent()
+        private void InitializeComponent(object data)
         {
-            var model = GlobalDataService.CurrentList;
+            InitData = data;
+
             var task = GlobalDataService.CurrentTask;
 
-            Task = new CheckTaskVieModel
+            Task = new CheckTaskViewModel
             {
                 Id = task.Id,
                 Name = task.Name,
@@ -131,7 +130,6 @@ namespace CheckListNotes.PageModels
                 NotifyOn = task.NotifyOn,
                 ReminderTime = task.ReminderTime,
                 IsChecked = task.IsChecked,
-                IsCompleted = task.IsChecked,
                 IsDaily = task.IsDaily
             };
 

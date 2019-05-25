@@ -3,17 +3,12 @@ using System.Linq;
 using PropertyChanged;
 using System.Windows.Input;
 using CheckListNotes.Models;
-using System.ComponentModel;
 using PortableClasses.Enums;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using PortableClasses.Implementations;
 using CheckListNotes.Models.Interfaces;
 using CheckListNotes.PageModels.Commands;
-using Xamarin.Forms;
-using Xamarin.Essentials;
-using System.IO;
-using Newtonsoft.Json;
 
 namespace CheckListNotes.PageModels
 {
@@ -52,8 +47,8 @@ namespace CheckListNotes.PageModels
                 if (value?.IsAnimating == false && !IsLooked && !IsDisposing)
                 {
                     IsLooked = true;
-                    GlobalDataService.GetCurrentList(value.Name);
-                    CoreMethods.PushPageModel<CheckListPageModel>(true);
+                    var data = GlobalDataService.GetCurrentList(value.Name);
+                    CoreMethods.PushPageModel<CheckListPageModel>(0, animate: true);
                 }
             }
         }
@@ -188,7 +183,7 @@ namespace CheckListNotes.PageModels
         public override void Init(object initData)
         {
             IsLooked = !(HasLoaded = false);
-            InitializeComponet();
+            InitializeComponet(initData);
             base.Init(initData);
             IsLooked = !(HasLoaded = true);
         }
@@ -196,7 +191,7 @@ namespace CheckListNotes.PageModels
         public override void ReverseInit(object returndData)
         {
             IsLooked = !(HasLoaded = false);
-            InitializeComponet();
+            InitializeComponet(returndData);
             base.ReverseInit(returndData);
             IsLooked = !(HasLoaded = true);
         }
@@ -222,8 +217,10 @@ namespace CheckListNotes.PageModels
 
         #region Auxiliary Methods
 
-        private void InitializeComponet()
+        private void InitializeComponet(object data)
         {
+            InitData = data;
+
             var tempList = GlobalDataService.ListOfList;
             var viewModelList = tempList.Select(m => new CheckListViewModel
             {
@@ -232,6 +229,8 @@ namespace CheckListNotes.PageModels
                 CheckListTasks = m.CheckListTasks
             });
             ListOfCheckLists = new FulyObservableCollection<CheckListViewModel>(viewModelList);
+
+            Errors = new List<string>();
 
             //TODO: Implement business logic for licence: [free, premium].
             //var deviceHelper = DependencyService.Get<IDeviceHelper>();
