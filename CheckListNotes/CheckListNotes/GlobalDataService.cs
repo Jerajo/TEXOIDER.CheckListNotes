@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Xamarin.Essentials;
 using CheckListNotes.Models;
 using PortableClasses.Enums;
+using Plugin.LocalNotifications;
 using PortableClasses.Extensions;
 using System.Collections.Generic;
 using PortableClasses.Interfaces;
@@ -41,12 +42,19 @@ namespace CheckListNotes
             if (IsFirtsInit()) CreateDefoultFiles();
 
             ListOfList = deviceHerper.GetAllLists(deviceHerper.GetAllLists());
+
+            CheckTaskModelStack = new Stack<CheckTaskModel>();
+
+            Randomizer = new Random();
+
             hasLoaded = !(IsLoading = false);
         }
 
         #region SETTERS AND GETTERS
 
         public static List<CheckListTasksModel> ListOfList { get; private set; }
+
+        public static Stack<CheckTaskModel> CheckTaskModelStack { get; set; }
 
         public static CheckListTasksModel CurrentList { get; private set; }
 
@@ -57,6 +65,8 @@ namespace CheckListNotes
         public static string LastCheckListName { get; private set; }
 
         public static int LastCurrentTaskId { get; private set; }
+
+        public static Random Randomizer { get; private set; }
 
         public static bool HasChanges
         {
@@ -95,7 +105,9 @@ namespace CheckListNotes
         {
             if (!hasLoaded) ThrowNotInitializeExeption();
             LastCurrentTaskId = taskId;
-            return CurrentTask = CurrentList.CheckListTasks.Find(m => m.Id == taskId);
+            if (CheckTaskModelStack.Count > 0)
+                return CurrentTask = CheckTaskModelStack.Peek().SubTasks.Find(m => m.Id == taskId);
+            else return CurrentTask = CurrentList.CheckListTasks.Find(m => m.Id == taskId);
         }
 
         #endregion
@@ -118,7 +130,7 @@ namespace CheckListNotes
         }
 
         // Add a new task on the current list in LocalFolder/Data/fileName.bin
-        public static void AddTask(CheckTaskVieModel data)
+        public static void AddTask(CheckTaskViewModel data)
         {
             if (!hasLoaded) ThrowNotInitializeExeption();
             var model = new CheckTaskModel
@@ -126,14 +138,25 @@ namespace CheckListNotes
                 Id = data.Id,
                 Name = data.Name,
                 NotifyOn = data.NotifyOn,
+                SubTasks = data.SubTasks,
                 ReminderTime = data.ReminderTime,
                 ExpirationDate = data.ExpirationDate,
                 CompletedDate = data.CompletedDate,
+                IsTaskGroup = data.IsTaskGroup,
                 IsChecked = data.IsChecked,
                 IsDaily = data.IsDaily
             };
-            CurrentList.CheckListTasks.Add(model);
-            CurrentList.LastId = model.Id;
+
+            if (CheckTaskModelStack.Count > 0)
+            {
+                CheckTaskModelStack.Peek().SubTasks.Add(model);
+                CheckTaskModelStack.Peek().LastSubId = model.Id;
+            }
+            else
+            {
+                CurrentList.CheckListTasks.Add(model);
+                CurrentList.LastId = model.Id;
+            }
             HasChanges = true;
         }
 
@@ -160,18 +183,35 @@ namespace CheckListNotes
         }
 
         // Update the task on the current list in LocalFolder/Data/fileName.bin
-        public static void UpdateTask(CheckTaskVieModel task)
+        public static void UpdateTask(CheckTaskViewModel task)
         {
             if (!hasLoaded) ThrowNotInitializeExeption();
             CurrentTask.Id = task.Id;
             CurrentTask.Name = task.Name;
+            CurrentTask.ToastId = task.ToastId;
             CurrentTask.NotifyOn = task.NotifyOn;
+            CurrentTask.SubTasks = task.SubTasks;
             CurrentTask.ReminderTime = task.ReminderTime;
             CurrentTask.ExpirationDate = task.ExpirationDate;
             CurrentTask.CompletedDate = task.CompletedDate;
+            CurrentTask.IsTaskGroup = task.IsTaskGroup;
             CurrentTask.IsChecked = task.IsChecked;
             CurrentTask.IsDaily = task.IsDaily;
-            CurrentList.CheckListTasks.Update(CurrentTask);
+            if (CheckTaskModelStack.Count > 0)
+                CheckTaskModelStack.Peek().SubTasks.Update(CurrentTask);
+            else CurrentList.CheckListTasks.Update(CurrentTask);
+            HasChanges = true;
+        }
+
+        public static void UpdateCurrentList(CheckListViewModel list)
+        {
+            if (!hasLoaded) ThrowNotInitializeExeption();
+            HasChanges = true;
+        }
+
+        public static void UpdateCurrentTask()
+        {
+            if (!hasLoaded) ThrowNotInitializeExeption();
             HasChanges = true;
         }
 
@@ -189,11 +229,19 @@ namespace CheckListNotes
         }
 
         // Remove the task on the current list in LocalFolder/Data/fileName.bin
-        public static void RemoveTask(CheckTaskVieModel task)
+        public static void RemoveTask(CheckTaskViewModel task)
         {
             if (!hasLoaded) ThrowNotInitializeExeption();
-            var model = CurrentList.CheckListTasks.Find(m => m.Id == task.Id);
-            CurrentList.CheckListTasks.Remove(model);
+            if (CheckTaskModelStack.Count > 0)
+            {
+                var model = CheckTaskModelStack.Peek().SubTasks.Find(m => m.Id == task.Id);
+                CheckTaskModelStack.Peek().SubTasks.Remove(model);
+            }
+            else
+            {
+                var model = CurrentList.CheckListTasks.Find(m => m.Id == task.Id);
+                CurrentList.CheckListTasks.Remove(model);
+            }
             HasChanges = true;
         }
 
@@ -223,9 +271,18 @@ namespace CheckListNotes
         public static string RegisterToast(IToast toast, ToastTypes type)
         {
             if (!hasLoaded) ThrowNotInitializeExeption();
-            var deviceHerper = DependencyService.Get<IDeviceHelper>();
-            if (type == ToastTypes.Alarm) return deviceHerper.RegisterAlarm(toast); 
-            else return deviceHerper.RegisterNotification(toast);
+            if (Device.RuntimePlatform == Device.UWP)
+            {
+                var deviceHerper = DependencyService.Get<IDeviceHelper>();
+                if (type == ToastTypes.Alarm) return deviceHerper.RegisterAlarm(toast);
+                else return deviceHerper.RegisterNotification(toast);
+            }
+            else
+            {
+                var id = $"{Randomizer.Next(1000000)}";
+                CrossLocalNotifications.Current.Show(toast.Title, toast.Body, int.Parse(id), toast.Time);
+                return id;
+            }
         }
 
         public static void RegisterBackgroundTask(IBackgroundTask task)
@@ -238,8 +295,12 @@ namespace CheckListNotes
         public static void UnregisterToast(string toasId)
         {
             if (!hasLoaded) ThrowNotInitializeExeption();
-            var deviceHerper = DependencyService.Get<IDeviceHelper>();
-            deviceHerper.UnregisterToast(toasId);
+            if (Device.RuntimePlatform == Device.UWP)
+            {
+                var deviceHerper = DependencyService.Get<IDeviceHelper>();
+                deviceHerper.UnregisterToast(toasId);
+            }
+            else CrossLocalNotifications.Current.Cancel(int.Parse(toasId));
         }
 
         public static void UnregisterBackgroundTask(string taskName)
@@ -247,6 +308,23 @@ namespace CheckListNotes
             if (!hasLoaded) ThrowNotInitializeExeption();
             var deviceHerper = DependencyService.Get<IDeviceHelper>();
             deviceHerper.UnregisterBackgroundTask(taskName);
+        }
+
+        #endregion
+
+        #region Stack Methods
+
+        public static void Push(CheckTaskViewModel data)
+        {
+            CheckTaskModel model;
+            if (CheckTaskModelStack.Count == 0) model = CurrentList.CheckListTasks.Find(m => m.Id == data.Id);
+            else model = CheckTaskModelStack.Peek().SubTasks.Find(m => m.Id == data.Id);
+            CheckTaskModelStack.Push(model);
+        }
+
+        public static CheckTaskModel Pop()
+        {
+            return CheckTaskModelStack.Pop();
         }
 
         #endregion
@@ -286,7 +364,7 @@ namespace CheckListNotes
             var initFileName = new { initFileName = "Lista de ejemplo" };
             deviceHerper.Write(initFileName, "/init.bin");
 
-            var mainDir = Directory.CreateDirectory("/Data");
+            var mainDir = Directory.CreateDirectory($"{localFolder}/Data");
             
             var IdCount = 1;
             var model = new CheckListTasksModel

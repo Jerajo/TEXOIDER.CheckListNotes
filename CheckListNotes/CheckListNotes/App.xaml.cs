@@ -16,9 +16,10 @@ namespace CheckListNotes
         {
             InitializeComponent();
 
-
             // Initilalize services
-            //Config.Current.AppSettings.Clear();
+            var config = Config.Current;
+            var appTheme = Config.Current.AppTheme;
+            // config.AppSettings.Clear();
             GlobalDataService.Init();
 
             // Set the defoult Page for the aplication
