@@ -106,11 +106,11 @@ namespace CheckListNotes.PageModels
 
         public Task ShowAlert(string title, string message, string cancel) => Application.Current.MainPage.DisplayAlert(title, message, cancel);
 
-        public Task<string> RegisterToast(IToast toast, ToastTypes type)
+        public Task RegisterToast(CheckTaskViewModel task)
         {
             return Task.Run(() => 
             {
-                return GlobalDataService.RegisterToast(toast, type);
+                GlobalDataService.RegisterToast(task);
             });
         }
 

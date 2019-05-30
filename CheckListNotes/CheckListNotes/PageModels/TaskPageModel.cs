@@ -5,6 +5,7 @@ using CheckListNotes.Models;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using PortableClasses.Enums;
+using PortableClasses.Extensions;
 using System.Collections.Generic;
 using CheckListNotes.Models.Interfaces;
 using CheckListNotes.PageModels.Commands;
@@ -68,30 +69,21 @@ namespace CheckListNotes.PageModels
             {
                 try
                 {
-                    if (IsEditing && OldTask.NotifyOn != ToastTypesTime.None)
-                        GlobalDataService.UnregisterToast(OldTask.ToastId);
+                    if (IsEditing && !string.IsNullOrEmpty(OldTask.ToastId) &&
+                        (Task.IsChecked || Task.NotifyOn == OldTask.NotifyOn))
+                        await UnregisterToast(OldTask.ToastId);
 
-                    if (Task.NotifyOn != ToastTypesTime.None)
-                    {
-                        Task.ToastId = $"{Task.Id}-{Randomizer.Next(1000000)}";
-                        var toast = new ToastModel
-                        {
-                            Id = Task.ToastId,
-                            Title = "Recordatorio de tarea pendiente",
-                            Body = Task.Name,
-                            Time = Task.ReminderTime.Value
-                        };
-                        GlobalDataService.RegisterToast(toast, (ToastTypes)Config.Current.NotificationType);
-                    }
-
-                    if (Task.IsTaskGroup) Task.SubTasks = new List<CheckTaskModel>();
+                    if (Task.NotifyOn != ToastTypesTime.None &&
+                        (Task.NotifyOn != OldTask.NotifyOn || 
+                        Task.ExpirationDate != OldTask.ExpirationDate || 
+                        Task.Expiration != OldTask.Expiration)) await RegisterToast(Task);
 
                     if (IsEditing) GlobalDataService.UpdateTask(Task);
                     else GlobalDataService.AddTask(Task);
                 }
                 catch (Exception ex)
                 {
-                    Task.Errors.Add($"Error: {ex.Message} \nLinea");
+                    Task.Errors.Add($"Error: {ex.Message}.\n");
                 }
                 finally
                 {
@@ -151,9 +143,11 @@ namespace CheckListNotes.PageModels
                 Name = task.Name,
                 ToastId = task.ToastId,
                 SubTasks = task.SubTasks,
-                ReminderTime = task.ReminderTime,
                 ExpirationDate = task.ExpirationDate,
+                HasExpiration = task.ExpirationDate != null,
+                Expiration = task.ExpirationDate?.TimeOfDay,
                 CompletedDate = task.CompletedDate,
+                ReminderTime = task.ReminderTime,
                 IsTaskGroup = task.IsTaskGroup,
                 IsChecked = task.IsChecked,
                 NotifyOn = task.NotifyOn,
@@ -168,6 +162,7 @@ namespace CheckListNotes.PageModels
                 Name = Task.Name,
                 ToastId = Task.ToastId,
                 ReminderTime = Task.ReminderTime,
+                HasExpiration = Task.HasExpiration,
                 ExpirationDate = Task.ExpirationDate,
                 CompletedDate = Task.CompletedDate,
                 Expiration = Task.Expiration,
@@ -202,39 +197,93 @@ namespace CheckListNotes.PageModels
 
         private async void TaskPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
+            if (IsLooked || IsDisposing) return;
+
             var name = e.PropertyName;
-            if (await UserHasEdited(name) is bool resoult)
-            {
-                HasChanges = resoult;
+            if (HasChanges = !OldTask.Equals(Task))
                 ((DelegateCommand)Save)?.RaiseCanExecuteChanged();
+
+            if (e.PropertyName == nameof(Task.HasExpiration))
+            {
+                if (!Task.HasExpiration)
+                {
+                    Task.notifyOn = ToastTypesTime.None;
+                    Task.expirationDate = null;
+                    Task.expiration = null;
+                    Task.isDaily = false;
+                    Task.ReminderTime = null;
+                }
+                else
+                {
+                    Task.notifyOn = OldTask.NotifyOn;
+                    Task.expirationDate = OldTask.ExpirationDate ?? DateTime.Now;
+                    Task.expiration = OldTask.Expiration ?? DateTime.Now.TimeOfDay;
+                    Task.isDaily = OldTask.IsDaily;
+                    Task.ReminderTime = OldTask.ReminderTime ?? GetReminderTiem();
+                }
+            }
+
+            if (e.PropertyName == nameof(Task.ExpirationDate))
+            {
+                Task.expirationDate = Task.ExpirationDate.ChangeTime(Task.Expiration.Value);
+                if (Task.NotifyOn != ToastTypesTime.None) Task.ReminderTime = GetReminderTiem();
+            }
+
+
+            if (e.PropertyName == nameof(Task.Expiration))
+            {
+                Task.expirationDate = Task.ExpirationDate.ChangeTime(Task.Expiration.Value);
+                if (Task.NotifyOn != ToastTypesTime.None) Task.ReminderTime = GetReminderTiem();
+            }
+
+            if (e.PropertyName == nameof(Task.IsTaskGroup))
+            {
+                if (Task.IsTaskGroup && Task.SubTasks == null)
+                    Task.SubTasks = new List<CheckTaskModel>();
+                else if (!Task.IsTaskGroup && Task.SubTasks?.Count == 0) Task.SubTasks = null;
+                else if (!Task.IsTaskGroup && Task.SubTasks?.Count > 0)
+                {
+                    var resoult = await ShowAlert("Advertencia", "Si continua eliminara toda la lista de subtareas.", "Continuar", "Cancelar");
+                    if (resoult) Task.SubTasks = new List<CheckTaskModel>();
+                    else Task.IsTaskGroup = true;
+                }
+            }
+
+            if (e.PropertyName == nameof(Task.NotifyOn)) Task.ReminderTime = GetReminderTiem();
+
+            if (e.PropertyName == nameof(Task.IsChecked) && Task.isDaily)
+            {
+                if (Task.IsChecked) Task.ReminderTime = GetReminderTiem();
+                else if (!Task.IsChecked) Task.ReminderTime = GetReminderTiem();
             }
         }
 
-        private Task<bool> UserHasEdited(string propertyName)
+        private DateTime? GetReminderTiem()
         {
-            return System.Threading.Tasks.Task.Run(() => {
-                if (IsDisposing || IsLooked) return false;
-                switch(propertyName)
-                {
-                    case nameof(Task.Name):
-                        return (OldTask.Name != Task.Name && !string.IsNullOrEmpty(Task.Name));
-                    case nameof(Task.HasExpiration):
-                        return (OldTask.HasExpiration != Task.HasExpiration);
-                    case nameof(Task.ExpirationDate):
-                        return (OldTask.ExpirationDate != Task.ExpirationDate);
-                    case nameof(Task.Expiration):
-                        return (OldTask.Expiration != Task.Expiration);
-                    case nameof(Task.IsChecked):
-                        return(OldTask.IsChecked != Task.IsChecked);
-                    case nameof(Task.IsDaily):
-                        return (OldTask.IsDaily != Task.IsDaily);
-                    case nameof(Task.ReminderTime):
-                        return (OldTask.ReminderTime != Task.ReminderTime);
-                    case nameof(Task.IsTaskGroup):
-                        return (OldTask.IsTaskGroup != Task.IsTaskGroup);
-                    default: return HasChanges;
-                }
-            });
+            switch (Task.NotifyOn)
+            {
+                case ToastTypesTime.AHourBefore:
+                    if (Task.IsChecked) return Task.ExpirationDate?.AddDays(1).AddHours(-1);
+                    else return Task.ExpirationDate?.AddHours(-1);
+                case ToastTypesTime.HalfHourBefore:
+                    if (Task.IsChecked) return Task.ExpirationDate?.AddDays(1).AddMinutes(-30);
+                    else return Task.ExpirationDate?.AddMinutes(-30);
+                case ToastTypesTime.FifteenMinutesBefore:
+                    if (Task.IsChecked) return Task.ExpirationDate?.AddDays(1).AddMinutes(-15);
+                    else return Task.ExpirationDate?.AddMinutes(-15);
+                case ToastTypesTime.FifteenMinutesAfter:
+                    if (Task.IsChecked) return Task.ExpirationDate?.AddDays(1).AddMinutes(15);
+                    else return Task.ExpirationDate?.AddMinutes(15);
+                case ToastTypesTime.HalfHourAfter:
+                    if (Task.IsChecked) return Task.ExpirationDate?.AddDays(1).AddMinutes(30);
+                    else return Task.ExpirationDate?.AddMinutes(30);
+                case ToastTypesTime.AHourAfter:
+                    if (Task.IsChecked) return Task.ExpirationDate?.AddDays(1).AddHours(1);
+                    else return Task.ExpirationDate?.AddHours(1);
+                case ToastTypesTime.None:
+                default:
+                    return null;
+            }
         }
 
         public Task RefreshUI() => System.Threading.Tasks.Task.Run(() => Init(GlobalDataService.CurrentTask));

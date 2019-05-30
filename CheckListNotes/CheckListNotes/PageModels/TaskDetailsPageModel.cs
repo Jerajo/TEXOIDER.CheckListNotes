@@ -125,9 +125,10 @@ namespace CheckListNotes.PageModels
             {
                 Id = task.Id,
                 Name = task.Name,
-                ExpirationDate = task.ExpirationDate,
-                CompletedDate = task.CompletedDate,
                 NotifyOn = task.NotifyOn,
+                ExpirationDate = task.ExpirationDate,
+                HasExpiration = task.ExpirationDate != null,
+                CompletedDate = task.CompletedDate,
                 ReminderTime = task.ReminderTime,
                 IsChecked = task.IsChecked,
                 IsDaily = task.IsDaily
