@@ -115,53 +115,6 @@ namespace CheckListNotes.UWP
 
         #endregion
     }
-
-    #region Auxiliary Class
-
-    internal static class BackgroundDataTemplate
-    {
-        #region Out Of Process Background Tasks
-
-        public static readonly string OutOfProcessGroupName = 
-            "CeckListNotesAlarms";
-
-        public static readonly string OutOfProcessGroupId = 
-            "890fd9-342u3-42342-f4sg53-dh4s5hgf";
-
-        public static readonly string OutOfProcessNotificationName = 
-            "Notification";
-
-        public static readonly string OutOfProcessNotificationEntryPoint =
-            "CeckListNotes.Alarms.Notification";
-
-        public static readonly string OutOfProcessResetTasksName =
-            "ResetDailyTasks";
-
-        public static readonly string OutOfProcessResetTasksEntryPoint =
-            "CeckListNotes.Alarms.ResetDailyTasks";
-
-        #endregion
-
-        #region Out Of Process Background Tasks
-
-        public static readonly string InProcessGroupName = 
-            "CeckListNotesTriggers";
-
-        public static readonly string InProcessGroupId = 
-            "890fd9-342u3-42342-f4sg53-ji690m8n";
-
-        public static readonly string InProcessTaskUpdateName =
-            "UpdateTasks";
-
-        public static readonly string ResetDailyTasksTimeTriggerName =
-            "ResetDailyTasks";
-        public static readonly string ResetDailyTasksSystemTriggerName =
-            "ResetDailyTasks";
-
-        #endregion
-    }
-
-    #endregion
 }
 
 #region Implementation
