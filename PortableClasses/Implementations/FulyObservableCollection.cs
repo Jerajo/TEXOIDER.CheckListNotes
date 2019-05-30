@@ -43,6 +43,12 @@ namespace PortableClasses.Implementations
             base.OnCollectionChanged(e);
         }
 
+        public void AddRange(IEnumerable<T> enumerator)
+        {
+            if (enumerator == null) throw new ArgumentNullException(nameof(enumerator));
+            foreach (T item in enumerator) Add(item);
+        }
+
         protected override void ClearItems()
         {
             foreach (T item in Items)
@@ -120,5 +126,4 @@ namespace PortableClasses.Implementations
     }
 
     #endregion
-
 }
