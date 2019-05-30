@@ -57,6 +57,20 @@ namespace CheckListNotes.Pages.UserControls
 
         #endregion
 
+        #region Events
+
+        private async void SwitchToggled(object sender, ToggledEventArgs e)
+        {
+            SwitchIsCompleted.IsEnabled = false;
+            SetValue(IsLockedProperty, true);
+            this.ForceUpdateSize();
+            await Task.Delay(TimeSpan.FromSeconds(1));
+            SetValue(IsLockedProperty, false);
+            SwitchIsCompleted.IsEnabled = true;
+        }
+
+        #endregion
+
         #region Auxiliary Methods
 
         private async void Resice()
@@ -128,14 +142,6 @@ namespace CheckListNotes.Pages.UserControls
             var reasonFor = (SelectedFor)newValue;
             var binging = bindable as TaskCell;
             if (reasonFor == SelectedFor.Create) binging.ResetAnimations();
-        }
-
-        private async void SwitchToggled(object sender, ToggledEventArgs e)
-        {
-            this.IsEnabled = false;
-            this.ForceUpdateSize();
-            await Task.Delay(TimeSpan.FromMilliseconds(300));
-            this.IsEnabled = true;
         }
 
         #endregion

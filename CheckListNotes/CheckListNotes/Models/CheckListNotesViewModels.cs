@@ -4,9 +4,7 @@ using Xamarin.Forms;
 using PropertyChanged;
 using PortableClasses.Enums;
 using System.ComponentModel;
-using PortableClasses.Extensions;
 using System.Collections.Generic;
-using PortableClasses.Implementations;
 
 namespace CheckListNotes.Models
 {
@@ -15,11 +13,12 @@ namespace CheckListNotes.Models
     {
         #region Atributes
 
-        private TimeSpan? expiration;
-        private DateTime? expirationDate;
         public bool isAnimating = false;
+        internal ToastTypesTime notifyOn;
         private string selectedNotificationTimeIndex;
-        private ToastTypesTime notifyOn;
+        internal DateTime? expirationDate;
+        internal TimeSpan? expiration;
+        internal bool isDaily;
 
         #endregion
 
@@ -29,95 +28,22 @@ namespace CheckListNotes.Models
         public string Name { get; set; }
         public int LastSubId { get; set; }
         public string ToastId { get; set; }
-        public DateTime? ReminderTime { get; set; }
-        public DateTime? CompletedDate { get; set; }
-        public List<CheckTaskModel> SubTasks { get; set; }
+        public bool IsTaskGroup { get; set; }
         public bool IsChecked { get => IsCompleted; set => IsCompleted = value; }
-        public bool IsDaily { get; set; }
-        public bool IsTaskGroup
-        {
-            get => (SubTasks != null);
-            set
-            {
-                if (value && SubTasks == null)
-                    SubTasks = new List<CheckTaskModel>();
-                else if (!value) SubTasks = null;
-            }
-        }
-        public DateTime? ExpirationDate
-        {
-            get => expirationDate;
-            set
-            {
-                if (value != null && expiration != null) expirationDate = value?.ChangeTime(expiration.Value);
-                else expirationDate = value;
-            }
-        }
-        public TimeSpan? Expiration
-        {
-            get => expiration;
-            set
-            {
-                expiration = value;
-                if (expiration == null) ExpirationDate = null;
-                else if (ExpirationDate == null) ExpirationDate = DateTime.Now;
-                else ExpirationDate = expirationDate?.Date;
-            }
-        }
-        public ToastTypesTime NotifyOn
-        {
-            get => (ReminderTime != null) ? notifyOn : ToastTypesTime.None;
-            set
-            {
-                notifyOn = value;
-                switch (notifyOn)
-                {
-                    case ToastTypesTime.AHourBefore:
-                        ReminderTime = ExpirationDate?.AddHours(-1);
-                        break;
-                    case ToastTypesTime.HalfHourBefore:
-                        ReminderTime = ExpirationDate?.AddMinutes(-30);
-                        break;
-                    case ToastTypesTime.FifteenMinutesBefore:
-                        ReminderTime = ExpirationDate?.AddMinutes(-15);
-                        break;
-                    case ToastTypesTime.FifteenMinutesAfter:
-                        ReminderTime = ExpirationDate?.AddMinutes(15);
-                        break;
-                    case ToastTypesTime.HalfHourAfter:
-                        ReminderTime = ExpirationDate?.AddHours(1);
-                        break;
-                    case ToastTypesTime.AHourAfter:
-                        ReminderTime = ExpirationDate?.AddMinutes(30);
-                        break;
-                    case ToastTypesTime.None:
-                    default:
-                        ReminderTime = null;
-                        break;
-                }
-            }
-        }
+        public DateTime? ExpirationDate { get => expirationDate; set => expirationDate = value; }
+        public TimeSpan? Expiration { get => expiration; set => expiration = value; }
+        public ToastTypesTime NotifyOn { get => notifyOn; set => notifyOn = value; }
+        public bool IsDaily { get => isDaily; set => isDaily = value; }
+        public List<CheckTaskModel> SubTasks { get; set; }
+        public DateTime? CompletedDate { get; set; }
+        public DateTime? ReminderTime { get; set; }
+        public bool HasExpiration { get; set; }
 
         #endregion
 
         #region Funtion Atributes
 
         public List<string> Errors { get; set; } = new List<string>();
-
-        public bool HasExpiration
-        {
-            get => (ExpirationDate != null);
-            set
-            {
-                if (value && expiration == null) Expiration = DateTime.Now.TimeOfDay;
-                else if (!value && expiration != null)
-                {
-                    NotifyOn = ToastTypesTime.None;
-                    Expiration = null;
-                    IsDaily = false;
-                }
-            }
-        }
 
         private bool IsCompleted
         {
@@ -392,6 +318,41 @@ namespace CheckListNotes.Models
         public Color PendientPercentageColor //TODO:
         {
             get => Color.FromHex("#888");
+        }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Evalua la igualdad de dos listas.
+        /// </summary>
+        /// <param name="obj">Lista a ser evaluada.</param>
+        /// <returns>Retorna verdadero o falso segun el resultado.</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType()) return false;
+
+            var value = obj as CheckTaskViewModel;
+
+            if (value.Name != this.Name) return false;
+            if (value.ToastId != this.ToastId) return false;
+            if (value.NotifyOn != this.NotifyOn) return false;
+            if (value.LastSubId != this.LastSubId) return false;
+            if (value.IsTaskGroup != this.IsTaskGroup) return false;
+            if (value.ExpirationDate != this.ExpirationDate) return false;
+            if (value.CompletedDate != this.CompletedDate) return false;
+            if (value.ReminderTime != this.ReminderTime) return false;
+            if (value.Expiration != this.Expiration) return false;
+            if (value.IsChecked != this.IsChecked) return false;
+            if (value.IsDaily != this.IsDaily) return false;
+
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         #endregion
