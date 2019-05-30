@@ -31,6 +31,7 @@
         <Extension Category="windows.backgroundTasks" EntryPoint="CheckListNotes.Tasks.ResetDailyTasks">
           <BackgroundTasks>
             <Task Type="systemEvent" />
+            <Task Type="timer" />
           </BackgroundTasks>
         </Extension>
         <Extension Category="windows.backgroundTasks" EntryPoint="CheckListNotes.Tasks.Notification">

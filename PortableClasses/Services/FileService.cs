@@ -33,44 +33,32 @@ namespace PortableClasses.Services
 
         private object ReadGIF()
         {
-            try
-            {
-                System.IO.Stream fileStream = System.IO.File.Open(Path, System.IO.FileMode.Open);
-                return fileStream;
-            }
-            catch (Exception ex) { throw ex; }
+            System.IO.Stream fileStream = System.IO.File.Open(Path, System.IO.FileMode.Open);
+            return fileStream;
         }
 
         private object ReadJSON()
         {
-            try
+            using (System.IO.Stream fileStream = System.IO.File.Open(Path, System.IO.FileMode.Open))
             {
-                using (System.IO.Stream fileStream = System.IO.File.Open(Path, System.IO.FileMode.Open))
-                {
-                    System.IO.StreamReader reader = new System.IO.StreamReader(fileStream, Encoding.UTF8);
+                System.IO.StreamReader reader = new System.IO.StreamReader(fileStream, Encoding.UTF8);
 
-                    return (JObject)JToken.ReadFrom(new JsonTextReader(reader));
-                }
+                return (JObject)JToken.ReadFrom(new JsonTextReader(reader));
             }
-            catch (Exception ex) { throw ex; }
         }
 
         private object ReadBIN()
         {
-            try
+            using (System.IO.Stream fileStream = System.IO.File.Open(Path, System.IO.FileMode.Open))
             {
-                using (System.IO.Stream fileStream = System.IO.File.Open(Path, System.IO.FileMode.Open))
-                {
-                    System.IO.BinaryReader reader = new System.IO.BinaryReader(fileStream, Encoding.UTF8);
+                System.IO.BinaryReader reader = new System.IO.BinaryReader(fileStream, Encoding.UTF8);
 
-                    byte[] encryptedText = reader.ReadBytes((int)reader.BaseStream.Length);
-                    byte[] deEncryptText = SecurityProtocolService.DecryptTripleDES(encryptedText);
-                    string desEncryptedText = Encoding.UTF8.GetString(deEncryptText);
+                byte[] encryptedText = reader.ReadBytes((int)reader.BaseStream.Length);
+                byte[] deEncryptText = SecurityProtocolService.DecryptTripleDES(encryptedText);
+                string desEncryptedText = Encoding.UTF8.GetString(deEncryptText);
 
-                    return Value = (JObject)JToken.Parse(desEncryptedText);
-                }
+                return Value = (JObject)JToken.Parse(desEncryptedText);
             }
-            catch (Exception ex) { throw ex; }
         }
 
         #endregion
@@ -79,44 +67,32 @@ namespace PortableClasses.Services
 
         private void WriteGIF()
         {
-            try
+            using (System.IO.StreamWriter file = System.IO.File.CreateText(Path))
             {
-                using (System.IO.StreamWriter file = System.IO.File.CreateText(Path))
-                {
-                    JsonSerializer serializer = new JsonSerializer();
-                    serializer.Serialize(file, Value);
-                }
+                JsonSerializer serializer = new JsonSerializer();
+                serializer.Serialize(file, Value);
             }
-            catch (Exception ex) { throw ex; }
         }
 
         private void WriteJSON()
         {
-            try
+            using (System.IO.StreamWriter file = System.IO.File.CreateText(Path))
             {
-                using (System.IO.StreamWriter file = System.IO.File.CreateText(Path))
-                {
-                    JsonSerializer serializer = new JsonSerializer();
-                    serializer.Serialize(file, Value);
-                }
+                JsonSerializer serializer = new JsonSerializer();
+                serializer.Serialize(file, Value);
             }
-            catch (Exception ex) { throw ex; }
         }
 
         private void WriteBIN()
         {
-            try
+            using (System.IO.Stream fileStream = System.IO.File.Open(Path, System.IO.FileMode.Create))
             {
-                using (System.IO.Stream fileStream = System.IO.File.Open(Path, System.IO.FileMode.Create))
-                {
-                    System.IO.BinaryWriter writer = new System.IO.BinaryWriter(fileStream, Encoding.UTF8);
-                    var text = ((JObject)Value).ToString();
+                System.IO.BinaryWriter writer = new System.IO.BinaryWriter(fileStream, Encoding.UTF8);
+                var text = ((JObject)Value).ToString();
 
-                    byte[] stringInBytes = Encoding.UTF8.GetBytes(text);
-                    writer.Write(SecurityProtocolService.EncryptTripleDES(stringInBytes));
-                }
+                byte[] stringInBytes = Encoding.UTF8.GetBytes(text);
+                writer.Write(SecurityProtocolService.EncryptTripleDES(stringInBytes));
             }
-            catch (Exception ex) { throw ex; }
         }
 
         #endregion
@@ -127,6 +103,8 @@ namespace PortableClasses.Services
         {
             return this.MemberwiseClone();
         }
+
+        public T Read<T>(string path = null) => ((JObject)Read(path)).ToObject<T>();
 
         public object Read(string path = null)
         {

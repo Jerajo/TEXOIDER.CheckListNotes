@@ -1,10 +1,12 @@
 ﻿using System;
 using System.IO;
 using Xamarin.Forms;
-using Newtonsoft.Json;
 using Xamarin.Essentials;
+using Newtonsoft.Json.Linq;
 using CheckListNotes.Models;
 using PortableClasses.Enums;
+using System.Threading.Tasks;
+using PortableClasses.Services;
 using Plugin.LocalNotifications;
 using PortableClasses.Extensions;
 using System.Collections.Generic;
@@ -19,62 +21,71 @@ namespace CheckListNotes
 
         private static bool hasLoaded = false;
         private static bool hasChanges = false;
+        private static readonly string storageFolder = FileSystem.AppDataDirectory;
+        private static Random randomizer = new Random();
 
         #endregion
 
         public static void Init()
         {
             IsLoading = true;
-            
-            Device.BeginInvokeOnMainThread(async () => // Load Theme
-            {
-                using (var stream = await FileSystem.OpenAppPackageFileAsync($"{Config.Current.Theme}.json"))
-                {
-                    using (var reader = new StreamReader(stream))
-                    {
-                        var fileContents = await reader.ReadToEndAsync();
-                        Config.Current.AppTheme = JsonConvert.DeserializeObject<AppTheme>(fileContents);
-                    }
-                }
-            });
 
             var deviceHerper = DependencyService.Get<IDeviceHelper>();
             if (IsFirtsInit()) CreateDefoultFiles();
-
-            ListOfList = deviceHerper.GetAllLists(deviceHerper.GetAllLists());
-
+            //TODO: reduce ran consumtion
+            ListOfList = new List<CheckListTasksModel>(GetAllLists(GetUserDataFileNames()));
             CheckTaskModelStack = new Stack<CheckTaskModel>();
-
-            Randomizer = new Random();
 
             hasLoaded = !(IsLoading = false);
         }
 
         #region SETTERS AND GETTERS
 
-        public static List<CheckListTasksModel> ListOfList { get; private set; }
-
-        public static Stack<CheckTaskModel> CheckTaskModelStack { get; set; }
-
-        public static CheckListTasksModel CurrentList { get; private set; }
-
-        public static CheckTaskModel CurrentTask { get; private set; }
-
+        /// <summary>
+        /// Indicate whether the data is loading or not.
+        /// </summary>
         public static bool IsLoading { get; private set; }
 
+        /// <summary>
+        /// Storage basic information of all user lists.
+        /// </summary>
+        public static List<CheckListTasksModel> ListOfList { get; private set; }
+
+        /// <summary>
+        /// Storage the list of sub-task inside a list.
+        /// </summary>
+        public static Stack<CheckTaskModel> CheckTaskModelStack { get; private set; }
+
+        /// <summary>
+        /// Storage the last requested list.
+        /// </summary>
+        public static CheckListTasksModel CurrentList { get; private set; }
+
+        /// <summary>
+        /// Storage the last requested task.
+        /// </summary>
+        public static CheckTaskModel CurrentTask { get; private set; }
+
+        /// <summary>
+        /// Storage the last requested list name.
+        /// </summary>
         public static string LastCheckListName { get; private set; }
 
+        /// <summary>
+        /// Storage the last requested task id.
+        /// </summary>
         public static int LastCurrentTaskId { get; private set; }
 
-        public static Random Randomizer { get; private set; }
-
+        /// <summary>
+        /// Indicate whether the data has changes or not. Set to true to save current changes.
+        /// </summary>
         public static bool HasChanges
         {
             get => hasChanges;
-            private set
+            set
             {
-                if (value) SaveCahnges();
                 hasChanges = value;
+                if (value) SaveCahnges();
             }
         }
 
@@ -85,11 +96,10 @@ namespace CheckListNotes
         #region Get Methods
 
         // Get all list on LocalFolder/Data/fileName.bin
-        public static List<CheckListTasksModel> GetAllLists()
+        public static IEnumerable<CheckListTasksModel> GetAllLists()
         {
             if (!hasLoaded) ThrowNotInitializeExeption();
-            var deviceHerper = DependencyService.Get<IDeviceHelper>();
-            return ListOfList = deviceHerper.GetAllLists(deviceHerper.GetAllLists());
+            return ListOfList = new List<CheckListTasksModel>(GetAllLists(GetUserDataFileNames()));
         }
 
         // Get current list by name
@@ -173,7 +183,13 @@ namespace CheckListNotes
             var model = ListOfList.Find(m => m.Name == list.OldName);
             var index = ListOfList.IndexOf(model);
 
-            if (!string.IsNullOrEmpty(list.OldName) && list.NameHasChange) RenameList(list);
+            if (!string.IsNullOrEmpty(list.OldName) && list.NameHasChange)
+            {
+                var oldPath = $"{storageFolder}/Data/{list.OldName}.bin";
+                var newPath = $"{storageFolder}/Data/{list.Name}.bin";
+                File.Move(oldPath, newPath);
+            }
+
             model.LastId = list.LastId;
             model.Name = list.Name;
             model.CheckListTasks = list.CheckListTasks;
@@ -203,7 +219,7 @@ namespace CheckListNotes
             HasChanges = true;
         }
 
-        public static void UpdateCurrentList(CheckListViewModel list)
+        public static void UpdateCurrentList()
         {
             if (!hasLoaded) ThrowNotInitializeExeption();
             HasChanges = true;
@@ -225,7 +241,7 @@ namespace CheckListNotes
             if (!hasLoaded) ThrowNotInitializeExeption();
             var list = ListOfList.Find(m => m.Name == listName);
             ListOfList.Remove(list);
-            Remove(listName);
+            File.Delete($"{storageFolder}/{listName}.bin");
         }
 
         // Remove the task on the current list in LocalFolder/Data/fileName.bin
@@ -250,7 +266,7 @@ namespace CheckListNotes
         {
             if (!hasLoaded) ThrowNotInitializeExeption();
             ListOfList.Remove(CurrentList);
-            Remove(CurrentList.Name);
+            File.Delete($"{storageFolder}/{CurrentList.Name}.bin");
             CurrentList.CheckListTasks.Clear();
             CurrentList = null;
         }
@@ -268,39 +284,50 @@ namespace CheckListNotes
 
         #region Background Tasks
 
-        public static string RegisterToast(IToast toast, ToastTypes type)
+        public static void RegisterToast(CheckTaskViewModel task)
         {
             if (!hasLoaded) ThrowNotInitializeExeption();
-            if (Device.RuntimePlatform == Device.UWP)
+            if (task.ReminderTime <= DateTime.Now) throw new Exception($"No puede programar un recordatorio para una fecha anterior a la actual: {DateTime.Now.ToString()}.");
+
+            var toast = new ToastModel
             {
-                var deviceHerper = DependencyService.Get<IDeviceHelper>();
-                if (type == ToastTypes.Alarm) return deviceHerper.RegisterAlarm(toast);
-                else return deviceHerper.RegisterNotification(toast);
-            }
-            else
+                Id = task.ToastId = $"{task.Id}-{randomizer.Next(1000000)}",
+                Title = "Recordatorio de tarea pendiente",
+                Body = task.Name,
+                Time = task.ReminderTime.Value,
+                Type = (ToastTypes)Config.Current.NotificationType
+            };
+
+            if (Device.RuntimePlatform == Device.UWP) 
+                (new WindowsToastService(toast)).ProgramToast();
+            else if (Device.RuntimePlatform == Device.Android)
             {
-                var id = $"{Randomizer.Next(1000000)}";
+                var id = $"{randomizer.Next(1000000)}";
                 CrossLocalNotifications.Current.Show(toast.Title, toast.Body, int.Parse(id), toast.Time);
-                return id;
             }
         }
 
         public static void RegisterBackgroundTask(IBackgroundTask task)
         {
             if (!hasLoaded) ThrowNotInitializeExeption();
-            var deviceHerper = DependencyService.Get<IDeviceHelper>();
-            deviceHerper.RegisterBackgroundTask(task);
+            if (Device.RuntimePlatform == Device.UWP)
+            {
+                var deviceHerper = DependencyService.Get<IDeviceHelper>();
+                deviceHerper.RegisterBackgroundTask(task);
+            }
+            else if (Device.RuntimePlatform == Device.Android)
+            {
+
+            }
         }
 
         public static void UnregisterToast(string toasId)
         {
             if (!hasLoaded) ThrowNotInitializeExeption();
             if (Device.RuntimePlatform == Device.UWP)
-            {
-                var deviceHerper = DependencyService.Get<IDeviceHelper>();
-                deviceHerper.UnregisterToast(toasId);
-            }
-            else CrossLocalNotifications.Current.Cancel(int.Parse(toasId));
+                (new WindowsToastService()).CancelProgramedToast(toasId);
+            else if (Device.RuntimePlatform == Device.Android)
+                CrossLocalNotifications.Current.Cancel(int.Parse(toasId));
         }
 
         public static void UnregisterBackgroundTask(string taskName)
@@ -333,39 +360,69 @@ namespace CheckListNotes
 
         #region Private Methos
 
+        #region Read
+
+        private static string[] GetUserDataFileNames()
+        {
+            return Directory.GetFiles($"{storageFolder}/Data/", "*.bin");
+        }
+
+        private static IEnumerable<CheckListTasksModel> GetAllLists(string[] pathToFiles)
+        {
+            if (pathToFiles.Length <= 0) yield return default;
+            foreach(var filePaht in pathToFiles)
+                yield return Read<CheckListTasksModel>(filePaht).Result;
+        }
+
+        private static Task<T> Read<T>(string pathToFile)
+        {
+            using(var fileService = new FileService())
+            {
+                return Task.Run(() => 
+                {
+                    return fileService.Read<T>(pathToFile);
+                }).TryTo();
+            }
+        }
+
+        #endregion
+
+        #region Write
+
         // Save the current list on LocalFolder/Data/fileName.bin
-        private static void SaveCahnges()
+        public static void SaveCahnges()
         {
             if (CurrentList == null) throw new NullReferenceException($"Error can't save the atribute: {nameof(CurrentList)} because his value is null.");
-            var deviceHerper = DependencyService.Get<IDeviceHelper>();
-            deviceHerper.Write(CurrentList);
-            HasChanges = false;
+            Write(CurrentList, $"{storageFolder}/Data/{CurrentList.Name}.bin").Wait();
+            hasChanges = false;
         }
 
-        // Remove the current list on LocalFolder/Data/fileName.bin
-        private static void Remove(string listName)
+        private static Task Write(object data, string pathToFile)
         {
-            var deviceHerper = DependencyService.Get<IDeviceHelper>();
-            deviceHerper.Delete(listName);
+            using(var fileService = new FileService())
+            {
+                return Task.Run(() => { 
+                    var document = JToken.FromObject(data);
+                    fileService.Write(document, pathToFile);
+                }).TryTo();
+            }
         }
 
-        // Rename the current list on LocalFolder/Data/fileName.bin
-        private static void RenameList(CheckListViewModel list)
-        {
-            var deviceHerper = DependencyService.Get<IDeviceHelper>();
-            deviceHerper.Rename(list.OldName, list.Name);
-        }
+        #endregion
+
+        #region Utility
 
         private static void CreateDefoultFiles()
         {
             var deviceHerper = DependencyService.Get<IDeviceHelper>();
             var localFolder = FileSystem.AppDataDirectory;
 
-            var initFileName = new { initFileName = "Lista de ejemplo" };
-            deviceHerper.Write(initFileName, "/init.bin");
+            var initFile = new InitFile { LastResetTime = DateTime.Now };
+
+            Write(initFile, $"{storageFolder}/init.bin").Wait();
 
             var mainDir = Directory.CreateDirectory($"{localFolder}/Data");
-            
+
             var IdCount = 1;
             var model = new CheckListTasksModel
             {
@@ -401,24 +458,22 @@ namespace CheckListNotes
                 LastId = IdCount
             };
 
-            deviceHerper.Write(model);
+            Write(model, $"{storageFolder}/{model.Name}.bin");
         }
 
-        //TODO: Implement validation for android
-        private static bool IsFirtsInit()
-        {
-            var deviceHerper = DependencyService.Get<IDeviceHelper>();
-            var dir = Directory.GetDirectories(FileSystem.AppDataDirectory);
-            return (dir?.Length <= 0);
-        }
+        //TODO: Implement storage folder for android
+        private static bool IsFirtsInit() =>
+            (Directory.GetDirectories(storageFolder)?.Length <= 0);
 
         // Throw a not initialized exception if the method Init() hasn't been call
         private static void ThrowNotInitializeExeption()
         {
             throw new TypeInitializationException(
-                nameof(GlobalDataService), 
+                nameof(GlobalDataService),
                 new Exception("Error before using this service it needs to be initialize by calling the Init() method on the Main App class."));
         }
+
+        #endregion
 
         #endregion
     }
