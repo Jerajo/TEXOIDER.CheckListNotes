@@ -24,7 +24,7 @@ namespace CheckListNotes.Models
 
         #region Base Atributes
 
-        public int Id { get; set; }
+        public string Id { get; set; }
         public string Name { get; set; }
         public int LastSubId { get; set; }
         public string ToastId { get; set; }
@@ -34,10 +34,11 @@ namespace CheckListNotes.Models
         public TimeSpan? Expiration { get => expiration; set => expiration = value; }
         public ToastTypesTime NotifyOn { get => notifyOn; set => notifyOn = value; }
         public bool IsDaily { get => isDaily; set => isDaily = value; }
-        public List<CheckTaskModel> SubTasks { get; set; }
         public DateTime? CompletedDate { get; set; }
         public DateTime? ReminderTime { get; set; }
         public bool HasExpiration { get; set; }
+        public int CompletedTasks { get; set; }
+        public int TotalTasks { get; set; }
 
         #endregion
 
@@ -115,11 +116,7 @@ namespace CheckListNotes.Models
 
         #region Auxiliary Atributes
 
-        public bool IsAnimating 
-        {
-            get => isAnimating;
-            set => isAnimating = value;
-        }
+        public bool IsAnimating { get => isAnimating; set => isAnimating = value; }
 
         public SelectedFor SelectedReason { get; set; }
 
@@ -171,65 +168,7 @@ namespace CheckListNotes.Models
             }
         }
 
-        public int PendientTasks
-        {
-            get
-            {
-                if (SubTasks != null)
-                    return SubTasks.Where(m => !m.IsChecked).ToList().Count;
-                else return 0;
-            }
-        }
-
-        public double PendientPercentage
-        {
-            get
-            {
-                if (SubTasks != null)
-                {
-                    if (SubTasks.Count <= 0) return 1;
-                    var pendientTask = Convert.ToDouble(PendientTasks);
-                    var completedTask = Convert.ToDouble(CompletedTasks);
-                    var allTask = pendientTask + completedTask;
-                    return (pendientTask / allTask) * 10f;
-                }
-                else return 1;
-            }
-        }
-
-        public int CompletedTasks
-        {
-            get
-            {
-                if (SubTasks != null)
-                    return SubTasks.Where(m => m.IsChecked).ToList().Count;
-                else return 0;
-            }
-        }
-
-        public double CompletedPercentage
-        {
-            get
-            {
-                if (SubTasks != null)
-                {
-                    if (SubTasks.Count <= 0) return 0;
-                    var pendientTask = Convert.ToDouble(PendientTasks);
-                    var completedTask = Convert.ToDouble(CompletedTasks);
-                    var allTask = pendientTask + completedTask;
-                    return (completedTask / allTask) * 10f;
-                }
-                else return 0;
-            }
-        }
-
-        public string Detail
-        {
-            get
-            {
-                return $"Tareas finalizadas: {CompletedTasks} | Tareas pendientes: {PendientTasks}";
-            }
-        }
+        public string Detail { get => $"Tareas finalizadas: {CompletedTasks} / {TotalTasks}"; }
 
         public bool IsValid
         {
@@ -258,9 +197,32 @@ namespace CheckListNotes.Models
 
         #endregion
 
-        #region Theme
+        #region Visuals
 
-        public Color AppFontColor
+        public double PendientPercentage
+        {
+            get
+            {
+                if (TotalTasks <= 0 || CompletedTasks <= 0) return 1;
+                else if (TotalTasks == CompletedTasks) return 0;
+                var totalTasks = Convert.ToDouble(TotalTasks);
+                var completedTasks = Convert.ToDouble(CompletedTasks);
+                return ((totalTasks - completedTasks) / totalTasks) * 10d;
+            }
+        }
+
+        public double CompletedPercentage
+        {
+            get
+            {
+                if (TotalTasks <= 0 || CompletedTasks <= 0) return 0;
+                double totalTasks = Convert.ToDouble(TotalTasks);
+                var completedTask = Convert.ToDouble(CompletedTasks);
+                return (completedTask / totalTasks) * 10d;
+            }
+        }
+
+        public Color AppFontColor 
         {
             get => Color.FromHex(Config.Current.AppTheme?.AppFontColor);
         }
@@ -350,10 +312,7 @@ namespace CheckListNotes.Models
             return true;
         }
 
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
+        public override int GetHashCode() => base.GetHashCode();
 
         #endregion
     }
@@ -361,13 +320,14 @@ namespace CheckListNotes.Models
     [AddINotifyPropertyChangedInterfaceAttribute]
     public class CheckListViewModel : BaseModel
     {
+        #region Atributes
+
         public bool isAnimating = false;
         public SelectedFor selectedReason = SelectedFor.Create;
 
-        public CheckListViewModel()
-        {
-            Config.Current.PropertyChanged += ConfigChanged;
-        }
+        #endregion
+
+        public CheckListViewModel() => Config.Current.PropertyChanged += ConfigChanged;
 
         #region Base Atributes
 
@@ -375,93 +335,24 @@ namespace CheckListNotes.Models
         public bool IsTask { get; set; }
         public string Name { get; set; }
         public string OldName { get; set; }
-        public int SelectedTabIndex { get; set; }
-        public List<CheckTaskModel> CheckListTasks { get; set; }
+        public int CompletedTasks { get; set; }
+        public int TotalTasks { get; set; }
 
         #endregion
 
         #region Funtion Atributes
 
-        public bool IsAnimating
-        {
-            get => isAnimating;
-            set => isAnimating = value;
-        }
+        public bool IsAnimating { get => isAnimating; set => isAnimating = value; }
 
-        public SelectedFor SelectedReason
-        {
-            get => selectedReason;
-            set => selectedReason = value;
-        }
+        public SelectedFor SelectedReason { get => selectedReason; set => selectedReason = value; }
 
-        public int CompletedTasks
-        {
-            get
-            {
-                if (CheckListTasks != null)
-                    return CheckListTasks.Where(m => m.IsChecked).ToList().Count;
-                else return 0;
-            }
-        }
+        public string Detail { get => $"Tareas finalizadas: {CompletedTasks} / {TotalTasks}"; }
 
-        public int PendientTasks
-        {
-            get
-            {
-                if (CheckListTasks != null)
-                    return CheckListTasks.Where(m => !m.IsChecked).ToList().Count;
-                else return 0;
-            }
-        }
-
-        public string Detail
-        {
-            get
-            {
-                return $"Tareas finalizadas: {CompletedTasks} | Tareas pendientes: {PendientTasks}";
-            }
-        }
-
-        public double PendientPercentage
-        {
-            get
-            {
-                if (CheckListTasks != null)
-                {
-                    if (CheckListTasks.Count <= 0) return 1;
-                    var pendientTask = Convert.ToDouble(PendientTasks);
-                    var completedTask = Convert.ToDouble(CompletedTasks);
-                    var allTask = pendientTask + completedTask;
-                    return (pendientTask / allTask) * 10f;
-                }
-                else return 1;
-            }
-        }
-
-        public double CompletedPercentage
-        {
-            get
-            { 
-                if (CheckListTasks != null)
-                {
-                    if (CheckListTasks.Count <= 0) return 0;
-                    var pendientTask = Convert.ToDouble(PendientTasks);
-                    var completedTask = Convert.ToDouble(CompletedTasks);
-                    var allTask = pendientTask + completedTask;
-                    return (completedTask / allTask) * 10f;
-                }
-                else return 0;
-            }
-        }
-
-        public bool NameHasChange
-        {
-            get => (OldName != Name);
-        }
+        public bool NameHasChange { get => (OldName != Name); }
 
         #endregion
 
-        #region Theme
+        #region Visuals
 
         public Color AppFontColor
         {
@@ -488,6 +379,29 @@ namespace CheckListNotes.Models
             get => Color.FromHex("#888");
         }
 
+        public double PendientPercentage
+        {
+            get
+            {
+                if (TotalTasks <= 0 || CompletedTasks <= 0) return 1;
+                else if (TotalTasks == CompletedTasks) return 0;
+                var totalTasks = Convert.ToDouble(TotalTasks);
+                var completedTasks = Convert.ToDouble(CompletedTasks);
+                return ((totalTasks - completedTasks) / totalTasks) * 10d;
+            }
+        }
+
+        public double CompletedPercentage
+        {
+            get
+            {
+                if (TotalTasks <= 0 || CompletedTasks <= 0) return 0;
+                double totalTasks = Convert.ToDouble(TotalTasks);
+                var completedTask = Convert.ToDouble(CompletedTasks);
+                return (completedTask / totalTasks) * 10d;
+            }
+        }
+
         #endregion
 
         #region Methods
@@ -502,10 +416,7 @@ namespace CheckListNotes.Models
             OnPropertyChanged(nameof(PendientPercentageColor));
         }
 
-        ~CheckListViewModel()
-        {
-            Config.Current.PropertyChanged -= ConfigChanged;
-        }
+        ~CheckListViewModel() => Config.Current.PropertyChanged -= ConfigChanged;
 
         #endregion
     }

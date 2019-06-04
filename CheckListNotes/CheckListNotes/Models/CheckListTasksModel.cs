@@ -7,7 +7,7 @@ namespace CheckListNotes.Models
     public class CheckListTasksModel
     {
         public int LastId { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } // Primary Key
         public List<CheckTaskModel> CheckListTasks { get; set; }
     }
 }

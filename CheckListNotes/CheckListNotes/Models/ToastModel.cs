@@ -10,5 +10,6 @@
         public string Body { get; set; }
         public DateTime Time { get; set; }
         public ToastTypes Type { get; set; }
+        public string Arguments { get; set; }
     }
 }
