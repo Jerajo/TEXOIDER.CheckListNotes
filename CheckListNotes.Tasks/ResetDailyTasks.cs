@@ -4,12 +4,12 @@ using Windows.Storage;
 using System.Diagnostics;
 using Newtonsoft.Json.Linq;
 using CheckListNotes.Models;
+using PortableClasses.Enums;
 using System.Threading.Tasks;
 using PortableClasses.Services;
 using PortableClasses.Extensions;
 using System.Collections.Generic;
 using Windows.ApplicationModel.Background;
-using PortableClasses.Enums;
 
 namespace CheckListNotes.Tasks
 {
@@ -48,7 +48,7 @@ namespace CheckListNotes.Tasks
 
         #endregion
 
-        #region Methods
+        #region Main Method
 
         public async void Run(IBackgroundTaskInstance taskInstance)
         {
@@ -66,14 +66,13 @@ namespace CheckListNotes.Tasks
                         fileService.Read<InitFile>(initFilePath)).TryTo();
 
                     if (initFile == null) CancelTask();
-                    else if (initFile.LastResetTime.TimeOfDay == DateTime.Now.TimeOfDay)
+                    else if (initFile.LastResetTime.DayOfYear == DateTime.Now.DayOfYear)
                         CancelTask();
                     else
                     {
                         initFile.LastResetTime = DateTime.Now;
                         var document = JToken.FromObject(initFile);
-                        await Task.Run(() => 
-                            fileService.Write(document, initFilePath)).TryTo();
+                        await Task.Run(() => fileService.Write(document, initFilePath)).TryTo();
                     }
 
                     var userDataFilePath = $"{localFoldeer.Path}/Data/";
@@ -84,7 +83,7 @@ namespace CheckListNotes.Tasks
                     {
                         if (cancelRequested) CancelTask();
 
-                        var list = await Task.Run(() => 
+                        var list = await Task.Run(() =>
                             fileService.Read<CheckListTasksModel>(filePath)).TryTo();
 
                         if (cancelRequested) CancelTask();
@@ -100,11 +99,8 @@ namespace CheckListNotes.Tasks
 
                         if (cancelRequested) CancelTask();
 
-                        await Task.Run(() => 
-                        {
-                            var document = JToken.FromObject(list);
-                            fileService.Write(document, filePath);
-                        }).TryTo();
+                        var document = JToken.FromObject(list);
+                        await Task.Run(() => fileService.Write(document, filePath)).TryTo();
                     }
                 }
             }
@@ -119,11 +115,17 @@ namespace CheckListNotes.Tasks
             }
         }
 
-        private Task<bool> ResetAllDailyTasks(List<CheckTaskModel> taskList, 
+        #endregion
+
+        #region Private Methods
+
+        #region Reset Daily Tasks
+
+        private Task<bool> ResetAllDailyTasks(List<CheckTaskModel> taskList,
             bool taskGroupIsDaily = false)
         {
             var hasChanges = false;
-            foreach(var task in taskList)
+            foreach (var task in taskList)
             {
                 if (cancelRequested) CancelTask();
                 if (task.IsTaskGroup && task.SubTasks != null && task.SubTasks.Count > 0)
@@ -140,6 +142,10 @@ namespace CheckListNotes.Tasks
             }
             return Task.FromResult(hasChanges);
         }
+
+        #endregion
+
+        #region Register Toast
 
         private void RegisterUnregistedDailyToast(CheckTaskModel task)
         {
@@ -169,6 +175,10 @@ namespace CheckListNotes.Tasks
             }
         }
 
+        #endregion
+
+        #region Cancel Task
+
         private void CancelTask()
         {
             this.cancelRequested = true;
@@ -180,6 +190,8 @@ namespace CheckListNotes.Tasks
             this.cancelRequested = true;
             this.cancelReason = reason;
         }
+
+        #endregion
 
         #endregion
     }
