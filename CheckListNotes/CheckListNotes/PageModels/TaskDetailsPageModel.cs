@@ -5,6 +5,8 @@ using CheckListNotes.Models;
 using System.Threading.Tasks;
 using CheckListNotes.Models.Interfaces;
 using CheckListNotes.PageModels.Commands;
+using PortableClasses.Extensions;
+using Xamarin.Forms;
 
 namespace CheckListNotes.PageModels
 {
@@ -49,11 +51,11 @@ namespace CheckListNotes.PageModels
 
         #region Commands
 
-        private void EditCommand()
+        private async void EditCommand()
         {
             if (!HasLoaded || IsLooked) return;
             IsLooked = true;
-            CoreMethods.PushPageModel<TaskPageModel>(InitData, false, true);
+            await PushPageModel<TaskPageModel>(InitData);
         }
         private async void RemoveCommand()
         {
@@ -62,10 +64,8 @@ namespace CheckListNotes.PageModels
             var resoult = await ShowAlert("Pregunta!", "¿Estás seguro de que quieres eliminar la tarea?", "Aceptar", "Cancelar");
             if (resoult)
             {
-                GlobalDataService.RemoveTask(Task);
-                IsLooked = false;
-                GoBackCommand();
-                return;
+                GlobalDataService.RemoveTask(Task.Id); IsLooked = false;
+                GoBackCommand(); return;
             }
             IsLooked = false;
         }
@@ -74,32 +74,36 @@ namespace CheckListNotes.PageModels
         {
             if (!HasLoaded || IsLooked) return;
             IsLooked = true;
-            await CoreMethods.PushPageModel<OptionsPageModel>(InitData, animate: true);
+            await PushPageModel<OptionsPageModel>(InitData);
         }
 
         private async void GoBackCommand()
         {
             if (!HasLoaded || IsLooked) return;
             IsLooked = true;
-            await CoreMethods.PopPageModel(InitData, animate: true);
+            if (!GlobalDataService.CurrentIndex.Contains("."))
+                GlobalDataService.CurrentIndex = null;
+            else GlobalDataService.CurrentIndex = 
+                    GlobalDataService.CurrentIndex.RemoveLastSplit('.');
+            await PopPageModel(InitData);
         }
 
         #endregion
 
         #region Overrride Methods
 
-        public override void Init(object initData)
+        public override async void Init(object initData)
         {
             IsLooked = !(HasLoaded = false);
-            InitializeComponent(initData);
+            await InitializeComponent(initData);
             base.Init(initData);
             IsLooked = !(HasLoaded = true);
         }
 
-        public override void ReverseInit(object returnedData)
+        public override async void ReverseInit(object returnedData)
         {
             IsLooked = !(HasLoaded = false);
-            InitializeComponent(returnedData);
+            await InitializeComponent(returnedData);
             base.ReverseInit(returnedData);
             IsLooked = !(HasLoaded = true);
         }
@@ -115,31 +119,30 @@ namespace CheckListNotes.PageModels
 
         #region Auxiliary Methods
 
-        private void InitializeComponent(object data)
+        private async Task InitializeComponent(object data)
         {
             InitData = data;
 
-            var task = GlobalDataService.CurrentTask;
-
-            Task = new CheckTaskViewModel
-            {
-                Id = task.Id,
-                Name = task.Name,
-                NotifyOn = task.NotifyOn,
-                ExpirationDate = task.ExpirationDate,
-                HasExpiration = task.ExpirationDate != null,
-                CompletedDate = task.CompletedDate,
-                ReminderTime = task.ReminderTime,
-                IsChecked = task.IsChecked,
-                IsDaily = task.IsDaily
-            };
-
-            if (Task.HasExpiration) Task.Expiration = Task.ExpirationDate.Value.TimeOfDay;
-
             PageTitle = "Detalles de Tarea";
-        }
 
-        public Task RefreshUI() => System.Threading.Tasks.Task.Run(() => Init(null));
+            var task = await GlobalDataService.GetCurrentTask();
+
+            Device.BeginInvokeOnMainThread(() => { 
+                Task = new CheckTaskViewModel
+                {
+                    Id = task.Id,
+                    Name = task.Name,
+                    NotifyOn = task.NotifyOn,
+                    ExpirationDate = task.ExpirationDate,
+                    HasExpiration = task.ExpirationDate != null,
+                    Expiration = task.ExpirationDate?.TimeOfDay,
+                    CompletedDate = task.CompletedDate,
+                    ReminderTime = task.ReminderTime,
+                    IsChecked = task.IsChecked,
+                    IsDaily = task.IsDaily
+                };
+            });
+        }
 
         #endregion
     }

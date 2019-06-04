@@ -1,22 +1,18 @@
 ﻿using FreshMvvm;
 using Xamarin.Forms;
 using PropertyChanged;
-using PortableClasses.Enums;
 using CheckListNotes.Models;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using PortableClasses.Interfaces;
 
 namespace CheckListNotes.PageModels
 {
     [AddINotifyPropertyChangedInterface]
     public class BasePageModel : FreshBasePageModel
     {
-        public BasePageModel() : base()
-        {
+        public BasePageModel() : base() =>
             Config.Current.PropertyChanged += ConfigChanged;
-        }
 
         #region SETTERS AND GETTERS
 
@@ -98,34 +94,71 @@ namespace CheckListNotes.PageModels
             }
         }
 
+        /// <summary>
+        /// Indicate whether the app is in debug mode or not.
+        /// </summary>
+        public bool IsDebug
+        {
+            get
+            {
+                var debugin = false;
+                #if DEBUG
+                debugin = true;
+                #endif
+                return debugin;
+            }
+        }
+
         #endregion
 
         #region Methods
+
+        #region Navigation
+
+        public Task PushPageModel<T>(object data) where T : FreshBasePageModel => CoreMethods.PushPageModel<T>(data, animate: true);
+
+        public Task PopPageModel(object data) => CoreMethods.PopPageModel(data, animate: true);
+
+        #endregion
+
+        #region Alerts
 
         public Task<bool> ShowAlert(string title, string message, string accept, string cancel) => Application.Current.MainPage.DisplayAlert(title, message, accept, cancel);
 
         public Task ShowAlert(string title, string message, string cancel) => Application.Current.MainPage.DisplayAlert(title, message, cancel);
 
-        public Task RegisterToast(CheckTaskViewModel task)
+        #endregion
+
+        #region Toast
+
+        public Task RegisterToast(CheckTaskViewModel task) =>
+            GlobalDataService.RegisterToast(task);
+
+        public Task UnregisterToast(string toastId) => 
+            GlobalDataService.UnregisterToast(toastId);
+
+        #endregion
+
+        #region UI
+
+        public virtual Task RefreshUI() => RefreshPageModel();
+
+        protected virtual async Task RefreshPageModel(object initData = null)
         {
-            return Task.Run(() => 
+            if (IsEditing)
             {
-                GlobalDataService.RegisterToast(task);
-            });
+                if (await ShowAlert("Cambios en los datos!.", "Algun proseso de fondo a modificado los datos.", "Ver Cambios", "Cancelar")) return;
+            }
+            var data = initData ?? InitData ?? 0;
+            ViewIsDisappearing(null, null); Init(data);
         }
 
-        public Task UnregisterToast(string toastId)
-        {
-            return Task.Run(() =>
-            {
-                GlobalDataService.UnregisterToast(toastId);
-            });
-        }
+        #endregion
 
+        //TODO: Depricate this on dynamy resources
         private void ConfigChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName != nameof(Config.Current.AppTheme)) return;
-
             RaisePropertyChanged(nameof(AppFontColor));
             RaisePropertyChanged(nameof(AppBackgroundColor));
             RaisePropertyChanged(nameof(HeaderAndHeaderAndFooterBackgroundColor));
@@ -139,7 +172,6 @@ namespace CheckListNotes.PageModels
             RaisePropertyChanged(nameof(CancelButtonFontColor));
             RaisePropertyChanged(nameof(ViewBoxColor));
         }
-
         #endregion
     }
 }

@@ -319,7 +319,7 @@ namespace CheckListNotes.PageModels
         {
             if (!HasLoaded || IsLooked || IsDisposing) return;
             IsLooked = true;
-            await CoreMethods.PopPageModel(InitData, animate: true);
+            await PopPageModel(InitData);
         }
 
         #endregion
@@ -380,8 +380,6 @@ namespace CheckListNotes.PageModels
         #endregion
 
         #region Auxiliary Methods
-
-        public Task RefreshUI() => Task.Run(() => Init(null));
 
         private async void ThemeChanged(string themeName)
         {

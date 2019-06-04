@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Xamarin.Forms;
 using PropertyChanged;
 using System.Windows.Input;
 using CheckListNotes.Models;
@@ -15,12 +16,7 @@ namespace CheckListNotes.PageModels
     [AddINotifyPropertyChangedInterface]
     public class ListOfCheckListsPageModel : BasePageModel, IPageModel
     {
-        #region Atributes
-
-        private bool isNewListFormVisible = false;
-        private CheckListViewModel lastCeckListSelected;
-
-        #endregion
+        private CheckListViewModel temporalList;
 
         public ListOfCheckListsPageModel() : base() { }
 
@@ -28,16 +24,9 @@ namespace CheckListNotes.PageModels
 
         #region Atributes
 
-        public string CheckListName { get; set; }
+        public string OldCheckListName { get; set; }
 
-        public bool IsNewListFormVisible
-        {
-            get => isNewListFormVisible;
-            set
-            {
-                IsLooked = isNewListFormVisible = value;
-            }
-        }
+        public bool IsNewListFormVisible { get; set; }
 
         public CheckListViewModel SelectedCheckList
         {
@@ -47,8 +36,8 @@ namespace CheckListNotes.PageModels
                 if (value?.IsAnimating == false && !IsLooked && !IsDisposing)
                 {
                     IsLooked = true;
-                    var data = GlobalDataService.GetCurrentList(value.Name);
-                    CoreMethods.PushPageModel<CheckListPageModel>(0, animate: true);
+                    GlobalDataService.CurrentListName = value.Name;
+                    PushPageModel<CheckListPageModel>(0);
                 }
             }
         }
@@ -98,25 +87,21 @@ namespace CheckListNotes.PageModels
             if (ValidateNewCheckListName(name))
             {
                 IsNewListFormVisible = false;
-                if (CheckListName == name)
+                if (OldCheckListName == name)
                 {
                     IsLooked = false;
                     CancelCommand();
                     return;
                 }
-                if (!string.IsNullOrEmpty(CheckListName))
+                if (!string.IsNullOrEmpty(OldCheckListName))
                 {
-                    ListOfCheckLists.Remove(lastCeckListSelected);
-                    lastCeckListSelected.Name = name;
-                    GlobalDataService.UpdateList(lastCeckListSelected);
-                    ListOfCheckLists.Add(lastCeckListSelected);
-                    lastCeckListSelected = null;
-                    CheckListName = "";
+                    await GlobalDataService.RenameList(OldCheckListName, name);
+                    temporalList = null; OldCheckListName = "";
                 }
                 else
                 {
-                    var checkListModel = new CheckListViewModel { LastId=0, Name=name, CheckListTasks = new List<CheckTaskModel>() };
-                    GlobalDataService.AddList(name);
+                    var checkListModel = new CheckListViewModel { LastId=0, Name=name };
+                    await GlobalDataService.AddList(name);
                     IsLooked = false;
                     SelectedCheckList = checkListModel; // Navigate to next page
                     return;
@@ -143,8 +128,8 @@ namespace CheckListNotes.PageModels
             else if (model.SelectedReason == SelectedFor.Update)
             {
                 IsNewListFormVisible = true;
-                lastCeckListSelected = model;
-                lastCeckListSelected.OldName = CheckListName = model.Name;
+                temporalList = model;
+                OldCheckListName = model.Name;
             }
             IsLooked = false;
         }
@@ -154,7 +139,7 @@ namespace CheckListNotes.PageModels
             if (!HasLoaded || IsLooked) return;
             IsLooked = true;
             IsNewListFormVisible = true;
-            CheckListName = "";
+            OldCheckListName = "";
             IsLooked = false;
         }
 
@@ -163,9 +148,9 @@ namespace CheckListNotes.PageModels
             if (!HasLoaded || IsLooked) return;
             IsLooked = true;
             IsNewListFormVisible = false;
-            if (lastCeckListSelected != null)
-                lastCeckListSelected.SelectedReason = SelectedFor.Create;
-            lastCeckListSelected = null;
+            if (temporalList != null)
+                temporalList.SelectedReason = SelectedFor.Create;
+            temporalList = null;
             IsLooked = false;
         }
 
@@ -173,25 +158,25 @@ namespace CheckListNotes.PageModels
         {
             if (!HasLoaded || IsLooked) return;
             IsLooked = true;
-            await CoreMethods.PushPageModel<OptionsPageModel>(0, animate: true);
+            await PushPageModel<OptionsPageModel>(0);
         }
 
         #endregion
 
         #region Overrride Methods
 
-        public override void Init(object initData)
+        public override async void Init(object initData)
         {
             IsLooked = !(HasLoaded = false);
-            InitializeComponet(initData);
+            await InitializeComponet(initData);
             base.Init(initData);
             IsLooked = !(HasLoaded = true);
         }
 
-        public override void ReverseInit(object returndData)
+        public override async void ReverseInit(object returndData)
         {
             IsLooked = !(HasLoaded = false);
-            InitializeComponet(returndData);
+            await InitializeComponet(returndData);
             base.ReverseInit(returndData);
             IsLooked = !(HasLoaded = true);
         }
@@ -217,26 +202,34 @@ namespace CheckListNotes.PageModels
 
         #region Auxiliary Methods
 
-        private void InitializeComponet(object data)
+        private Task InitializeComponet(object data)
         {
             InitData = data;
 
-            var tempList = GlobalDataService.ListOfList;
-            var viewModelList = tempList.Select(m => new CheckListViewModel
+            PageTitle = "Grupo de listas";
+
+            ListOfCheckLists = new FulyObservableCollection<CheckListViewModel>();
+
+            Device.BeginInvokeOnMainThread(() => 
             {
-                LastId = m.LastId,
-                Name = m.Name,
-                CheckListTasks = m.CheckListTasks
+                foreach (var item in GlobalDataService.GetAllLists())
+                {
+                    ListOfCheckLists.Add(new CheckListViewModel
+                    {
+                        LastId = item.LastId,
+                        Name = item.Name,
+                        CompletedTasks = item.CheckListTasks.Where(m => m.IsChecked).Count(),
+                        TotalTasks = item.CheckListTasks.Count()
+                    });
+                }
             });
-            ListOfCheckLists = new FulyObservableCollection<CheckListViewModel>(viewModelList);
 
             Errors = new List<string>();
 
             //TODO: Implement business logic for licence: [free, premium].
             //var deviceHelper = DependencyService.Get<IDeviceHelper>();
             //And so on...
-
-            PageTitle = "Grupo de listas";
+            return Task.CompletedTask;
         }
 
         private bool ValidateNewCheckListName(string name)
@@ -245,12 +238,10 @@ namespace CheckListNotes.PageModels
             if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name)) Errors.Add("Debe ingresar el nobre de la nueba lista de tareas. ");
             if (ListOfCheckLists.Where(m => m.Name == name).FirstOrDefault() != null) Errors.Add("\nYa existe una lista con este nombre. ");
             if (!string.IsNullOrEmpty(name) && name.Length > 50) Errors.Add("\nEl nombre de la lista no puede ser mayor de 50 caractetes. ");
-            if (!string.IsNullOrEmpty(name) && name == CheckListName) return true;
+            if (!string.IsNullOrEmpty(name) && name == OldCheckListName) return true;
             return (Errors?.Count <= 0);
 
         }
-
-        public Task RefreshUI() => Task.Run(() => Init(null));
 
         #endregion
     }

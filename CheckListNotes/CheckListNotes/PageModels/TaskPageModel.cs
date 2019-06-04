@@ -9,6 +9,7 @@ using PortableClasses.Extensions;
 using System.Collections.Generic;
 using CheckListNotes.Models.Interfaces;
 using CheckListNotes.PageModels.Commands;
+using Xamarin.Forms;
 
 namespace CheckListNotes.PageModels
 {
@@ -105,10 +106,8 @@ namespace CheckListNotes.PageModels
             var resoult = await ShowAlert("Pregunta!", "¿Estás seguro de que quieres eliminar la tarea?", "Aceptar", "Cancelar");
             if (resoult)
             {
-                GlobalDataService.RemoveTask(Task);
-                IsLooked = false;
-                GoBackCommand();
-                return;
+                GlobalDataService.RemoveTask(Task.Id); IsLooked = false;
+                GoBackCommand(); return;
             }
             IsLooked = false;
         }
@@ -117,65 +116,73 @@ namespace CheckListNotes.PageModels
         {
             if (!HasLoaded || IsLooked) return;
             IsLooked = true;
-            await CoreMethods.PopPageModel(InitData, animate: true);
+            var currentIndex = GlobalDataService.CurrentIndex;
+            if (PreviousPageModel is CheckListPageModel && !string.IsNullOrEmpty(currentIndex))
+            {
+                if (currentIndex.Contains("."))
+                    GlobalDataService.CurrentIndex = currentIndex.RemoveLastSplit('.');
+                else GlobalDataService.CurrentIndex = null;
+            }
+            await PopPageModel(InitData);
         }
 
         #endregion
 
         #region Overrride Methods
 
-        public override void Init(object initData)
+        public override async void Init(object initData)
         {
             IsLooked = !(HasLoaded = false);
 
-            CheckTaskModel task;
-            task = initData as CheckTaskModel;
-            if (task == null) task = GlobalDataService.CurrentTask;
+            PageTitle = (IsEditing) ? "Editar Tarea" : "Crear Tarea";
+
+            if (!(initData is CheckTaskModel task))
+                task = await GlobalDataService.GetCurrentTask();
 
             if (initData is int index) InitData = index;
             else InitData = task.IsChecked ? 1 : 0;
 
             IsEditing = (!string.IsNullOrEmpty(task.Name)) ? true : false;
 
-            Task = new CheckTaskViewModel
-            {
-                Id = task.Id,
-                Name = task.Name,
-                ToastId = task.ToastId,
-                SubTasks = task.SubTasks,
-                ExpirationDate = task.ExpirationDate,
-                HasExpiration = task.ExpirationDate != null,
-                Expiration = task.ExpirationDate?.TimeOfDay,
-                CompletedDate = task.CompletedDate,
-                ReminderTime = task.ReminderTime,
-                IsTaskGroup = task.IsTaskGroup,
-                IsChecked = task.IsChecked,
-                NotifyOn = task.NotifyOn,
-                IsDaily = task.IsDaily
-            };
+            Device.BeginInvokeOnMainThread(() => { 
+                Task = new CheckTaskViewModel
+                {
+                    Id = task.Id,
+                    Name = task.Name,
+                    ToastId = task.ToastId,
+                    TotalTasks = task.SubTasks?.Count ?? 0,
+                    CompletedDate = task.CompletedDate,
+                    ExpirationDate = task.ExpirationDate,
+                    HasExpiration = task.ExpirationDate != null,
+                    Expiration = task.ExpirationDate?.TimeOfDay,
+                    ReminderTime = task.ReminderTime,
+                    IsTaskGroup = task.IsTaskGroup,
+                    IsChecked = task.IsChecked,
+                    NotifyOn = task.NotifyOn,
+                    IsDaily = task.IsDaily
+                };
 
-            if (Task.HasExpiration) Task.Expiration = Task.ExpirationDate.Value.TimeOfDay;
+                OldTask = new CheckTaskViewModel
+                {
+                    Name = Task.Name,
+                    ToastId = Task.ToastId,
+                    TotalTasks = Task.TotalTasks,
+                    IsTaskGroup = Task.IsTaskGroup,
+                    ReminderTime = Task.ReminderTime,
+                    CompletedDate = Task.CompletedDate,
+                    ExpirationDate = Task.ExpirationDate,
+                    HasExpiration = Task.HasExpiration,
+                    Expiration = Task.Expiration,
+                    IsChecked = Task.IsChecked,
+                    NotifyOn = Task.NotifyOn,
+                    IsDaily = Task.IsDaily
+                };
 
-            OldTask = new CheckTaskViewModel
-            {
-                Id = Task.Id,
-                Name = Task.Name,
-                ToastId = Task.ToastId,
-                ReminderTime = Task.ReminderTime,
-                HasExpiration = Task.HasExpiration,
-                ExpirationDate = Task.ExpirationDate,
-                CompletedDate = Task.CompletedDate,
-                Expiration = Task.Expiration,
-                IsChecked = Task.IsChecked,
-                NotifyOn = Task.NotifyOn,
-                IsDaily = Task.IsDaily
-            };
-
-            PageTitle = (IsEditing) ? "Editar Tarea" : "Crear Tarea";
+                Task.PropertyChanged += TaskPropertyChanged;
+            });
 
             Randomizer = new Random();
 
-            Task.PropertyChanged += TaskPropertyChanged;
 
             IsLooked = HasChanges = !(HasLoaded = true);
 
@@ -186,6 +193,7 @@ namespace CheckListNotes.PageModels
         {
             IsDisposing = true;
             Task.PropertyChanged -= TaskPropertyChanged;
+            OldTask = null;
             Task = null;
             base.ViewIsDisappearing(sender, e);
             IsDisposing = false;
@@ -238,13 +246,11 @@ namespace CheckListNotes.PageModels
 
             if (e.PropertyName == nameof(Task.IsTaskGroup))
             {
-                if (Task.IsTaskGroup && Task.SubTasks == null)
-                    Task.SubTasks = new List<CheckTaskModel>();
-                else if (!Task.IsTaskGroup && Task.SubTasks?.Count == 0) Task.SubTasks = null;
-                else if (!Task.IsTaskGroup && Task.SubTasks?.Count > 0)
+                if (Task.IsTaskGroup) Task.TotalTasks = OldTask.TotalTasks;
+                if (!Task.IsTaskGroup && Task.TotalTasks > 0)
                 {
                     var resoult = await ShowAlert("Advertencia", "Si continua eliminara toda la lista de subtareas.", "Continuar", "Cancelar");
-                    if (resoult) Task.SubTasks = new List<CheckTaskModel>();
+                    if (resoult) Task.TotalTasks = 0;
                     else Task.IsTaskGroup = true;
                 }
             }
@@ -285,8 +291,6 @@ namespace CheckListNotes.PageModels
                     return null;
             }
         }
-
-        public Task RefreshUI() => System.Threading.Tasks.Task.Run(() => Init(GlobalDataService.CurrentTask));
 
         #endregion
     }
