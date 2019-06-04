@@ -85,6 +85,7 @@
 
                 <!--#region Footer-->
                 <StackLayout
+                    x:Name="StackLayoutFooter"
                     Grid.Row="1"
                     Padding="10,5"
                     BackgroundColor="{Binding HeaderAndFooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
@@ -104,14 +105,10 @@
                 Grid.RowSpan="2"
                 BackgroundColor="#FFFFFFFF"
                 IsVisible="{Binding IsNewListFormVisible}"
-                Opacity="0.8">
-                <Grid.GestureRecognizers>
-                    <TapGestureRecognizer Command="{Binding Cancel}" NumberOfTapsRequired="1" />
-                </Grid.GestureRecognizers>
-            </Grid>
+                Opacity="0.8" />
             <!--#endregion-->
 
-            <!--#region New CheckList Form-->
+            <!--#region NewCheckListForm-->
             <Frame
                 Grid.RowSpan="2"
                 Margin="20"
@@ -136,7 +133,7 @@
                         Keyboard="Text"
                         MaxLength="50"
                         Placeholder="Lista de Ejemplo"
-                        Text="{Binding CheckListName, Mode=OneWay}"
+                        Text="{Binding OldCheckListName, Mode=OneWay}"
                         TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                     <Grid>
                         <!--#region Culums-->
@@ -144,7 +141,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <!--#region-->
+                        <!--#endregion-->
 
                         <Button
                             BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
