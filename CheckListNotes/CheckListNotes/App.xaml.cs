@@ -6,12 +6,12 @@ using Newtonsoft.Json;
 using Xamarin.Forms.Xaml;
 using Xamarin.Essentials;
 using CheckListNotes.Models;
+using System.Threading.Tasks;
+using PortableClasses.Services;
 using CheckListNotes.PageModels;
+using PortableClasses.Extensions;
 using CheckListNotes.Models.Interfaces;
 using Windows.ApplicationModel.Background;
-using PortableClasses.Services;
-using System.Threading.Tasks;
-using PortableClasses.Extensions;
 
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
 namespace CheckListNotes
@@ -44,6 +44,23 @@ namespace CheckListNotes
         #region Device Events
 
         /// <summary>
+        /// App developers override this method to respond when the user initiates an app link request.
+        /// </summary>
+        /// <param name="uri">Unifor sourse identifier resibed from app link.</param>
+        protected override void OnAppLinkRequestReceived(Uri uri)
+        {
+            var data = uri.ToString().ToLowerInvariant();
+
+            if (!data.Contains("/session/")) return;
+
+            var id = data.Substring(data.LastIndexOf("/", StringComparison.Ordinal) + 1);
+
+            //TODO: implement on app link request recived
+
+            base.OnAppLinkRequestReceived(uri);
+        }
+
+        /// <summary>
         /// Handle when your app starts
         /// </summary>
         protected override void OnStart()
@@ -74,6 +91,30 @@ namespace CheckListNotes
             else GlobalDataService.UnregisterBackgroundTask(taskName);
 
             RefreshUI();
+        }
+
+        public async void OnLaunchedOrActivated(string arguments)
+        {
+            if (!(NavigationContainer?.CurrentPage is Page currentPage)) return;
+            if (!(currentPage.BindingContext is IPageModel pageModel)) return;
+            switch (pageModel)
+            {
+                case ListOfCheckListsPageModel viewModel:
+                await viewModel.PushPageModel<TaskDetailsPageModel>(arguments);
+                    break;
+                case CheckListPageModel viewModel:
+                await viewModel.PushPageModel<TaskDetailsPageModel>(arguments);
+                    break;
+                case TaskDetailsPageModel viewModel:
+                    viewModel.Init(arguments);
+                    break;
+                case TaskPageModel viewModel:
+                await viewModel.PushPageModel<TaskDetailsPageModel>(arguments);
+                    break;
+                case OptionsPageModel viewModel:
+                await viewModel.PushPageModel<TaskDetailsPageModel>(arguments);
+                    break;
+            }
         }
 
         #endregion
@@ -193,9 +234,8 @@ namespace CheckListNotes
 
         private async void RefreshUI()
         {
-            var currentPage = NavigationContainer?.CurrentPage;
-            if (currentPage == null) return;
-            var pageModel = currentPage.BindingContext as IPageModel;
+            if (!(NavigationContainer?.CurrentPage is Page currentPage)) return;
+            if (!(currentPage.BindingContext is IPageModel pageModel)) return;
             await pageModel?.RefreshUI();
         }
 

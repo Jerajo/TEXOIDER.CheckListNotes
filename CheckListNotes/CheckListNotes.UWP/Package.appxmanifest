@@ -32,11 +32,13 @@
           <BackgroundTasks>
             <Task Type="systemEvent" />
             <Task Type="timer" />
+            <Task Type="pushNotification" />
           </BackgroundTasks>
         </Extension>
-        <Extension Category="windows.backgroundTasks" EntryPoint="CheckListNotes.Tasks.Notification">
+        <Extension Category="windows.backgroundTasks" EntryPoint="CheckListNotes.Tasks.CompleteTask">
           <BackgroundTasks>
-            <Task Type="timer" />
+            <Task Type="general" />
+            <Task Type="pushNotification" />
           </BackgroundTasks>
         </Extension>
       </Extensions>

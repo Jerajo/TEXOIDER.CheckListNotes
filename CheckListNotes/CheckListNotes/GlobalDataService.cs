@@ -1,11 +1,13 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Xamarin.Forms;
 using Xamarin.Essentials;
 using Newtonsoft.Json.Linq;
 using CheckListNotes.Models;
 using PortableClasses.Enums;
 using System.Threading.Tasks;
+using PortableClasses.Helpers;
 using PortableClasses.Services;
 using Plugin.LocalNotifications;
 using PortableClasses.Extensions;
@@ -19,9 +21,8 @@ namespace CheckListNotes
     {
         #region Atributes
 
-        private static bool hasLoaded = false;
-        private static bool hasChanges = false;
         private static readonly string storageFolder = FileSystem.AppDataDirectory;
+        private static bool hasLoaded = false;
         private static Random randomizer = new Random();
 
         #endregion
@@ -29,13 +30,8 @@ namespace CheckListNotes
         public static void Init()
         {
             IsLoading = true;
-
-            var deviceHerper = DependencyService.Get<IDeviceHelper>();
+            randomizer = new Random();
             if (IsFirtsInit()) CreateDefoultFiles();
-            //TODO: reduce ran consumtion
-            ListOfList = new List<CheckListTasksModel>(GetAllLists(GetUserDataFileNames()));
-            CheckTaskModelStack = new Stack<CheckTaskModel>();
-
             hasLoaded = !(IsLoading = false);
         }
 
@@ -47,47 +43,24 @@ namespace CheckListNotes
         public static bool IsLoading { get; private set; }
 
         /// <summary>
-        /// Storage basic information of all user lists.
-        /// </summary>
-        public static List<CheckListTasksModel> ListOfList { get; private set; }
-
-        /// <summary>
-        /// Storage the list of sub-task inside a list.
-        /// </summary>
-        public static Stack<CheckTaskModel> CheckTaskModelStack { get; private set; }
-
-        /// <summary>
-        /// Storage the last requested list.
-        /// </summary>
-        public static CheckListTasksModel CurrentList { get; private set; }
-
-        /// <summary>
-        /// Storage the last requested task.
-        /// </summary>
-        public static CheckTaskModel CurrentTask { get; private set; }
-
-        /// <summary>
         /// Storage the last requested list name.
         /// </summary>
-        public static string LastCheckListName { get; private set; }
+        public static string CurrentListName { get; set; }
+
+        /// <summary>
+        /// Storage the previous requested list name.
+        /// </summary>
+        public static string PreviousListName { get; set; }
 
         /// <summary>
         /// Storage the last requested task id.
         /// </summary>
-        public static int LastCurrentTaskId { get; private set; }
+        public static string CurrentIndex { get; set; }
 
         /// <summary>
-        /// Indicate whether the data has changes or not. Set to true to save current changes.
+        /// Storage the previous requested task id.
         /// </summary>
-        public static bool HasChanges
-        {
-            get => hasChanges;
-            set
-            {
-                hasChanges = value;
-                if (value) SaveCahnges();
-            }
-        }
+        public static string PreviousIndex { get; set; }
 
         #endregion
 
@@ -98,26 +71,41 @@ namespace CheckListNotes
         // Get all list on LocalFolder/Data/fileName.bin
         public static IEnumerable<CheckListTasksModel> GetAllLists()
         {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            return ListOfList = new List<CheckListTasksModel>(GetAllLists(GetUserDataFileNames()));
+            using (var cleaner = new ExplicitGarbageCollector())
+            {
+                if (!hasLoaded) ThrowNotInitializeExeption();
+                foreach(var pathToFile in GetUserDataFileNames())
+                    yield return Read<CheckListTasksModel>(pathToFile).Result;
+            }
         }
 
         // Get current list by name
-        public static CheckListTasksModel GetCurrentList(string listName)
+        public static Task<CheckListTasksModel> GetCurrentList(string listName = null)
         {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            LastCheckListName = listName;
-            return CurrentList = ListOfList.Find(m => m.Name == listName);
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                if (!hasLoaded) ThrowNotInitializeExeption();
+                if (string.IsNullOrEmpty(CurrentListName))
+                    CurrentListName = listName ?? throw new ArgumentNullException(nameof(listName));
+                var pathToFile = $"{storageFolder}/Data/{CurrentListName}.bin";
+                return Read<CheckListTasksModel>(pathToFile);
+            }
         }
 
         // Get current task by id
-        public static CheckTaskModel GetCurrentTask(int taskId)
+        public static async Task<CheckTaskModel> GetCurrentTask(string taskId = null)
         {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            LastCurrentTaskId = taskId;
-            if (CheckTaskModelStack.Count > 0)
-                return CurrentTask = CheckTaskModelStack.Peek().SubTasks.Find(m => m.Id == taskId);
-            else return CurrentTask = CurrentList.CheckListTasks.Find(m => m.Id == taskId);
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                if (!hasLoaded) ThrowNotInitializeExeption();
+                string index = taskId ?? CurrentIndex; // Get correct index
+                if (string.IsNullOrEmpty(index))
+                    throw new ArgumentNullException(nameof(CurrentIndex));
+                var model = await GetCurrentList();
+                var value = model.CheckListTasks.Find(m => m.Id == index);
+                var task = IndexNavigation(model.CheckListTasks, index);
+                return task;
+            }
         }
 
         #endregion
@@ -125,49 +113,49 @@ namespace CheckListNotes
         #region Add Methods
 
         // Add a new list on LocalFolder/Data/fileName.bin
-        public static void AddList(string listName)
+        public static async Task AddList(string listName)
         {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            var model = new CheckListTasksModel
-            {
-                LastId = 0,
-                Name = listName,
-                CheckListTasks = new List<CheckTaskModel>()
-            };
-            ListOfList.Add(model);
-            CurrentList = model;
-            HasChanges = true;
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                if (!hasLoaded) ThrowNotInitializeExeption();
+                var model = new CheckListTasksModel
+                {
+                    LastId = 0,
+                    Name = listName,
+                    CheckListTasks = new List<CheckTaskModel>()
+                };
+                CurrentListName = listName;
+                await Write(model, $"{storageFolder}/Data/{listName}.bin");
+            }
         }
 
         // Add a new task on the current list in LocalFolder/Data/fileName.bin
-        public static void AddTask(CheckTaskViewModel data)
+        public static async void AddTask(CheckTaskViewModel data)
         {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            var model = new CheckTaskModel
-            {
-                Id = data.Id,
-                Name = data.Name,
-                NotifyOn = data.NotifyOn,
-                SubTasks = data.SubTasks,
-                ReminderTime = data.ReminderTime,
-                ExpirationDate = data.ExpirationDate,
-                CompletedDate = data.CompletedDate,
-                IsTaskGroup = data.IsTaskGroup,
-                IsChecked = data.IsChecked,
-                IsDaily = data.IsDaily
-            };
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                if (!hasLoaded) ThrowNotInitializeExeption();
+                var model = await GetCurrentList();
+                var task = new CheckTaskModel
+                {
+                    Id = string.IsNullOrEmpty(CurrentIndex) ? $"{++model.LastId}" : 
+                        $"{CurrentIndex}.{++model.LastId}",
+                    Name = data.Name,
+                    NotifyOn = data.NotifyOn,
+                    SubTasks = new List<CheckTaskModel>(),
+                    ReminderTime = data.ReminderTime,
+                    ExpirationDate = data.ExpirationDate,
+                    CompletedDate = data.CompletedDate,
+                    IsTaskGroup = data.IsTaskGroup,
+                    IsChecked = data.IsChecked,
+                    IsDaily = data.IsDaily
+                };
 
-            if (CheckTaskModelStack.Count > 0)
-            {
-                CheckTaskModelStack.Peek().SubTasks.Add(model);
-                CheckTaskModelStack.Peek().LastSubId = model.Id;
+                if (task.Id.Contains("."))
+                    IndexNavigation(model.CheckListTasks, CurrentIndex).SubTasks.Add(task);
+                else model.CheckListTasks.Add(task);
+                await Write(model, $"{storageFolder}/Data/{model.Name}.bin");
             }
-            else
-            {
-                CurrentList.CheckListTasks.Add(model);
-                CurrentList.LastId = model.Id;
-            }
-            HasChanges = true;
         }
 
         #endregion
@@ -175,60 +163,42 @@ namespace CheckListNotes
         #region Update Methods
 
         // Update the list on LocalFolder/Data/fileName.bin
-        public static void UpdateList(CheckListViewModel list)
+        public static async Task RenameList(string oldName, string newName)
         {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            //TODO: Inplement IIdentity on CeckListTasksModel or Using IdentityFramework
-            //ListOfList.Update(model);
-            var model = ListOfList.Find(m => m.Name == list.OldName);
-            var index = ListOfList.IndexOf(model);
-
-            if (!string.IsNullOrEmpty(list.OldName) && list.NameHasChange)
-            {
-                var oldPath = $"{storageFolder}/Data/{list.OldName}.bin";
-                var newPath = $"{storageFolder}/Data/{list.Name}.bin";
-                File.Move(oldPath, newPath);
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                if (!hasLoaded) ThrowNotInitializeExeption();
+                var model = await GetCurrentList();
+                var oldPath = $"{storageFolder}/Data/{oldName}.bin";
+                var newPath = $"{storageFolder}/Data/{newName}.bin";
+                await Task.Run(() => File.Move(oldPath, newPath)).TryTo();
             }
-
-            model.LastId = list.LastId;
-            model.Name = list.Name;
-            model.CheckListTasks = list.CheckListTasks;
-            ListOfList[index] = model;
-            CurrentList = model;
-            HasChanges = true;
         }
 
         // Update the task on the current list in LocalFolder/Data/fileName.bin
-        public static void UpdateTask(CheckTaskViewModel task)
+        public static async void UpdateTask(CheckTaskViewModel data)
         {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            CurrentTask.Id = task.Id;
-            CurrentTask.Name = task.Name;
-            CurrentTask.ToastId = task.ToastId;
-            CurrentTask.NotifyOn = task.NotifyOn;
-            CurrentTask.SubTasks = task.SubTasks;
-            CurrentTask.ReminderTime = task.ReminderTime;
-            CurrentTask.ExpirationDate = task.ExpirationDate;
-            CurrentTask.CompletedDate = task.CompletedDate;
-            CurrentTask.IsTaskGroup = task.IsTaskGroup;
-            CurrentTask.IsChecked = task.IsChecked;
-            CurrentTask.IsDaily = task.IsDaily;
-            if (CheckTaskModelStack.Count > 0)
-                CheckTaskModelStack.Peek().SubTasks.Update(CurrentTask);
-            else CurrentList.CheckListTasks.Update(CurrentTask);
-            HasChanges = true;
-        }
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                if (!hasLoaded) ThrowNotInitializeExeption();
 
-        public static void UpdateCurrentList()
-        {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            HasChanges = true;
-        }
+                var model = await GetCurrentList();
+                CheckTaskModel task;
+                if (CurrentIndex?.Contains(".") == true)
+                    task = IndexNavigation(model.CheckListTasks, CurrentIndex);
+                else task = model.CheckListTasks.Find(m => m.Id == data.Id);
 
-        public static void UpdateCurrentTask()
-        {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            HasChanges = true;
+                task.Name = data.Name;
+                task.ToastId = data.ToastId;
+                task.NotifyOn = data.NotifyOn;
+                task.ReminderTime = data.ReminderTime;
+                task.ExpirationDate = data.ExpirationDate;
+                task.CompletedDate = data.CompletedDate;
+                task.IsTaskGroup = data.IsTaskGroup;
+                task.IsChecked = data.IsChecked;
+                task.IsDaily = data.IsDaily;
+                await Write(model, $"{storageFolder}/Data/{model.Name}.bin");
+            }
         }
 
         #endregion
@@ -236,122 +206,104 @@ namespace CheckListNotes
         #region Remove Methods
 
         // Remove the list on LocalFolder/Data/fileName.bin
-        public static void RemoveList(string listName)
+        public static async void RemoveList(string listName)
         {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            var list = ListOfList.Find(m => m.Name == listName);
-            ListOfList.Remove(list);
-            File.Delete($"{storageFolder}/{listName}.bin");
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                if (!hasLoaded) ThrowNotInitializeExeption();
+                await Task.Run(() => File.Delete($"{storageFolder}/Data/{listName}.bin"))
+                    .TryTo();
+            }
         }
 
         // Remove the task on the current list in LocalFolder/Data/fileName.bin
-        public static void RemoveTask(CheckTaskViewModel task)
+        public static async void RemoveTask(string taskId)
         {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            if (CheckTaskModelStack.Count > 0)
-            {
-                var model = CheckTaskModelStack.Peek().SubTasks.Find(m => m.Id == task.Id);
-                CheckTaskModelStack.Peek().SubTasks.Remove(model);
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                if (!hasLoaded) ThrowNotInitializeExeption();
+                var model = await GetCurrentList();
+
+                if (taskId.Contains("."))
+                    IndexNavigation(model.CheckListTasks, CurrentIndex).Remove(model);
+                else model.CheckListTasks.Find(m => m.Id == taskId).Remove(model);
+                await Write(model, $"{storageFolder}/Data/{model.Name}.bin");
             }
-            else
-            {
-                var model = CurrentList.CheckListTasks.Find(m => m.Id == task.Id);
-                CurrentList.CheckListTasks.Remove(model);
-            }
-            HasChanges = true;
         }
 
-        // Remove the current list on LocalFolder/Data/fileName.bin
-        public static void RemoveCurrentList()
+        #endregion
+
+        #region Toasts
+
+        public static Task RegisterToast(CheckTaskViewModel task)
         {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            ListOfList.Remove(CurrentList);
-            File.Delete($"{storageFolder}/{CurrentList.Name}.bin");
-            CurrentList.CheckListTasks.Clear();
-            CurrentList = null;
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                if (!hasLoaded) ThrowNotInitializeExeption();
+                if (task.ReminderTime <= DateTime.Now) throw new Exception($"No puede programar un recordatorio para una fecha anterior a la actual: {DateTime.Now.ToString()}.");
+
+                var toast = new ToastModel
+                {
+                    Id = task.ToastId = $"{task.Id}-{randomizer.Next(1000000)}",
+                    Title = "Recordatorio de tarea pendiente",
+                    Body = task.Name,
+                    Time = task.ReminderTime.Value,
+                    Type = (ToastTypes)Config.Current.NotificationType
+                };
+
+                if (Device.RuntimePlatform == Device.UWP) 
+                    (new WindowsToastService(toast)).ProgramToast();
+                else if (Device.RuntimePlatform == Device.Android)
+                {
+                    var id = $"{randomizer.Next(1000000)}";
+                    CrossLocalNotifications.Current.Show(toast.Title, toast.Body, int.Parse(id), toast.Time);
+                }
+                return Task.CompletedTask;
+            }
         }
 
-        // Remove the current task on the current list in LocalFolder/Data/fileName.bin
-        public static void RemoveCurrentTask()
+        public static Task UnregisterToast(string toasId)
         {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            CurrentList.CheckListTasks.Remove(CurrentTask);
-            CurrentTask = null;
-            HasChanges = true;
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                if (!hasLoaded) ThrowNotInitializeExeption();
+                if (Device.RuntimePlatform == Device.UWP)
+                    (new WindowsToastService()).CancelProgramedToast(toasId);
+                else if (Device.RuntimePlatform == Device.Android)
+                    CrossLocalNotifications.Current.Cancel(int.Parse(toasId));
+                return Task.CompletedTask;
+            }
         }
 
         #endregion
 
         #region Background Tasks
 
-        public static void RegisterToast(CheckTaskViewModel task)
-        {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            if (task.ReminderTime <= DateTime.Now) throw new Exception($"No puede programar un recordatorio para una fecha anterior a la actual: {DateTime.Now.ToString()}.");
-
-            var toast = new ToastModel
-            {
-                Id = task.ToastId = $"{task.Id}-{randomizer.Next(1000000)}",
-                Title = "Recordatorio de tarea pendiente",
-                Body = task.Name,
-                Time = task.ReminderTime.Value,
-                Type = (ToastTypes)Config.Current.NotificationType
-            };
-
-            if (Device.RuntimePlatform == Device.UWP) 
-                (new WindowsToastService(toast)).ProgramToast();
-            else if (Device.RuntimePlatform == Device.Android)
-            {
-                var id = $"{randomizer.Next(1000000)}";
-                CrossLocalNotifications.Current.Show(toast.Title, toast.Body, int.Parse(id), toast.Time);
-            }
-        }
-
         public static void RegisterBackgroundTask(IBackgroundTask task)
         {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            if (Device.RuntimePlatform == Device.UWP)
-            {
-                var deviceHerper = DependencyService.Get<IDeviceHelper>();
-                deviceHerper.RegisterBackgroundTask(task);
-            }
-            else if (Device.RuntimePlatform == Device.Android)
-            {
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                if (!hasLoaded) ThrowNotInitializeExeption();
+                if (Device.RuntimePlatform == Device.UWP)
+                {
+                    var deviceHerper = DependencyService.Get<IDeviceHelper>();
+                    deviceHerper.RegisterBackgroundTask(task);
+                }
+                else if (Device.RuntimePlatform == Device.Android)
+                {
 
+                }
             }
-        }
-
-        public static void UnregisterToast(string toasId)
-        {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            if (Device.RuntimePlatform == Device.UWP)
-                (new WindowsToastService()).CancelProgramedToast(toasId);
-            else if (Device.RuntimePlatform == Device.Android)
-                CrossLocalNotifications.Current.Cancel(int.Parse(toasId));
         }
 
         public static void UnregisterBackgroundTask(string taskName)
         {
-            if (!hasLoaded) ThrowNotInitializeExeption();
-            var deviceHerper = DependencyService.Get<IDeviceHelper>();
-            deviceHerper.UnregisterBackgroundTask(taskName);
-        }
-
-        #endregion
-
-        #region Stack Methods
-
-        public static void Push(CheckTaskViewModel data)
-        {
-            CheckTaskModel model;
-            if (CheckTaskModelStack.Count == 0) model = CurrentList.CheckListTasks.Find(m => m.Id == data.Id);
-            else model = CheckTaskModelStack.Peek().SubTasks.Find(m => m.Id == data.Id);
-            CheckTaskModelStack.Push(model);
-        }
-
-        public static CheckTaskModel Pop()
-        {
-            return CheckTaskModelStack.Pop();
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                if (!hasLoaded) ThrowNotInitializeExeption();
+                var deviceHerper = DependencyService.Get<IDeviceHelper>();
+                deviceHerper.UnregisterBackgroundTask(taskName);
+            }
         }
 
         #endregion
@@ -360,28 +312,50 @@ namespace CheckListNotes
 
         #region Private Methos
 
+        #region Navigation
+
+        public static CheckTaskModel IndexNavigation(List<CheckTaskModel> list, string uri)
+        {
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                if (uri.Contains("."))
+                {
+                    var index = uri.IndexOf(".");
+                    var taskId = uri.Substring(0, index);
+                    var model = list.FirstOrDefault(m => m.Id == taskId);
+                    return IndexNavigation(model.SubTasks,
+                        uri.Substring(index, uri.Length - index));
+                }
+                else return list.FirstOrDefault(m => m.Id == uri);
+            }
+        }
+
+        #endregion
+
         #region Read
 
-        private static string[] GetUserDataFileNames()
+        private static List<string> GetUserDataFileNames()
         {
-            return Directory.GetFiles($"{storageFolder}/Data/", "*.bin");
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                return Directory.GetFiles($"{storageFolder}/Data/", "*.bin").ToList();
+            }
         }
-
-        private static IEnumerable<CheckListTasksModel> GetAllLists(string[] pathToFiles)
-        {
-            if (pathToFiles.Length <= 0) yield return default;
-            foreach(var filePaht in pathToFiles)
-                yield return Read<CheckListTasksModel>(filePaht).Result;
-        }
+            
 
         private static Task<T> Read<T>(string pathToFile)
         {
-            using(var fileService = new FileService())
+            using (var fileService = new FileService())
             {
-                return Task.Run(() => 
-                {
-                    return fileService.Read<T>(pathToFile);
-                }).TryTo();
+                return Task.Run(() => fileService.Read<T>(pathToFile)).TryTo();
+            }
+        }
+
+        private static Task<object> Read(string pathToFile)
+        {
+            using (var fileService = new FileService())
+            {
+                return Task.Run(() => fileService.Read(pathToFile)).TryTo();
             }
         }
 
@@ -389,20 +363,13 @@ namespace CheckListNotes
 
         #region Write
 
-        // Save the current list on LocalFolder/Data/fileName.bin
-        public static void SaveCahnges()
-        {
-            if (CurrentList == null) throw new NullReferenceException($"Error can't save the atribute: {nameof(CurrentList)} because his value is null.");
-            Write(CurrentList, $"{storageFolder}/Data/{CurrentList.Name}.bin").Wait();
-            hasChanges = false;
-        }
-
         private static Task Write(object data, string pathToFile)
         {
-            using(var fileService = new FileService())
+            using (var fileService = new FileService())
             {
+                var document = (data is string value) ? JToken.Parse(value) : 
+                    JToken.FromObject(data);
                 return Task.Run(() => { 
-                    var document = JToken.FromObject(data);
                     fileService.Write(document, pathToFile);
                 }).TryTo();
             }
@@ -414,63 +381,70 @@ namespace CheckListNotes
 
         private static void CreateDefoultFiles()
         {
-            var deviceHerper = DependencyService.Get<IDeviceHelper>();
-            var localFolder = FileSystem.AppDataDirectory;
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                var initFile = new InitFile { LastResetTime = DateTime.Now };
+                Write(initFile, $"{storageFolder}/init.bin").Wait();
 
-            var initFile = new InitFile { LastResetTime = DateTime.Now };
-
-            Write(initFile, $"{storageFolder}/init.bin").Wait();
-
-            var mainDir = Directory.CreateDirectory($"{localFolder}/Data");
-
-            var IdCount = 1;
-            var model = new CheckListTasksModel
-            {
-                Name = "Lista de ejemplo",
-                CheckListTasks = new List<CheckTaskModel>
+                var IdCount = 0;
+                var model = new CheckListTasksModel
                 {
-                    new CheckTaskModel
+                    Name = "Lista de ejemplo",
+                    CheckListTasks = new List<CheckTaskModel>
                     {
-                        Id=IdCount++, Name="Tarea atrasada", ExpirationDate=DateTime.Now.AddHours(-1),
-                        CompletedDate=null, IsChecked=false, IsDaily=false
+                        new CheckTaskModel
+                        {
+                            Id=((IdCount++).ToString()).ToString(), Name="Tarea atrasada", ExpirationDate=DateTime.Now.AddHours(-1),
+                            CompletedDate=null, IsChecked=false, IsDaily=false
+                        },
+                        new CheckTaskModel
+                        {
+                            Id=((IdCount++).ToString()).ToString(), Name="Tarea urgente", ExpirationDate=DateTime.Now.AddHours(1), CompletedDate=null, IsChecked=false, IsDaily=false
+                        },
+                        new CheckTaskModel
+                        {
+                            Id=((IdCount++).ToString()).ToString(), Name="Tarea diaria", ExpirationDate=DateTime.Now.AddHours(5), CompletedDate=null, IsChecked=false, IsDaily=true
+                        },
+                        new CheckTaskModel
+                        {
+                            Id=((IdCount++).ToString()).ToString(), Name="Tarea sin expiracíon", ExpirationDate=null, CompletedDate=null, IsChecked=false, IsDaily=false
+                        },
+                        new CheckTaskModel
+                        {
+                            Id=(IdCount++).ToString(), Name="Tarea completada a tiempo", ExpirationDate=DateTime.Now.AddHours(2), CompletedDate=DateTime.Now, IsChecked=true, IsDaily=false
+                        },
+                        new CheckTaskModel
+                        {
+                            Id=(IdCount).ToString(), Name="Tarea completada atrasada", ExpirationDate=DateTime.Now.AddHours(-1), CompletedDate=DateTime.Now, IsChecked=true, IsDaily=false
+                        }
                     },
-                    new CheckTaskModel
-                    {
-                        Id=IdCount++, Name="Tarea urgente", ExpirationDate=DateTime.Now.AddHours(1), CompletedDate=null, IsChecked=false, IsDaily=false
-                    },
-                    new CheckTaskModel
-                    {
-                        Id=IdCount++, Name="Tarea diaria", ExpirationDate=DateTime.Now.AddHours(5), CompletedDate=null, IsChecked=false, IsDaily=true
-                    },
-                    new CheckTaskModel
-                    {
-                        Id=IdCount++, Name="Tarea sin expiracíon", ExpirationDate=null, CompletedDate=null, IsChecked=false, IsDaily=false
-                    },
-                    new CheckTaskModel
-                    {
-                        Id=IdCount++, Name="Tarea completada a tiempo", ExpirationDate=DateTime.Now.AddHours(2), CompletedDate=DateTime.Now, IsChecked=true, IsDaily=false
-                    },
-                    new CheckTaskModel
-                    {
-                        Id=IdCount, Name="Tarea completada atrasada", ExpirationDate=DateTime.Now.AddHours(-1), CompletedDate=DateTime.Now, IsChecked=true, IsDaily=false
-                    }
-                },
-                LastId = IdCount
-            };
+                    LastId = IdCount
+                };
 
-            Write(model, $"{storageFolder}/{model.Name}.bin");
+                Directory.CreateDirectory($"{storageFolder}/Data");
+                Write(model, $"{storageFolder}/Data/{model.Name}.bin");
+            }
         }
 
         //TODO: Implement storage folder for android
-        private static bool IsFirtsInit() =>
-            (Directory.GetDirectories(storageFolder)?.Length <= 0);
+        private static bool IsFirtsInit()
+        {
+            using (var cleaner = new ExplicitGarbageCollector())
+            {
+                return (Directory.GetDirectories(storageFolder)?.Length <= 0);
+            }
+        }
+            
 
         // Throw a not initialized exception if the method Init() hasn't been call
         private static void ThrowNotInitializeExeption()
         {
-            throw new TypeInitializationException(
-                nameof(GlobalDataService),
-                new Exception("Error before using this service it needs to be initialize by calling the Init() method on the Main App class."));
+            using (var cleaner = new ExplicitGarbageCollector())
+            { 
+                throw new TypeInitializationException(
+                    nameof(GlobalDataService),
+                    new Exception("Error before using this service it needs to be initialize by calling the Init() method on the Main App class."));
+            }
         }
 
         #endregion
@@ -486,84 +460,105 @@ namespace CheckListNotes
  * GlobalDataService.Init();
  */
 
-/* /-------------------------/ Lists /-------------------------/
- *  2.1) Get a list.
+#region Lists
+
+/* /-------------------------/ Get /-------------------------/
+ *  2.1) Get all lists.
+ *  var allList = GlobalDataService.GetAllLists();
+ *  
+ *  2.2) Get a list.
  *  var listName = "List Example"
  *  // Needs to be call at least ones per list
- *  var list = GlobalDataService.GetList(listName);
+ *  var list = GlobalDataService.GetCurrentList(listName);
  *  
- *  2.2) Get the current list.
- *  //Get the current list if isn't null otherwise throw an Exeption
- *  var list = GlobalDataService.CurrentList;
+ *  2.3) Get the current list.
+ *  GlobalDataService.CurrentListName = "List Example";
+ *  //Get the current list if CurrentListName isn't null and the list exist 
+ *  //otherwise throw an Exeption
+ *  var list = GlobalDataService.GetCurrentList();
  *  
+ *  2.4) Get the previous list.
+ *  var listName = GlobalDataService.PreviousListName;
+ *  //Get the current list if PreviousListName isn't null and the list exist 
+ *  //otherwise throw an Exeption
+ *  var list = GlobalDataService.GetCurrentList(listName);
+ */
+
+/*  /-------------------------/ Add /-------------------------/
  *  2.3) Add a list 
  *  //NOTE: The name can't be null or repeated.
  *  var listName = "List Example 2";
  *  GlobalDataService.AddList(listName);
- *  
- *  2.4) Update a list.
- *  var list = GlobalDataService.CurrentList;
- *  var model = new CheckListViewModel
- *  {
- *      //Id = m.Id TODO: Implement entity Framewor
- *      LastId = m.LastId,
- *      Name = m.Name,
- *      CheckListTasks = m.CheckListTasks
- *  };
- *  GlobalDataService.UpdateList(model);
- *  
- *  2.5) Remove a list
- *  var list = GlobalDataService.CurrentList;
- *  GlobalDataService.RemoveList(list);
- *  
- *  2.6) Remove the current list
- *  //Remove the current list if isn't null otherwise throw an Exeption
- *  GlobalDataService.RemoveCurrentList();
  */
 
-/* /-------------------------/ Tasks /-------------------------/
-*  3.1) Get a task.
-*  var taskName = "List Example"
-*  // Needs to be call at least ones per task
-*  var task = GlobalDataService.GetTask(taskName);
-*  
-*  3.2) Get the current thask.
-*  //Get the current task if isn't null otherwise throw an Exeption
-*  var taskCopy = GlobalDataService.CurrentTask;
-*  
-*  3.3) Update a task.
-*  var task = GlobalDataService.CurrentTask;
-*  var model = new CheckTaskVieModel
-*  {
-*      Id = Task.Id,
-*      Name = Task.Name,
-*      ExpirationDate = Task.ExpirationDate,
-*      CompletedDate = Task.CompletedDate,
-*      IsChecked = Task.IsChecked,
-*      IsDaily = Task.IsDaily
-*  };
-*  GlobalDataService.UpdateTask(model);
-*  
-*  3.4) Add a task 
-*  var task = new CheckTaskVieModel
-*  {
-*      Id = Task.Id,
-*      Name = Task.Name,
-*      ExpirationDate = Task.ExpirationDate,
-*      CompletedDate = Task.CompletedDate,
-*      IsChecked = Task.IsChecked,
-*      IsDaily = Task.IsDaily
-*  };
-*  GlobalDataService.AddTask(task);
-*  
-*  3.5) Remove a task
-*  var task = GlobalDataService.CurrentTask;
-*  GlobalDataService.RemoveTask(task);
-*  
-*  3.6) Remove the current task
-*  //Remove the current task if isn't null otherwise throw an Exeption
-*  GlobalDataService.RemoveCurrentTask();*  
-*/
+/*  /-------------------------/ Rename /-------------------------/
+ *  2.4) Rename a list.
+ *  var model = CheckListModel;
+ *  //Note: The old name has to be a existing file on app storage.
+ *  GlobalDataService.RenameList(model.OldName, model.Name);
+ */
+
+/*  /-------------------------/ Remove /-------------------------/
+ *  2.5) Remove a list
+ *  var listName = "List Example 2";
+ *  //NOTE: The name can't be null and the file need to exists in app storage.
+ *  GlobalDataService.RemoveList(listName);
+ */
+
+#endregion
+
+#region Tasks
+
+/* /-------------------------/ Get /-------------------------/
+ *  3.1) Get a task by a string indexer. "1.23.5.26..."
+ *  var taskIndex = $"{GlobalDataService.CurrentIndex}.{Task.Id}";
+ *  var task = GlobalDataService.GetCurrentTask(taskIndex);
+ *  
+ *  3.2) Get the current thask.
+ *  //Get the current task if GlobalDataService.CurrentIndex isn't null 
+ *  //otherwise throw an Exeption
+ *  var task = GlobalDataService.GetCurrentTask();
+ *  
+ *  3.3) Get the previous taks by previuos index.
+ *  var taskIndex = GlobalDataService.PreviousIndex;
+ *  var task = GlobalDataService.GetCurrentTask(taskIndex);
+ *  
+ *  3.4) Get the parent taks by RemoveLastSplit method.
+ *  var parentTask = GlobalDataService.CurrentIndex.RemoveLastSplit('.');
+ *  var task = GlobalDataService.GetCurrentTask(parentTask);
+ */
+
+/* /-------------------------/ Add /-------------------------/
+ * 3.5) Add a task 
+ *  var task = new CheckTaskVieModel
+ *  {
+ *      Id = Task.Id,
+ *      Name = Task.Name,
+ *      // ...
+ *  };
+ *  GlobalDataService.AddTask(task);
+ */
+
+/*  /-------------------------/ Update /-------------------------/
+ *  3.6) Update a task.
+ *  var Task = GlobalDataService.GetCurrentTask();
+ *  var task = new CheckTaskVieModel
+ *  {
+ *      Id = Task.Id,
+ *      Name = Task.Name,
+ *      // ...
+ *  };
+ *  GlobalDataService.UpdateTask(model);
+ */
+
+/*  /-------------------------/ Remove /-------------------------/
+ *  3.7) Remove a task by string indexer. "1.23.5.26..."
+ *  var taskIndex = $"{GlobalDataService.CurrentIndex}.{Task.Id}";
+ *  Note: If task do not exist will throw a resource not found exection.
+ *  GlobalDataService.RemoveTask(taskIndex);
+ */
+
+#endregion
 
 /* /-------------------------/ Background Tasks /-----------------------------/
  * 4.1) Register a toast

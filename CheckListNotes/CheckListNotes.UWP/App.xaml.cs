@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using Windows.UI.Xaml.Navigation;
 using CarouselView.FormsPlugin.UWP;
 using Windows.ApplicationModel.Activation;
-using Windows.ApplicationModel.Background;
 
 namespace CheckListNotes.UWP
 {
@@ -24,9 +23,31 @@ namespace CheckListNotes.UWP
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            Current.HighContrastAdjustment = ApplicationHighContrastAdjustment.Auto;
         }
 
         #region UWP Events
+
+        /// <summary>
+        /// Invoked when the application is activated by some means other than normal launching.
+        /// </summary>
+        /// <param name="e">Event data for the event.</param>
+        protected override void OnActivated(IActivatedEventArgs e)
+        {
+            if (!(Window.Current.Content is Frame rootFrame))
+                OnLaunchedOrActivated(out rootFrame, e);
+            if (e is ToastNotificationActivatedEventArgs toastEvent)
+            {
+                if (rootFrame.Content == null)
+                    rootFrame.Navigate(typeof(MainPage), toastEvent?.Argument);
+                else if (Xamarin.Forms.Application.Current is CheckListNotes.App library)
+                    library.OnLaunchedOrActivated(toastEvent?.Argument);
+            }
+            if (rootFrame.Content != null) Window.Current.Activate();
+            else Current.Exit();
+
+            base.OnActivated(e);
+        }
 
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points
@@ -35,41 +56,10 @@ namespace CheckListNotes.UWP
         /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
-            // Do not repeat app initialization when the Window already has content,
-            // just ensure that the window is active
             if (!(Window.Current.Content is Frame rootFrame))
-            {
-                // Create a Frame to act as the navigation context and navigate to the first page
-                rootFrame = new Frame();
-
-                rootFrame.NavigationFailed += OnNavigationFailed;
-
-                // Start carousel view nuget
-                List<Assembly> assembliesToInclude = new List<Assembly>();
-                assembliesToInclude.Add(typeof(CarouselViewRenderer).GetTypeInfo().Assembly);
-
-                Xamarin.Forms.Forms.Init(e, assembliesToInclude);
-
-                // Register the dependencies
-                Xamarin.Forms.DependencyService.Register<Dependencies>();
-
-                if (e.PreviousExecutionState == ApplicationExecutionState.Terminated)
-                {
-                    // TODO: Load state from previously suspended application
-                }
-
-                // Place the frame in the current Window
-                Window.Current.Content = rootFrame;
-            }
-
+                OnLaunchedOrActivated(out rootFrame, e);
             if (rootFrame.Content == null)
-            {
-                // When the navigation stack isn't restored navigate to the first page,
-                // configuring the new page by passing required information as a navigation
-                // parameter
                 rootFrame.Navigate(typeof(MainPage), e.Arguments);
-            }
-            // Ensure the current window is active
             Window.Current.Activate();
         }
 
@@ -78,9 +68,15 @@ namespace CheckListNotes.UWP
         /// </summary>
         /// <param name="sender">The Frame which failed navigation</param>
         /// <param name="e">Details about the navigation failure</param>
-        void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
+        async void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
         {
-            throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
+            var errorMessage = $"Failed to load Page " + e.SourcePageType.FullName;
+            var subscribeDialog = new ContentDialog
+            {
+                Content = errorMessage,
+                CloseButtonText = "Ok",
+            };
+            await subscribeDialog.ShowAsync();
         }
 
         /// <summary>
@@ -106,6 +102,25 @@ namespace CheckListNotes.UWP
             var deferral = e.TaskInstance.GetDeferral();
             // Todo: Handle in-process background tasks.
             deferral.Complete();
+        }
+
+        #endregion
+
+        #region Method
+
+        private void OnLaunchedOrActivated(out Frame rootFrame, IActivatedEventArgs e)
+        {
+            rootFrame = new Frame();
+            rootFrame.NavigationFailed += OnNavigationFailed;
+
+            List<Assembly> assembliesToInclude = new List<Assembly>();
+            assembliesToInclude.Add(typeof(CarouselViewRenderer).GetTypeInfo().Assembly);
+
+            Xamarin.Forms.Forms.Init(e, assembliesToInclude);
+
+            Xamarin.Forms.DependencyService.Register<Dependencies>();
+
+            Window.Current.Content = rootFrame;
         }
 
         #endregion
