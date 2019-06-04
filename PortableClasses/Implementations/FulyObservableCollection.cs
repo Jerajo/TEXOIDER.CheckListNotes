@@ -6,7 +6,7 @@ using System.Collections.Specialized;
 
 namespace PortableClasses.Implementations
 {
-    public class FulyObservableCollection<T> : ObservableCollection<T>
+    public class FulyObservableCollection<T> : ObservableCollection<T>, IDisposable
         where T : INotifyPropertyChanged
     {
         public FulyObservableCollection() : base() { }
@@ -43,11 +43,7 @@ namespace PortableClasses.Implementations
             base.OnCollectionChanged(e);
         }
 
-        public void AddRange(IEnumerable<T> enumerator)
-        {
-            if (enumerator == null) throw new ArgumentNullException(nameof(enumerator));
-            foreach (T item in enumerator) Add(item);
-        }
+        
 
         protected override void ClearItems()
         {
@@ -60,6 +56,12 @@ namespace PortableClasses.Implementations
         #endregion
 
         #region Methods
+
+        public void AddRange(IEnumerable<T> enumerator)
+        {
+            if (enumerator == null) throw new ArgumentNullException(nameof(enumerator));
+            foreach (T item in enumerator) Add(item);
+        }
 
         protected void OnItemPropertyChanged(ItemPropertyChangedEventArgs e)
         {
@@ -88,6 +90,11 @@ namespace PortableClasses.Implementations
             OnItemPropertyChanged(i, e);
         }
 
+        public void Dispose()
+        {
+            if (Items != null) Clear();
+        }
+
         #endregion
     }
 
@@ -96,15 +103,16 @@ namespace PortableClasses.Implementations
     /// <summary>
     /// Provides data for the <see cref="FullyObservableCollection{T}.ItemPropertyChanged"/> event.
     /// </summary>
-    public class ItemPropertyChangedEventArgs : PropertyChangedEventArgs
+    public class ItemPropertyChangedEventArgs : PropertyChangedEventArgs, IDisposable
     {
+
         /// <summary>
         /// Gets the index in the collection for which the property change has occurred.
         /// </summary>
         /// <value>
         /// Index in parent collection.
         /// </value>
-        public int CollectionIndex { get; }
+        public int? CollectionIndex { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ItemPropertyChangedEventArgs"/> class.
@@ -121,8 +129,19 @@ namespace PortableClasses.Implementations
         /// </summary>
         /// <param name="index">The index.</param>
         /// <param name="args">The <see cref="PropertyChangedEventArgs"/> instance containing the event data.</param>
-        public ItemPropertyChangedEventArgs(int index, PropertyChangedEventArgs args) : this(index, args.PropertyName)
-        { }
+        public ItemPropertyChangedEventArgs(int index, PropertyChangedEventArgs args) : 
+            this(index, args.PropertyName) { }
+
+        public void Dispose()
+        {
+            CollectionIndex = null;
+            throw new NotImplementedException();
+        }
+
+        ~ItemPropertyChangedEventArgs()
+        {
+
+        }
     }
 
     #endregion

@@ -9,5 +9,6 @@
         string Body { get; set; }
         DateTime Time { get; set; }
         ToastTypes Type { get; set; }
+        string Arguments { get; set; }
     }
 }

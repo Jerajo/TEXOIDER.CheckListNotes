@@ -7,6 +7,20 @@ namespace PortableClasses.Services
 {
     public class FileService : IDisposable
     {
+        #region Atributes
+
+        private JObject jObject;
+        public bool? isDisposing = false;
+        private JsonSerializer serializer;
+        private JsonTextReader jsonReader;
+        private System.IO.Stream fileReader;
+        private System.IO.StreamWriter streamWriter;
+        private System.IO.StreamReader streamReader;
+        private System.IO.BinaryWriter binaryWriter;
+        private System.IO.BinaryReader binaryReader;
+
+        #endregion
+
         public FileService() { }
 
         public FileService(string path)
@@ -23,41 +37,33 @@ namespace PortableClasses.Services
 
         public object Value { get; set; }
 
-        public bool IsDisposing { get; private set; }
-
         #endregion
 
         #region Métodos
 
         #region Read
 
-        private object ReadGIF()
+        private JToken ReadJSON()
         {
-            System.IO.Stream fileStream = System.IO.File.Open(Path, System.IO.FileMode.Open);
-            return fileStream;
-        }
-
-        private object ReadJSON()
-        {
-            using (System.IO.Stream fileStream = System.IO.File.Open(Path, System.IO.FileMode.Open))
+            using (fileReader = System.IO.File.Open(Path, System.IO.FileMode.Open))
             {
-                System.IO.StreamReader reader = new System.IO.StreamReader(fileStream, Encoding.UTF8);
-
-                return (JObject)JToken.ReadFrom(new JsonTextReader(reader));
+                streamReader = new System.IO.StreamReader(fileReader, Encoding.UTF8);
+                jsonReader = new JsonTextReader(streamReader);
+                return JToken.ReadFrom(jsonReader);
             }
         }
 
-        private object ReadBIN()
+        private JToken ReadBIN()
         {
-            using (System.IO.Stream fileStream = System.IO.File.Open(Path, System.IO.FileMode.Open))
+            using (fileReader = System.IO.File.Open(Path, System.IO.FileMode.Open))
             {
-                System.IO.BinaryReader reader = new System.IO.BinaryReader(fileStream, Encoding.UTF8);
+                binaryReader = new System.IO.BinaryReader(fileReader, Encoding.UTF8);
 
-                byte[] encryptedText = reader.ReadBytes((int)reader.BaseStream.Length);
+                byte[] encryptedText = binaryReader.ReadBytes((int)binaryReader.BaseStream.Length);
                 byte[] deEncryptText = SecurityProtocolService.DecryptTripleDES(encryptedText);
                 string desEncryptedText = Encoding.UTF8.GetString(deEncryptText);
 
-                return Value = (JObject)JToken.Parse(desEncryptedText);
+                return JToken.Parse(desEncryptedText);
             }
         }
 
@@ -65,33 +71,24 @@ namespace PortableClasses.Services
 
         #region Write
 
-        private void WriteGIF()
-        {
-            using (System.IO.StreamWriter file = System.IO.File.CreateText(Path))
-            {
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Serialize(file, Value);
-            }
-        }
-
         private void WriteJSON()
         {
-            using (System.IO.StreamWriter file = System.IO.File.CreateText(Path))
+            using (streamWriter = System.IO.File.CreateText(Path))
             {
-                JsonSerializer serializer = new JsonSerializer();
-                serializer.Serialize(file, Value);
+                serializer = new JsonSerializer();
+                serializer.Serialize(streamWriter, Value);
             }
         }
 
         private void WriteBIN()
         {
-            using (System.IO.Stream fileStream = System.IO.File.Open(Path, System.IO.FileMode.Create))
+            using (fileReader = System.IO.File.Open(Path, System.IO.FileMode.Create))
             {
-                System.IO.BinaryWriter writer = new System.IO.BinaryWriter(fileStream, Encoding.UTF8);
+                binaryWriter = new System.IO.BinaryWriter(fileReader, Encoding.UTF8);
                 var text = ((JObject)Value).ToString();
 
                 byte[] stringInBytes = Encoding.UTF8.GetBytes(text);
-                writer.Write(SecurityProtocolService.EncryptTripleDES(stringInBytes));
+                binaryWriter.Write(SecurityProtocolService.EncryptTripleDES(stringInBytes));
             }
         }
 
@@ -104,7 +101,11 @@ namespace PortableClasses.Services
             return this.MemberwiseClone();
         }
 
-        public T Read<T>(string path = null) => ((JObject)Read(path)).ToObject<T>();
+        public T Read<T>(string path = null)
+        {
+            jObject = Read(path) as JObject;
+            return jObject.ToObject<T>();
+        }
 
         public object Read(string path = null)
         {
@@ -119,12 +120,15 @@ namespace PortableClasses.Services
                 case ".bin":
                     Value = ReadBIN();
                     break;
-                case ".gif":
-                    Value = ReadGIF();
-                    break;
             }
 
             return Value;
+        }
+
+        public void Write(object value, string path)
+        {
+            Value = value; Path = path;
+            Write();
         }
 
         public void Write()
@@ -137,39 +141,36 @@ namespace PortableClasses.Services
                 case ".bin":
                     WriteBIN();
                     break;
-                case ".gif":
-                    WriteGIF();
-                    break;
             }
         }
 
-        public void Write(object value, string path)
-        {
-            Value = value; Path = path;
-            switch (System.IO.Path.GetExtension(Name))
-            {
-                case ".json":
-                    WriteJSON();
-                    break;
-                case ".bin":
-                    WriteBIN();
-                    break;
-                case ".gif":
-                    WriteGIF();
-                    break;
-            }
-        }
+        #endregion
+
+        #region Dispose
 
         public void Dispose(bool isDisposing)
         {
-            IsDisposing = isDisposing;
-            if (IsDisposing) Dispose();
+            this.isDisposing = isDisposing;
+            if (this.isDisposing == true) Dispose();
         }
 
         public void Dispose()
         {
             Path = null;
             Value = null;
+            jObject = null;
+            fileReader = null;
+            jsonReader = null;
+            streamReader = null;
+            binaryReader = null;
+            streamWriter = null;
+            binaryWriter = null;
+            isDisposing = null;
+        }
+
+        ~FileService()
+        {
+            if (isDisposing == false) Dispose(true);
         }
 
         #endregion

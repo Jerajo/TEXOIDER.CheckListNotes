@@ -62,23 +62,44 @@ namespace PortableClasses.Services
                             }
                         }
                     },
+                    Audio = new ToastAudio
+                    {
+                        Src = new Uri((Toast?.Type == ToastTypes.Alarm) ? "ms-winsoundevent:Notification.Looping.Alarm" : "ms-winsoundevent:Notification.Default"),
+                        Loop = (Toast?.Type == ToastTypes.Alarm) ? true : false
+                    },
                     Actions = (Toast?.Type == ToastTypes.Alarm) ? new ToastActionsCustom
                     {
+                        Inputs =
+                        {
+                            new ToastSelectionBox("snoozeTime")
+                            {
+                                DefaultSelectionBoxItemId = "15",
+                                Items =
+                                {
+                                    new ToastSelectionBoxItem("5", "5 minutos"),
+                                    new ToastSelectionBoxItem("15", "15 minutos"),
+                                    new ToastSelectionBoxItem("30", "30 minutos"),
+                                    new ToastSelectionBoxItem("60", "1 hora")
+                                }
+                            }
+                        },
                         Buttons = 
                         {
-                            new ToastButton("Completo", $"action=complete&amp;id={Toast.Id}")
+                            new ToastButton("Completar", Toast.Arguments)
                             {
                                 ActivationType = ToastActivationType.Background,
+                                HintActionId = "CompleteTask",
                                 ImageUri = "Assets/ToastButtonIcons/Dismiss.png"
                             },
-                            new ToastButton("Posponer", $"action=snooze&amp;id={Toast.Id}")
+                            new ToastButtonSnooze()
                             {
-                                ActivationType = ToastActivationType.Background,
+                                SelectionBoxId = "snoozeTime",
+                                HintActionId = "SnoozeAlarm",
                                 ImageUri = "Assets/ToastButtonIcons/Dismiss.png"
                             },
-                            new ToastButton("Cancelar", $"action=dismiss&amp;id={Toast.Id}")
+                            new ToastButtonDismiss()
                             {
-                                ActivationType = ToastActivationType.Background,
+                                HintActionId = "DismissAlarm",
                                 ImageUri = "Assets/ToastButtonIcons/Dismiss.png"
                             }
                         }
@@ -86,18 +107,20 @@ namespace PortableClasses.Services
                     {
                         Buttons =
                         {
-                            new ToastButton("Detalles", $"action=details&amp;id={Toast.Id}")
+                            new ToastButton("Ver tarea", Toast.Arguments)
                             {
                                 ActivationType = ToastActivationType.Foreground,
+                                HintActionId = "ShowTaskDetails",
                                 ImageUri = "Assets/ToastButtonIcons/Dismiss.png"
                             },
-                            new ToastButton("Aceptar", $"action=acept&amp;id={Toast.Id}")
+                            new ToastButtonDismiss()
                             {
-                                ActivationType = ToastActivationType.Background,
+                                HintActionId = "DismissReminder",
                                 ImageUri = "Assets/ToastButtonIcons/Dismiss.png"
                             }
                         }
-                    }
+                    },
+                    Launch = Toast.Arguments,
                 });
             }
         }
