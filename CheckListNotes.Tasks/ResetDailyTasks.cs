@@ -128,14 +128,19 @@ namespace CheckListNotes.Tasks
             foreach (var task in taskList)
             {
                 if (cancelRequested) CancelTask();
-                if (task.IsTaskGroup && task.SubTasks != null && task.SubTasks.Count > 0)
+                if (task.IsTaskGroup == true && task.SubTasks != null && task.SubTasks.Count > 0)
                 {
-                    var resoult = ResetAllDailyTasks(task.SubTasks, task.IsDaily).Result;
-                    if (task.IsChecked && resoult) hasChanges = !(task.IsChecked = false);
+                    var resoult = ResetAllDailyTasks(task.SubTasks, task.IsDaily == true).Result;
+                    if (task.IsChecked == true && resoult)
+                    {
+                        hasChanges = true;
+                        task.IsChecked = false;
+                    }
                 }
-                else if (task.IsChecked && (taskGroupIsDaily | task.IsDaily))
+                else if (task.IsChecked == true && (taskGroupIsDaily | task.IsDaily == true))
                 {
-                    hasChanges = !(task.IsChecked = false);
+                    hasChanges = true;
+                    task.IsChecked = false;
                     if (task.NotifyOn != ToastTypesTime.None)
                         RegisterUnregistedDailyToast(task);
                 }

@@ -43,7 +43,7 @@ namespace PortableClasses.Services
                 return content ?? (content = new ToastContent
                 {
                     Scenario = (Toast?.Type == ToastTypes.Alarm) ? 
-                        ToastScenario.Alarm : ToastScenario.Reminder,
+                        ToastScenario.Alarm : ToastScenario.Default,
                     Visual = new ToastVisual
                     {
                         BindingGeneric = new ToastBindingGeneric
@@ -226,6 +226,18 @@ namespace PortableClasses.Services
             var scheduled = notifier.GetScheduledToastNotifications();
             var toRemove = scheduled.FirstOrDefault(i => i.Id.Equals(toastId));
             if (toRemove != null) notifier.RemoveFromSchedule(toRemove);
+        }
+
+        #endregion
+
+        #region Remove from action center
+
+        public void RemoveToastFromHistory(string toastId)
+        {
+            if (string.IsNullOrEmpty(toastId))
+                throw new ArgumentNullException(nameof(toastId));
+            if (ToastExist(toastId))
+                ToastNotificationManager.History.Remove(toastId);
         }
 
         #endregion

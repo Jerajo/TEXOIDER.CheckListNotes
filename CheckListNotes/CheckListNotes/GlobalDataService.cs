@@ -103,8 +103,7 @@ namespace CheckListNotes
                     throw new ArgumentNullException(nameof(CurrentIndex));
                 var model = await GetCurrentList();
                 var value = model.CheckListTasks.Find(m => m.Id == index);
-                var task = IndexNavigation(model.CheckListTasks, index);
-                return task;
+                return IndexNavigation(model.CheckListTasks, index);
             }
         }
 
@@ -152,7 +151,12 @@ namespace CheckListNotes
                 };
 
                 if (task.Id.Contains("."))
-                    IndexNavigation(model.CheckListTasks, CurrentIndex).SubTasks.Add(task);
+                {
+                    var parentTask = IndexNavigation(model.CheckListTasks,
+                        task.Id.RemoveLastSplit('.'));
+                    parentTask.SubTasks.Add(task);
+                    parentTask.IsChecked = !parentTask.SubTasks.Any(m => m.IsChecked == false);
+                }
                 else model.CheckListTasks.Add(task);
                 await Write(model, $"{storageFolder}/Data/{model.Name}.bin");
             }
@@ -181,11 +185,18 @@ namespace CheckListNotes
             using (var cleaner = new ExplicitGarbageCollector())
             { 
                 if (!hasLoaded) ThrowNotInitializeExeption();
-
+                var index = data.Id.Contains(".") ? data.Id : CurrentIndex;
                 var model = await GetCurrentList();
+
                 CheckTaskModel task;
-                if (CurrentIndex?.Contains(".") == true)
-                    task = IndexNavigation(model.CheckListTasks, CurrentIndex);
+                if (index?.Contains(".") == true)
+                {
+                    var parentTask = IndexNavigation(model.CheckListTasks, 
+                        index.RemoveLastSplit('.'));
+                    task = parentTask.SubTasks.Find(m => m.Id == index);
+                    task.IsChecked = data.IsChecked;
+                    parentTask.IsChecked = !parentTask.SubTasks.Any(m => m.IsChecked == false);
+                }
                 else task = model.CheckListTasks.Find(m => m.Id == data.Id);
 
                 task.Name = data.Name;
@@ -224,9 +235,19 @@ namespace CheckListNotes
                 if (!hasLoaded) ThrowNotInitializeExeption();
                 var model = await GetCurrentList();
 
-                if (taskId.Contains("."))
-                    IndexNavigation(model.CheckListTasks, CurrentIndex).Remove(model);
-                else model.CheckListTasks.Find(m => m.Id == taskId).Remove(model);
+                if (taskId?.Contains(".") == true)
+                {
+                    var parentTask = IndexNavigation(model.CheckListTasks,
+                        taskId.RemoveLastSplit('.'));
+                    var task = parentTask.SubTasks.Find(m => m.Id == taskId);
+                    parentTask.SubTasks.Remove(task);
+                    parentTask.IsChecked = !parentTask.SubTasks.Any(m => m.IsChecked == false);
+                }
+                else
+                {
+                    var task = model.CheckListTasks.Find(m => m.Id == taskId);
+                    model.CheckListTasks.Remove(task);
+                }
                 await Write(model, $"{storageFolder}/Data/{model.Name}.bin");
             }
         }
@@ -235,20 +256,28 @@ namespace CheckListNotes
 
         #region Toasts
 
-        public static Task RegisterToast(CheckTaskViewModel task)
+        public static Task RegisterToast(CheckTaskViewModel task, string listName = null)
         {
             using (var cleaner = new ExplicitGarbageCollector())
             { 
                 if (!hasLoaded) ThrowNotInitializeExeption();
                 if (task.ReminderTime <= DateTime.Now) throw new Exception($"No puede programar un recordatorio para una fecha anterior a la actual: {DateTime.Now.ToString()}.");
 
+                task.ToastId = $"{task.Id}-{randomizer.Next(1000000)}";
+                var toasType = (ToastTypes)Config.Current.NotificationType;
+                var listIndex = listName ?? CurrentListName;
+                var arguments = $"listName={listIndex}&";
+                arguments += $"toastId={task.ToastId}&";
+                arguments += toasType == ToastTypes.Alarm ? ToastDataTemplate.AlarmToastArguments : ToastDataTemplate.NotificationToastArguments;
+
                 var toast = new ToastModel
                 {
-                    Id = task.ToastId = $"{task.Id}-{randomizer.Next(1000000)}",
+                    Id = task.ToastId,
                     Title = "Recordatorio de tarea pendiente",
                     Body = task.Name,
                     Time = task.ReminderTime.Value,
-                    Type = (ToastTypes)Config.Current.NotificationType
+                    Type = toasType,
+                    Arguments = arguments + task.Id
                 };
 
                 if (Device.RuntimePlatform == Device.UWP) 
@@ -314,17 +343,16 @@ namespace CheckListNotes
 
         #region Navigation
 
-        public static CheckTaskModel IndexNavigation(List<CheckTaskModel> list, string uri)
+        public static CheckTaskModel IndexNavigation(List<CheckTaskModel> list, string uri, int deep = 1)
         {
             using (var cleaner = new ExplicitGarbageCollector())
             { 
-                if (uri.Contains("."))
+                if (uri.Contains(".") && deep < uri.Split('.').Length)
                 {
-                    var index = uri.IndexOf(".");
-                    var taskId = uri.Substring(0, index);
+                    var taskId = uri.GetSplitRange(".", endValue: deep);
                     var model = list.FirstOrDefault(m => m.Id == taskId);
                     return IndexNavigation(model.SubTasks,
-                        uri.Substring(index, uri.Length - index));
+                        uri, ++deep);
                 }
                 else return list.FirstOrDefault(m => m.Id == uri);
             }

@@ -12,6 +12,7 @@ using CheckListNotes.PageModels;
 using PortableClasses.Extensions;
 using CheckListNotes.Models.Interfaces;
 using Windows.ApplicationModel.Background;
+using Newtonsoft.Json.Linq;
 
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
 namespace CheckListNotes
@@ -85,11 +86,10 @@ namespace CheckListNotes
 
         private void OnTaskComplete(BackgroundTaskRegistration sender, BackgroundTaskCompletedEventArgs args)
         {
-            var taskName = sender.Name;
-
-            if (taskName == BackgroundDataTemplate.ResetDaylyTasksTimeTriggerName || taskName == BackgroundDataTemplate.ResetDaylyTasksSystemTriggerName) ConfigPlatform();
-            else GlobalDataService.UnregisterBackgroundTask(taskName);
-
+            //var taskName = sender.Name;
+            //if (taskName == BackgroundDataTemplate.ResetDaylyTasksTimeTriggerName || taskName == BackgroundDataTemplate.ResetDaylyTasksSystemTriggerName) ConfigPlatform();
+            //else GlobalDataService.UnregisterBackgroundTask(taskName);
+            ConfigPlatform();
             RefreshUI();
         }
 
@@ -100,19 +100,43 @@ namespace CheckListNotes
             switch (pageModel)
             {
                 case ListOfCheckListsPageModel viewModel:
-                await viewModel.PushPageModel<TaskDetailsPageModel>(arguments);
+                    await viewModel.PushPageModel<TaskDetailsPageModel>(arguments);
                     break;
                 case CheckListPageModel viewModel:
-                await viewModel.PushPageModel<TaskDetailsPageModel>(arguments);
+                    await viewModel.PushPageModel<TaskDetailsPageModel>(arguments);
                     break;
                 case TaskDetailsPageModel viewModel:
                     viewModel.Init(arguments);
                     break;
                 case TaskPageModel viewModel:
-                await viewModel.PushPageModel<TaskDetailsPageModel>(arguments);
+                    await viewModel.PushPageModel<TaskDetailsPageModel>(arguments);
                     break;
                 case OptionsPageModel viewModel:
-                await viewModel.PushPageModel<TaskDetailsPageModel>(arguments);
+                    await viewModel.PushPageModel<TaskDetailsPageModel>(arguments);
+                    break;
+            }
+        }
+
+        private async void PushPageModel(string pageModelName, object arguments)
+        {
+            if (!(NavigationContainer?.CurrentPage is Page currentPage)) return;
+            if (!(currentPage.BindingContext is IPageModel pageModel)) return;
+            switch (pageModelName)
+            {
+                case nameof(ListOfCheckListsPageModel):
+                    await pageModel.PushPageModel<ListOfCheckListsPageModel>(arguments);
+                    break;
+                case nameof(CheckListPageModel):
+                    await pageModel.PushPageModel<CheckListPageModel>(arguments);
+                    break;
+                case nameof(TaskDetailsPageModel):
+                    await pageModel.PushPageModel<TaskDetailsPageModel>(arguments);
+                    break;
+                case nameof(TaskPageModel):
+                    await pageModel.PushPageModel<TaskPageModel>(arguments);
+                    break;
+                case nameof(OptionsPageModel):
+                    await pageModel.PushPageModel<OptionsPageModel>(arguments);
                     break;
             }
         }
@@ -127,13 +151,49 @@ namespace CheckListNotes
 
         private void SaveState()
         {
-            //TODO: Save aplication state to be resume.
+            using (var fileService = new FileService())
+            {
+                if (!(NavigationContainer?.CurrentPage is Page currentPage)) return;
+                if (!(currentPage.BindingContext is IPageModel pageModel)) return;
+
+                var localFoldeer = FileSystem.AppDataDirectory;
+                var initFilePath = $"{localFoldeer}/init.bin";
+                var initFile = Task.Run(() =>
+                    fileService.Read<InitFile>(initFilePath)).TryTo().Result;
+
+                initFile.LastPageModelName = pageModel.GetType();
+                initFile.LastListName = GlobalDataService.CurrentListName;
+                initFile.LastIndex = GlobalDataService.CurrentIndex;
+
+                var document = JToken.FromObject(initFile);
+                Task.Run(() =>
+                    fileService.Write(document, initFilePath)).TryTo().Wait();
+            }
 
         }
 
         private void LoadState()
         {
             //TODO: Resume aplication state.
+            using (var fileService = new FileService())
+            {
+                var localFoldeer = FileSystem.AppDataDirectory;
+                var initFilePath = $"{localFoldeer}/init.bin";
+                var initFile = Task.Run(() =>
+                    fileService.Read<InitFile>(initFilePath)).TryTo().Result;
+
+                var pageModelName = initFile.LastPageModelName;
+
+                if (pageModelName == null) return;
+
+                GlobalDataService.CurrentListName = initFile.LastListName;
+                GlobalDataService.CurrentIndex = initFile.LastIndex;
+
+                if (!(NavigationContainer?.CurrentPage is Page currentPage)) return;
+                if (!(currentPage.BindingContext is IPageModel pageModel)) return;
+
+                PushPageModel(pageModelName.Name, 0);
+            }
         }
 
         #endregion
@@ -154,6 +214,8 @@ namespace CheckListNotes
                     RegisterBackgroundTask(
                         BackgroundDataTemplate.ResetDaylyTasksSystemTriggerName,
                         BackgroundDataTemplate.ResetDaylyTasksEntryPoint);
+                    RegisterBackgroundTask(BackgroundDataTemplate.CompleteTaskName,
+                        BackgroundDataTemplate.CompleteTaskEntryPoint);
                     break;
                 //TODO: Add others plafom implementations.
                 //case Device.WPF: 
@@ -178,20 +240,21 @@ namespace CheckListNotes
                 var initFilePath = $"{localFoldeer}/init.bin";
                 var initFile = Task.Run(() =>
                     fileService.Read<InitFile>(initFilePath)).TryTo().Result;
+                if (initFile.LastResetTime.DayOfYear == DateTime.Now.DayOfYear) return;
+
+                if ((uint)(DateTime.Today.AddDays(1) - DateTime.Now).TotalMinutes < 15) return;
+
+                var resetDailyTasks = new BackgroundTaskModel
+                {
+                    Title = taskName,
+                    EntryPoint = taskEntryPoint,
+                    Trigger = GetTaskTrigger(taskName),
+                    OnComplete = new BackgroundTaskCompletedEventHandler(OnTaskComplete)
+                };
+
+                GlobalDataService.UnregisterBackgroundTask(taskName);
+                GlobalDataService.RegisterBackgroundTask(resetDailyTasks);
             }
-
-            if ((uint)(DateTime.Today.AddDays(1) - DateTime.Now).TotalMinutes < 15) return;
-
-            var resetDailyTasks = new BackgroundTaskModel
-            {
-                Title = taskName,
-                EntryPoint = taskEntryPoint,
-                Trigger = GetTaskTrigger(taskName),
-                OnComplete = new BackgroundTaskCompletedEventHandler(OnTaskComplete)
-            };
-
-            GlobalDataService.UnregisterBackgroundTask(taskName);
-            GlobalDataService.RegisterBackgroundTask(resetDailyTasks);
         }
 
         private IBackgroundTrigger GetTaskTrigger(string taskName)
@@ -209,7 +272,7 @@ namespace CheckListNotes
                 case BackgroundDataTemplate.ShowTaskDetailsName:
                 case BackgroundDataTemplate.SnoozeToastName:
                 default:
-                    return new ApplicationTrigger();
+                    return new ToastNotificationActionTrigger();
             }
         }
 

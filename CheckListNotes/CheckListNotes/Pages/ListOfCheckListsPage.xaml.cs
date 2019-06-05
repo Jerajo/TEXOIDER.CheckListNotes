@@ -61,7 +61,7 @@ namespace CheckListNotes.Pages
                     Title = "Esto es una notificación",
                     Body = "Esto es una notificación",
                     Type = ToastTypes.Notification,
-                    Arguments = $"action={BackgroundDataTemplate.ShowTaskDetailsName}"
+                    Arguments = $"action={BackgroundDataTemplate.ShowTaskDetailsName}&listName=Casos de pruebas&taskId=48.58"
                 };
 
                 service.ShowToast(toast);
@@ -73,14 +73,14 @@ namespace CheckListNotes.Pages
         {
             using (var service = new WindowsToastService())
             {
+                var id = "k5j3hf9s1s";
                 var toast = new ToastModel
                 {
-                    Id = "k5j3hf9s1s",
+                    Id = id,
                     Title = "Esto es una notificación",
                     Body = "Esto es una notificación",
                     Type = ToastTypes.Alarm,
-                    Arguments = $"action={BackgroundDataTemplate.CompleteTaskName}&listName=Prueba reinicio de tareas diarias&taskId=4"
-                    //Arguments = $"action={BackgroundDataTemplate.CompleteTaskName}&listName={GlobalDataService.LastCheckListName}&taskId={GlobalDataService.LastTaskId}"
+                    Arguments = $"action={BackgroundDataTemplate.CompleteTaskName}&listName=Casos de pruebas&taskId=48.58&toastId={id}"
                 };
 
                 service.ShowToast(toast);

@@ -43,8 +43,9 @@ namespace CheckListNotes.UWP
                 else if (Xamarin.Forms.Application.Current is CheckListNotes.App library)
                     library.OnLaunchedOrActivated(toastEvent?.Argument);
             }
-            if (rootFrame.Content != null) Window.Current.Activate();
-            else Current.Exit();
+            if (rootFrame.Content == null)
+                rootFrame.Navigate(typeof(MainPage), e); 
+            Window.Current.Activate();
 
             base.OnActivated(e);
         }
@@ -61,6 +62,8 @@ namespace CheckListNotes.UWP
             if (rootFrame.Content == null)
                 rootFrame.Navigate(typeof(MainPage), e.Arguments);
             Window.Current.Activate();
+
+            base.OnLaunched(e);
         }
 
         /// <summary>
