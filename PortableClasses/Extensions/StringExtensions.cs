@@ -9,20 +9,8 @@
         /// <summary>
         /// Returns the last split inside the text.
         /// </summary>
-        public static string GetLastSplit(this string value, char separator) =>
-            GetLastSplit(value, new char[] { separator });
-
-        /// <summary>
-        /// Returns the last split inside the text.
-        /// </summary>
         public static string GetLastSplit(this string value, string separator) =>
             GetLastSplit(value, separator.ToCharArray());
-
-        /// <summary>
-        /// Returns the first split inside the text.
-        /// </summary>
-        public static string GetFistSplit(this string value, char separator) =>
-            GetFistSplit(value, new char[] { separator });
 
         /// <summary>
         /// Returns the first split inside the text.
@@ -30,12 +18,19 @@
         public static string GetFistSplit(this string value, string separator) =>
             GetFistSplit(value, separator.ToCharArray());
 
+        /// <summary>
+        /// Returns all the splits inside the text betwin the start and the end value.
+        /// </summary>
+        public static string GetSplitRange(this string value, string separator,
+            int? startValue = null, int? endValue = null) => 
+            GetSplitRange(value, startValue, endValue, separator.ToCharArray());
+
         #endregion
 
         /// <summary>
         /// Returns the last split inside the text.
         /// </summary>
-        public static string GetLastSplit(this string value, char[] separator)
+        public static string GetLastSplit(this string value, params char[] separator)
         {
             var stringSplited = value.Split(separator);
             var stringShorted = (stringSplited.Length > 0) ? stringSplited[stringSplited.Length - 1] : value;
@@ -45,10 +40,26 @@
         /// <summary>
         /// Returns the first split inside the text.
         /// </summary>
-        public static string GetFistSplit(this string value, char[] separator)
+        public static string GetFistSplit(this string value, params char[] separator)
         {
             var stringSplited = value.Split(separator);
             var stringShorted = (stringSplited.Length > 0) ? stringSplited[0] : value;
+            return stringShorted;
+        }
+
+        /// <summary>
+        /// Returns all the splits inside the text betwin the start and the end value.
+        /// </summary>
+        public static string GetSplitRange(this string value, int? startValue = null, 
+            int? endValue = null, params char[] separator)
+        {
+            var stringSplited = value.Split(separator);
+            startValue = startValue ?? 0;
+            endValue = endValue ?? stringSplited.Length;
+            var stringShorted = "";
+            for (var i = startValue; i < endValue; i++)
+                stringShorted += (i == startValue) ? stringSplited[i.Value] : 
+                    $".{stringSplited[i.Value]}";
             return stringShorted;
         }
 
@@ -61,20 +72,8 @@
         /// <summary>
         /// Returns the string without the last split text.
         /// </summary>
-        public static string RemoveLastSplit(this string value, char separator) =>
-            RemoveLastSplit(value, new char[] { separator });
-
-        /// <summary>
-        /// Returns the string without the last split text.
-        /// </summary>
         public static string RemoveLastSplit(this string value, string separator) =>
             RemoveLastSplit(value, separator.ToCharArray());
-
-        /// <summary>
-        /// Returns the string without the first split text.
-        /// </summary>
-        public static string RemoveFistSplit(this string value, char separator) =>
-            RemoveFistSplit(value, new char[] { separator });
 
         /// <summary>
         /// Returns the string without the first split text.
@@ -87,7 +86,7 @@
         /// <summary>
         /// Returns the string without the last split text.
         /// </summary>
-        public static string RemoveLastSplit(this string value, char[] separator)
+        public static string RemoveLastSplit(this string value, params char[] separator)
         {
             var stringSplited = value.Split(separator);
             var stringShorted = "";
@@ -99,7 +98,7 @@
         /// <summary>
         /// Returns the string without the first split text.
         /// </summary>
-        public static string RemoveFistSplit(this string value, char[] separator)
+        public static string RemoveFistSplit(this string value, params char[] separator)
         {
             var stringSplited = value.Split(separator);
             var stringShorted = "";
