@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace PortableClasses.Implementations
 {
-    public class LightObservableCollection<T> : IEnumerable<T>, ICollection<T>, INotifyPropertyChanged, IDisposable where T : INotifyPropertyChanged
+    public class LightObservableCollection<T> : IEnumerable<T>, ICollection<T>, IObservable<T>, IDisposable where T : INotifyPropertyChanged
     {
         #region Atributes
 
@@ -57,14 +57,14 @@ namespace PortableClasses.Implementations
         /// Occurs when an item is added, removed, changed, moved, or the entire list is
         /// refreshed.
         /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler ItemPropertyChanged;
 
         /// <summary>
         /// Notify that a value has changed in the collection.
         /// </summary>
         /// <param name="propertyName">Name of the changed property.</param>
         public void RaisePropertyChanged(string propertyName) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            ItemPropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         /// <summary>
         /// Method called when an item is added, removed, changed, moved, or the entire list is
@@ -72,8 +72,8 @@ namespace PortableClasses.Implementations
         /// </summary>
         /// <param name="sender">Obcjet that called the event.</param>
         /// <param name="e">Event handler.</param>
-        protected virtual void ItemPropertyChanged(object sender, PropertyChangedEventArgs e) =>
-            PropertyChanged?.Invoke(sender, e);
+        protected virtual void OnItemPropertyChanged(object sender, PropertyChangedEventArgs e) =>
+            ItemPropertyChanged?.Invoke(sender, e);
 
         #endregion
 
@@ -166,11 +166,14 @@ namespace PortableClasses.Implementations
                 this.Clear();
                 items = null;
             }
-            if (PropertyChanged != null) PropertyChanged = null;
+            if (ItemPropertyChanged != null) ItemPropertyChanged = null;
             isDisposing = null;
         }
 
-        
+        public IDisposable Subscribe(IObserver<T> observer)
+        {
+            throw new NotImplementedException();
+        }
 
         #endregion
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,16 +10,38 @@ namespace PortableClasses.Implementations
     public class FulyObservableCollection<T> : ObservableCollection<T>, IDisposable
         where T : INotifyPropertyChanged
     {
+        private bool? isDisposing = false;
+
         public FulyObservableCollection() : base() { }
 
-        public FulyObservableCollection(IEnumerable<T> enumerable) : base(enumerable)
-        {
-            ObserveAll();
-        }
+        public FulyObservableCollection(IEnumerable<T> enumerable) :
+            base(enumerable) => ObserveAll();
 
-        #region SETTERS AND GETTERS
+        #region Events
 
-        public EventHandler<ItemPropertyChangedEventArgs> ItemPropertyChanged { get; set; }
+        //public EventHandler<ItemPropertyChangedEventArgs> ItemPropertyChanged { get; set; }
+
+        /// <summary>
+        /// Occurs when an item is added, removed, changed, moved, or the entire list is
+        /// refreshed.
+        /// </summary>
+        public event PropertyChangedEventHandler ItemPropertyChanged;
+
+        /// <summary>
+        /// Notify that a value has changed in the collection.
+        /// </summary>
+        /// <param name="propertyName">Name of the changed property.</param>
+        public void RaisePropertyChanged(string propertyName) =>
+            ItemPropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+        /// <summary>
+        /// Method called when an item is added, removed, changed, moved, or the entire list is
+        /// refreshed.
+        /// </summary>
+        /// <param name="sender">Obcjet that called the event.</param>
+        /// <param name="e">Event handler.</param>
+        protected virtual void OnItemPropertyChanged(object sender, PropertyChangedEventArgs e) 
+            => ItemPropertyChanged?.Invoke(sender, e);
 
         #endregion
 
@@ -30,26 +53,22 @@ namespace PortableClasses.Implementations
                 e.Action == NotifyCollectionChangedAction.Replace)
             {
                 foreach (T item in e.OldItems)
-                    item.PropertyChanged -= ChildPropertyChanged;
+                    item.PropertyChanged -= OnItemPropertyChanged;
             }
 
             if (e.Action == NotifyCollectionChangedAction.Add ||
                 e.Action == NotifyCollectionChangedAction.Replace)
             {
                 foreach (T item in e.NewItems)
-                    item.PropertyChanged += ChildPropertyChanged;
+                    item.PropertyChanged += OnItemPropertyChanged;
             }
 
             base.OnCollectionChanged(e);
         }
 
-        
-
         protected override void ClearItems()
         {
-            foreach (T item in Items)
-                item.PropertyChanged -= ChildPropertyChanged;
-
+            UnobserveAll();
             base.ClearItems();
         }
 
@@ -63,36 +82,62 @@ namespace PortableClasses.Implementations
             foreach (T item in enumerator) Add(item);
         }
 
-        protected void OnItemPropertyChanged(ItemPropertyChangedEventArgs e)
-        {
-            ItemPropertyChanged?.Invoke(this, e);
-        }
+        //protected void OnItemPropertyChanged(ItemPropertyChangedEventArgs e)
+        //{
+        //    ItemPropertyChanged?.Invoke(this, e);
+        //}
 
-        protected void OnItemPropertyChanged(int index, PropertyChangedEventArgs e)
-        {
-            OnItemPropertyChanged(new ItemPropertyChangedEventArgs(index, e));
-        }
+        //protected void OnItemPropertyChanged(int index, PropertyChangedEventArgs e)
+        //{
+        //    OnItemPropertyChanged(new ItemPropertyChangedEventArgs(index, e));
+        //}
 
-        private void ObserveAll()
+        public void ObserveAll()
         {
             foreach (T item in Items)
-                item.PropertyChanged += ChildPropertyChanged;
+                item.PropertyChanged += OnItemPropertyChanged;
         }
 
-        private void ChildPropertyChanged(object sender, PropertyChangedEventArgs e)
+        public void UnobserveAll()
         {
-            T typedSender = (T)sender;
-            int i = Items.IndexOf(typedSender);
+            foreach (T item in Items)
+                item.PropertyChanged -= OnItemPropertyChanged;
+        }
 
-            if (i < 0)
-                throw new ArgumentException("Received property notification from item not in collection");
+        //private void ChildPropertyChanged(object sender, PropertyChangedEventArgs e)
+        //{
+        //    T typedSender = (T)sender;
+        //    int i = Items.IndexOf(typedSender);
 
-            OnItemPropertyChanged(i, e);
+        //    if (i < 0)
+        //        throw new ArgumentException("Received property notification from item not in collection");
+
+        //    OnItemPropertyChanged(i, e);
+        //}
+
+        #endregion
+
+        #region Dispose
+
+        ~FulyObservableCollection()
+        {
+            if (isDisposing == false) Dispose(true);
+#if DEBUG
+            Debug.WriteLine($"Object destroyect: Name: {nameof(FulyObservableCollection<T>)}, Id: {this.GetHashCode()}].");
+#endif
+        }
+
+        public void Dispose(bool isDisposing)
+        {
+            this.isDisposing = isDisposing;
+            if (this.isDisposing == true) Dispose();
         }
 
         public void Dispose()
         {
-            if (Items != null) Clear();
+            if (Items != null) ClearItems();
+            if (ItemPropertyChanged != null) ItemPropertyChanged = null;
+            isDisposing = null;
         }
 
         #endregion
