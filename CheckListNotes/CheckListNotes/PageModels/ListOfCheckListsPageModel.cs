@@ -33,7 +33,7 @@ namespace CheckListNotes.PageModels
             get => null;
             set
             {
-                if (value?.IsAnimating == false && !IsLooked && !IsDisposing)
+                if (value?.IsAnimating == false && IsLooked == false && IsDisposing == false)
                 {
                     IsLooked = true;
                     GlobalDataService.CurrentListName = value.Name;
@@ -81,7 +81,7 @@ namespace CheckListNotes.PageModels
 
         private async void SaveCommand(object value)
         {
-            if (!HasLoaded || IsLooked) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
             var name = value as string;
             if (ValidateNewCheckListName(name))
@@ -113,7 +113,8 @@ namespace CheckListNotes.PageModels
 
         private async void UpdateOrRemoveCommand(object value)
         {
-            if (!HasLoaded || IsLooked || !(value is CheckListViewModel model)) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true || 
+                !(value is CheckListViewModel model)) return;
             IsLooked = true;
             if (model.SelectedReason == SelectedFor.Delete)
             {
@@ -136,7 +137,7 @@ namespace CheckListNotes.PageModels
 
         private void OpenFormCommand()
         {
-            if (!HasLoaded || IsLooked) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
             IsNewListFormVisible = true;
             OldCheckListName = "";
@@ -145,7 +146,7 @@ namespace CheckListNotes.PageModels
 
         private void CancelCommand()
         {
-            if (!HasLoaded || IsLooked) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
             IsNewListFormVisible = false;
             if (temporalList != null)
@@ -156,7 +157,7 @@ namespace CheckListNotes.PageModels
 
         private async void GoToOptionsCommand()
         {
-            if (!HasLoaded || IsLooked) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
             await PushPageModel<OptionsPageModel>(0);
         }
@@ -218,7 +219,7 @@ namespace CheckListNotes.PageModels
                     {
                         LastId = item.LastId,
                         Name = item.Name,
-                        CompletedTasks = item.CheckListTasks.Where(m => m.IsChecked).Count(),
+                        CompletedTasks = item.CheckListTasks.Where(m => m.IsChecked == true).Count(),
                         TotalTasks = item.CheckListTasks.Count()
                     });
                 }
@@ -240,7 +241,6 @@ namespace CheckListNotes.PageModels
             if (!string.IsNullOrEmpty(name) && name.Length > 50) Errors.Add("\nEl nombre de la lista no puede ser mayor de 50 caractetes. ");
             if (!string.IsNullOrEmpty(name) && name == OldCheckListName) return true;
             return (Errors?.Count <= 0);
-
         }
 
         #endregion

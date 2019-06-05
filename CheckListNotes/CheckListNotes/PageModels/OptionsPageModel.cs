@@ -317,7 +317,7 @@ namespace CheckListNotes.PageModels
 
         private async void GoBackCommand()
         {
-            if (!HasLoaded || IsLooked || IsDisposing) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
             await PopPageModel(InitData);
         }
@@ -383,7 +383,7 @@ namespace CheckListNotes.PageModels
 
         private async void ThemeChanged(string themeName)
         {
-            if (IsLooked || IsDisposing) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
 
             using (var stream = await FileSystem.OpenAppPackageFileAsync($"{themeName}.json"))
             {

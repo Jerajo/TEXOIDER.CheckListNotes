@@ -2,6 +2,7 @@
 using System.Linq;
 using Xamarin.Forms;
 using PropertyChanged;
+using System.Diagnostics;
 using PortableClasses.Enums;
 using System.ComponentModel;
 using System.Collections.Generic;
@@ -9,16 +10,17 @@ using System.Collections.Generic;
 namespace CheckListNotes.Models
 {
     [AddINotifyPropertyChangedInterfaceAttribute]
-    public class CheckTaskViewModel : BaseModel
+    public class CheckTaskViewModel : BaseModel, IDisposable
     {
         #region Atributes
 
-        public bool isAnimating = false;
-        internal ToastTypesTime notifyOn;
+        public bool? isAnimating = false;
+        internal ToastTypesTime? notifyOn = ToastTypesTime.None;
         private string selectedNotificationTimeIndex;
         internal DateTime? expirationDate;
         internal TimeSpan? expiration;
-        internal bool isDaily;
+        internal bool? isDaily = false;
+        private bool? isDisposing = false;
 
         #endregion
 
@@ -26,19 +28,19 @@ namespace CheckListNotes.Models
 
         public string Id { get; set; }
         public string Name { get; set; }
-        public int LastSubId { get; set; }
+        public int? LastSubId { get; set; }
         public string ToastId { get; set; }
-        public bool IsTaskGroup { get; set; }
-        public bool IsChecked { get => IsCompleted; set => IsCompleted = value; }
+        public bool? IsTaskGroup { get; set; }
+        public bool IsChecked { get => IsCompleted; set => IsCompleted = value; } 
         public DateTime? ExpirationDate { get => expirationDate; set => expirationDate = value; }
         public TimeSpan? Expiration { get => expiration; set => expiration = value; }
-        public ToastTypesTime NotifyOn { get => notifyOn; set => notifyOn = value; }
-        public bool IsDaily { get => isDaily; set => isDaily = value; }
+        public ToastTypesTime? NotifyOn { get => notifyOn; set => notifyOn = value; }
+        public bool? IsDaily { get => isDaily; set => isDaily = value; }
         public DateTime? CompletedDate { get; set; }
         public DateTime? ReminderTime { get; set; }
-        public bool HasExpiration { get; set; }
-        public int CompletedTasks { get; set; }
-        public int TotalTasks { get; set; }
+        public bool? HasExpiration { get; set; }
+        public int? CompletedTasks { get; set; }
+        public int? TotalTasks { get; set; }
 
         #endregion
 
@@ -60,16 +62,16 @@ namespace CheckListNotes.Models
         {
             get
             {
-                if (HasExpiration)
+                if (HasExpiration == true)
                 {
                     if (IsCompleted)
                     {
-                        if (IsDaily) return $"Expira mañana a las: {ExpirationDate?.ToString("hh:mm tt")}";
+                        if (IsDaily == true) return $"Expira mañana a las: {ExpirationDate?.ToString("hh:mm tt")}";
                         else return $"Fecha de expiración: {ExpirationDate?.ToString("dd/MM/yyyy")} a las {ExpirationDate?.ToString("hh:mm tt")}";
                     }
                     else
                     {
-                        if (IsDaily)
+                        if (IsDaily == true)
                         {
                             switch (ExpirationDate)
                             {
@@ -105,7 +107,7 @@ namespace CheckListNotes.Models
             {
                 if (IsCompleted)
                 {
-                    if (IsDaily) return $"Completado hoy a las: {CompletedDate?.ToString("hh:mm tt")}";
+                    if (IsDaily == true) return $"Completado hoy a las: {CompletedDate?.ToString("hh:mm tt")}";
                     else return $"Completado el: {CompletedDate?.ToString("dd/MM/yyyy")} a las {CompletedDate?.ToString("hh:mm tt")}";
                 }
                 else return "";
@@ -116,9 +118,9 @@ namespace CheckListNotes.Models
 
         #region Auxiliary Atributes
 
-        public bool IsAnimating { get => isAnimating; set => isAnimating = value; }
+        public bool? IsAnimating { get => isAnimating; set => isAnimating = value; }
 
-        public SelectedFor SelectedReason { get; set; }
+        public SelectedFor? SelectedReason { get; set; }
 
         public List<string> NotifyOnDisplayNames
         {
@@ -154,7 +156,7 @@ namespace CheckListNotes.Models
         {
             get
             {
-                if (IsDaily) return (DateTime.Now.TimeOfDay > ExpirationDate?.TimeOfDay);
+                if (IsDaily == true) return (DateTime.Now.TimeOfDay > ExpirationDate?.TimeOfDay);
                 else return (DateTime.Now > ExpirationDate);
             }
         }
@@ -163,7 +165,7 @@ namespace CheckListNotes.Models
         {
             get
             {
-                if (IsDaily) return (DateTime.Now.TimeOfDay > ExpirationDate?.AddHours(-1).TimeOfDay);
+                if (IsDaily == true) return (DateTime.Now.TimeOfDay > ExpirationDate?.AddHours(-1).TimeOfDay);
                 else return (DateTime.Now > ExpirationDate?.AddHours(-1));
             }
         }
@@ -179,7 +181,7 @@ namespace CheckListNotes.Models
 
                 // Verifica los atributos
                 if (string.IsNullOrEmpty(Name) || string.IsNullOrWhiteSpace(Name)) Errors.Add("Debe ingresar el nombre de la tarea.\n");
-                if (IsDaily && !HasExpiration) Errors.Add("Debe seleccionar la hora de expiración.\n");
+                if (IsDaily == true && HasExpiration == false) Errors.Add("Debe seleccionar la hora de expiración.\n");
                 if (IsChecked && !IsCompleted) Errors.Add("Error fecha de completado no encontrada.\n");
                 return (Errors.Count <= 0);
             }
@@ -231,11 +233,11 @@ namespace CheckListNotes.Models
         {
             get
             {
-                if (HasExpiration)
+                if (HasExpiration == true)
                 {
                     if (IsCompleted)
                     {
-                        if (IsDaily && CompletedDate?.TimeOfDay <= Expiration)
+                        if (IsDaily == true && CompletedDate?.TimeOfDay <= Expiration)
                             return Color.FromHex(Config.Current.CompletedTaskColor);
                         else if (CompletedDate <= ExpirationDate)
                             return Color.FromHex(Config.Current.CompletedTaskColor);
@@ -315,15 +317,55 @@ namespace CheckListNotes.Models
         public override int GetHashCode() => base.GetHashCode();
 
         #endregion
+
+        #region Dispose
+
+        ~CheckTaskViewModel()
+        {
+            if (isDisposing == false) Dispose(true);
+#if DEBUG
+            Debug.WriteLine($"Object destroyect: Name: {nameof(CheckTaskViewModel)}, Id: {this.GetHashCode()}].");
+#endif
+        }
+
+        public void Dispose(bool isDisposing)
+        {
+            this.isDisposing = isDisposing;
+            if (this.isDisposing == false) Dispose(true);
+        }
+
+        public void Dispose()
+        {
+            Id = null;
+            Name = null;
+            isDaily = null;
+            ToastId = null;
+            notifyOn = null;
+            LastSubId = null;
+            TotalTasks = null;
+            expiration = null;
+            IsTaskGroup = null;
+            isAnimating = null;
+            ReminderTime = null;
+            CompletedDate = null;
+            HasExpiration = null;
+            CompletedTasks = null;
+            SelectedReason = null;
+            expirationDate = null;
+            selectedNotificationTimeIndex = null;
+        }
+
+        #endregion
     }
 
     [AddINotifyPropertyChangedInterfaceAttribute]
-    public class CheckListViewModel : BaseModel
+    public class CheckListViewModel : BaseModel, IDisposable
     {
         #region Atributes
 
-        public bool isAnimating = false;
-        public SelectedFor selectedReason = SelectedFor.Create;
+        public bool? isAnimating = false;
+        public SelectedFor? selectedReason = SelectedFor.Create;
+        private bool? isDisposing = false;
 
         #endregion
 
@@ -331,20 +373,20 @@ namespace CheckListNotes.Models
 
         #region Base Atributes
 
-        public int LastId { get; set; }
-        public bool IsTask { get; set; }
+        public int? LastId { get; set; }
+        public bool? IsTask { get; set; }
         public string Name { get; set; }
         public string OldName { get; set; }
-        public int CompletedTasks { get; set; }
-        public int TotalTasks { get; set; }
+        public int? CompletedTasks { get; set; }
+        public int? TotalTasks { get; set; }
 
         #endregion
 
         #region Funtion Atributes
 
-        public bool IsAnimating { get => isAnimating; set => isAnimating = value; }
+        public bool? IsAnimating { get => isAnimating; set => isAnimating = value; }
 
-        public SelectedFor SelectedReason { get => selectedReason; set => selectedReason = value; }
+        public SelectedFor? SelectedReason { get => selectedReason; set => selectedReason = value; }
 
         public string Detail { get => $"Tareas finalizadas: {CompletedTasks} / {TotalTasks}"; }
 
@@ -416,7 +458,37 @@ namespace CheckListNotes.Models
             OnPropertyChanged(nameof(PendientPercentageColor));
         }
 
-        ~CheckListViewModel() => Config.Current.PropertyChanged -= ConfigChanged;
+        #endregion
+
+        #region Dispose
+
+        ~CheckListViewModel()
+        {
+            if (isDisposing == false) Dispose(true);
+#if DEBUG
+            Debug.WriteLine($"Object destroyect: Name: {nameof(CheckListViewModel)}, Id: {this.GetHashCode()}].");
+#endif
+        }
+
+        public void Dispose(bool isDisposing)
+        {
+            this.isDisposing = isDisposing;
+            if (this.isDisposing == false) Dispose(true);
+        }
+
+        public void Dispose()
+        {
+            Config.Current.PropertyChanged -= ConfigChanged;
+            CompletedTasks = null;
+            selectedReason = null;
+            isAnimating = null;
+            isDisposing = null;
+            TotalTasks = null;
+            OldName = null;
+            LastId = null;
+            IsTask = null;
+            Name = null;
+        }
 
         #endregion
     }

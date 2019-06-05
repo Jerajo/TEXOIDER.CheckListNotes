@@ -5,6 +5,7 @@ using PropertyChanged;
 using System.Windows.Input;
 using CheckListNotes.Models;
 using PortableClasses.Enums;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using PortableClasses.Extensions;
@@ -62,14 +63,11 @@ namespace CheckListNotes.PageModels
             set
             {
                 var task = value;
-                if (task?.IsAnimating == false && !IsLooked && !IsDisposing)
+                if (task?.IsAnimating == false && IsLooked == false && IsDisposing == false)
                 {
                     IsLooked = true;
-
-                    if (CheckListModel.IsTask) GlobalDataService.CurrentIndex += $".{task.Id}"; 
-                    else GlobalDataService.CurrentIndex = task.Id;
-
-                    if (task.IsTaskGroup)
+                    GlobalDataService.CurrentIndex = task.Id;
+                    if (task.IsTaskGroup == true)
                     {
                         ViewIsDisappearing(null, null);
                         Init(TabIndex);
@@ -117,7 +115,7 @@ namespace CheckListNotes.PageModels
 
         private async void AddNewTaskCommand()
         {
-            if (!HasLoaded || IsLooked || IsDisposing) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
             var model = new CheckTaskModel
             {
@@ -130,7 +128,7 @@ namespace CheckListNotes.PageModels
 
         private async void UpdateOrRemoveCommand(object value)
         {
-            if (!HasLoaded || IsLooked || IsDisposing || 
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true ||
                 !(value is CheckTaskViewModel model)) return;
             IsLooked = true;
             if (model.SelectedReason == SelectedFor.Delete)
@@ -140,14 +138,13 @@ namespace CheckListNotes.PageModels
                 {
                     if (TabIndex <= 0) Tasks.Remove(model);
                     else CheckedTasks.Remove(model);
-                    GlobalDataService.RemoveTask(model.Name);
+                    GlobalDataService.RemoveTask(model.Id);
                 }
                 else model.SelectedReason = SelectedFor.Create;
             }
             else if (model.SelectedReason == SelectedFor.Update)
             {
-                if (CheckListModel.IsTask) GlobalDataService.CurrentIndex += $".{model.Id}"; 
-                else GlobalDataService.CurrentIndex = model.Id.ToString();
+                GlobalDataService.CurrentIndex = model.Id;
                 await PushPageModel<TaskPageModel>(TabIndex);
                 return;
             }
@@ -156,16 +153,16 @@ namespace CheckListNotes.PageModels
 
         private async void GoToOptionsCommand()
         {
-            if (!HasLoaded || IsLooked || IsDisposing) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
             await PushPageModel<OptionsPageModel>(TabIndex);
         }
 
         private async void GoBackCommand()
         {
-            if (!HasLoaded || IsLooked || IsDisposing) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
-            if (CheckListModel.IsTask)
+            if (CheckListModel.IsTask == true)
             {
                 var currentIndex = GlobalDataService.CurrentIndex;
                 GlobalDataService.CurrentIndex = currentIndex.RemoveLastSplit('.');
@@ -224,51 +221,60 @@ namespace CheckListNotes.PageModels
 
         #region Auxiliary Methods
 
-        private async Task InitializeComponent(object data)
+        #region Initialize components
+
+        private Task InitializeComponent(object data)
         {
-            TabIndex = (int)data;
-            List<CheckTaskModel> taskList;
-            if (!string.IsNullOrEmpty(GlobalDataService.CurrentIndex))
+            return Task.Run(() =>
             {
-                var task = await GlobalDataService.GetCurrentTask();
-                CheckListModel = new CheckListViewModel
-                {
-                    IsTask = task.IsTaskGroup,
-                    LastId = task.LastSubId,
-                    Name = task.Name
-                };
-                taskList = task.SubTasks ?? new List<CheckTaskModel>();
-            }
-            else
-            {
-                var list = await GlobalDataService.GetCurrentList();
-                CheckListModel = new CheckListViewModel
-                {
-                    IsTask = false,
-                    LastId = list.LastId,
-                    Name = list.Name
-                };
-                taskList = list.CheckListTasks ?? new List<CheckTaskModel>();
-            }
+                Device.BeginInvokeOnMainThread(async () => {
+                    TabIndex = (int)data;
+                    List<CheckTaskModel> taskList;
+                    if (!string.IsNullOrEmpty(GlobalDataService.CurrentIndex))
+                    {
+                        var task = await GlobalDataService.GetCurrentTask();
+                        CheckListModel = new CheckListViewModel
+                        {
+                            IsTask = task.IsTaskGroup,
+                            LastId = task.LastSubId,
+                            Name = task.Name
+                        };
+                        taskList = task.SubTasks ?? new List<CheckTaskModel>();
+                    }
+                    else
+                    {
+                        var list = await GlobalDataService.GetCurrentList();
+                        CheckListModel = new CheckListViewModel
+                        {
+                            IsTask = false,
+                            LastId = list.LastId,
+                            Name = list.Name
+                        };
+                        taskList = list.CheckListTasks ?? new List<CheckTaskModel>();
+                    }
 
-            PageTitle = CheckListModel.Name;
+                    PageTitle = CheckListModel.Name;
 
-            Tasks = new FulyObservableCollection<CheckTaskViewModel>();
-            Tasks.ItemPropertyChanged += ItemPropertyChanged;
+                    Tasks = new FulyObservableCollection<CheckTaskViewModel>();
+                    Tasks.ItemPropertyChanged += ItemPropertyChanged;
 
-            CheckedTasks = new FulyObservableCollection<CheckTaskViewModel>();
-            CheckedTasks.ItemPropertyChanged += ItemPropertyChanged;
+                    CheckedTasks = new FulyObservableCollection<CheckTaskViewModel>();
+                    CheckedTasks.ItemPropertyChanged += ItemPropertyChanged;
 
-            Device.BeginInvokeOnMainThread(() => {
-                if (TabIndex > 0 && taskList.Count > 0)
-                    CheckedTasks.AddRange(GetTasks(taskList, true));
-                else if (taskList.Count > 0) Tasks.AddRange(GetTasks(taskList, false));
+                    if (TabIndex > 0 && taskList.Count > 0)
+                        CheckedTasks.AddRange(GetTasks(taskList, true));
+                    else if (taskList.Count > 0) Tasks.AddRange(GetTasks(taskList, false));
+
+                    Randomizer = new Random();
+
+                    RefreshTaskColor();
+                });
             });
-
-            Randomizer = new Random();
-
-            Device.BeginInvokeOnMainThread(() => RefreshTaskColor());
         }
+
+        #endregion
+
+        #region Tasks Helpers
 
         private List<CheckTaskModel> GetAllTasks()
         {
@@ -293,25 +299,28 @@ namespace CheckListNotes.PageModels
                         CompletedDate = task.CompletedDate,
                         ExpirationDate = task.ExpirationDate,
                         HasExpiration = task.ExpirationDate != null,
-                        CompletedTasks = task.SubTasks?.Where(m => m.IsChecked).Count() ?? 0,
+                        CompletedTasks = task.SubTasks?.Where(m => m.IsChecked == true).Count() ?? 0,
                         Expiration = task.ExpirationDate?.TimeOfDay,
                         TotalTasks = task.SubTasks?.Count ?? 0,
                         ReminderTime = task.ReminderTime,
                         IsTaskGroup = task.IsTaskGroup,
-                        IsChecked = task.IsChecked,
+                        IsChecked = task.IsChecked ?? false,
                         NotifyOn = task.NotifyOn,
                         IsDaily = task.IsDaily
                     };
             }
         }
 
+        #endregion
+
+        #region Interact with Task
+
         // Save changes for completed or incompleted task status change
         // prevent doble changes and execute only on IsChecked value change
-        private async void ItemPropertyChanged(object sender, ItemPropertyChangedEventArgs e)
+        private async void ItemPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (IsDisposing || e.PropertyName != "IsChecked") return;
-            var task = ((IEnumerable<CheckTaskViewModel>)sender)
-                .ElementAt(e.CollectionIndex.Value);
+            if (IsDisposing == true || e.PropertyName != "IsChecked") return;
+            if (!(sender is CheckTaskViewModel task)) return;
             if (task?.isAnimating == true) return;
             task.isAnimating = true;
 
@@ -319,92 +328,83 @@ namespace CheckListNotes.PageModels
             {
                 try
                 {
-                    if (task.IsChecked && !IsDisposing)
-                    { 
-                        if (task.IsDaily)
-                        {
-                            task.ExpirationDate = task.ExpirationDate?.AddDays(1);
-                            if (task.NotifyOn != ToastTypesTime.None)
-                            {
-                                task.ReminderTime = task.ReminderTime?.AddDays(1);
-                                await UnregisterToast(task.ToastId);
-                                if (task.ReminderTime > DateTime.Now) await RegisterToast(task);
-                            }
-                        }
-                        else if (task.NotifyOn != ToastTypesTime.None)
-                                await UnregisterToast(task.ToastId);
-                        Tasks.Remove(task);
-                    }
-                    else if (!IsDisposing)
-                    {
-                        if (task.IsDaily)
-                        {
-                            task.ExpirationDate = task.ExpirationDate?.AddDays(-1);
-                            if (task.NotifyOn != ToastTypesTime.None)
-                            {
-                                task.ReminderTime = task.ReminderTime?.AddDays(-1);
-                                await UnregisterToast(task.ToastId);
-                                if (task.ReminderTime > DateTime.Now) await RegisterToast(task);
-                            }
-                        }
-                        else if (task.NotifyOn != ToastTypesTime.None && 
-                            task.ReminderTime > DateTime.Now) await RegisterToast(task);
-                        CheckedTasks.Remove(task);
-                    }
+                    if (task.IsChecked == true && IsDisposing == false) Tasks.Remove(task);
+                    else if (IsDisposing == false) CheckedTasks.Remove(task);
+                    await SaveChangesAsync(task);
                 }
                 catch (Exception ex)
                 {
-                    await ShowAlert("Error", ex.Message, "Ok");
+                    await ShowAlert("Fallo en la acción.", ex.Message, "Ok");
                 }
                 finally
                 {
-                    await SaveChangesAsync(task);
+                    task = null;
                 }
             }
-            else await ShowAlert("Error", task.ErrorMessage, "Ok");
+            else await ShowAlert("Fallo en la acción.", task.ErrorMessage, "Ok");
         }
 
         // Save all changes to LocalFolder/Data/fileName.bin
-        private async Task SaveChangesAsync(CheckTaskViewModel data)
+        private async Task SaveChangesAsync(CheckTaskViewModel task)
         {
-            if (IsDisposing || data == null) return;
-            try
+            if (IsDisposing == true) return;
+            if (task == null) throw new ArgumentNullException(nameof(task));
+            if (task.IsChecked == true && IsDisposing == false)
             {
-                var task = await GlobalDataService.GetCurrentTask(data.Id);
-                task.ToastId = data.ToastId;
-                task.IsChecked = data.IsChecked;
-                task.CompletedDate = data.CompletedDate;
-                task.ReminderTime = data.ReminderTime;
-
-                if (CheckListModel.IsTask)
+                if (task.IsDaily == true)
                 {
-                    var parentTask = await GlobalDataService.GetCurrentTask();
-                    if (parentTask.IsTaskGroup)
-                        parentTask.IsChecked = !parentTask.SubTasks.Any(m => !m.IsChecked);
+                    task.ExpirationDate = task.ExpirationDate?.AddDays(1);
+                    if (task.NotifyOn != ToastTypesTime.None)
+                    {
+                        task.ReminderTime = task.ReminderTime?.AddDays(1);
+                        await UnregisterToast(task.ToastId);
+                        if (task.ReminderTime > DateTime.Now) await RegisterToast(task);
+                    }
                 }
-
-                GlobalDataService.UpdateTask(data);
+                else if (task.NotifyOn != ToastTypesTime.None)
+                    await UnregisterToast(task.ToastId);
+                Tasks.Remove(task);
             }
-            catch (Exception ex)
+            else if (IsDisposing == false)
             {
-                await ShowAlert("Fallo en la acción.", ex.Message, "Ok");
+                if (task.IsDaily == true)
+                {
+                    task.ExpirationDate = task.ExpirationDate?.AddDays(-1);
+                    if (task.NotifyOn != ToastTypesTime.None)
+                    {
+                        task.ReminderTime = task.ReminderTime?.AddDays(-1);
+                        await UnregisterToast(task.ToastId);
+                        if (task.ReminderTime > DateTime.Now) await RegisterToast(task);
+                    }
+                }
+                else if (task.NotifyOn != ToastTypesTime.None &&
+                    task.ReminderTime > DateTime.Now) await RegisterToast(task);
+                CheckedTasks.Remove(task);
             }
+
+            GlobalDataService.UpdateTask(task);
         }
+
+        #endregion
+
+        #region UI
 
         public override Task RefreshUI() => RefreshPageModel(TabIndex);
 
         private async void RefreshTaskColor()
         {
-            while (!IsDisposing)
+            while (IsDisposing == false)
             {
                 if (TabIndex == 0 && Tasks != null && Tasks?.Count > 0)
                 {
-                    foreach (var task in Tasks.Where(m => m.HasExpiration))
+                    foreach (var task in Tasks.Where(m => m.HasExpiration == true))
                         task.RisePropertyChanged(nameof(task.CellBackgroundColor));
                 }
                 await Task.Delay(TimeSpan.FromMinutes(1));
             }
         }
+
+        #endregion
 
         #endregion
     }

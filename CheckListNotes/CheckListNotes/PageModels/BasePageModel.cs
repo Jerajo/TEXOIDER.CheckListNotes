@@ -1,4 +1,5 @@
-﻿using FreshMvvm;
+﻿using System;
+using FreshMvvm;
 using Xamarin.Forms;
 using PropertyChanged;
 using CheckListNotes.Models;
@@ -9,7 +10,7 @@ using System.Collections.Generic;
 namespace CheckListNotes.PageModels
 {
     [AddINotifyPropertyChangedInterface]
-    public class BasePageModel : FreshBasePageModel
+    public class BasePageModel : FreshBasePageModel, IDisposable
     {
         public BasePageModel() : base() =>
             Config.Current.PropertyChanged += ConfigChanged;
@@ -49,7 +50,7 @@ namespace CheckListNotes.PageModels
         /// <summary>
         /// Indicate whether the page has loaded or not.
         /// </summary>
-        public bool HasLoaded { get; protected set; } = false;
+        public bool? HasLoaded { get; protected set; } = false;
 
         /// <summary>
         /// Save the initial data setted on push navigation.
@@ -59,22 +60,22 @@ namespace CheckListNotes.PageModels
         /// <summary>
         /// Indicate whether the page has changes or not.
         /// </summary>
-        public bool HasChanges { get; protected set; } = false;
+        public bool? HasChanges { get; protected set; } = false;
 
         /// <summary>
         /// Indicate whether the page is loocked or not.
         /// </summary>
-        public bool IsLooked { get; protected set; }
+        public bool? IsLooked { get; protected set; }
 
         /// <summary>
         /// Indicate whether the pageModel is disposing or not.
         /// </summary>
-        public bool IsDisposing { get; protected set; } = false;
+        public bool? IsDisposing { get; protected set; } = false;
 
         /// <summary>
         /// Indicate whether the user is editing or not.
         /// </summary>
-        public bool IsEditing { get; protected set; } = false;
+        public bool? IsEditing { get; protected set; } = false;
 
         /// <summary>
         /// Store a list of errors if exists.
@@ -145,7 +146,7 @@ namespace CheckListNotes.PageModels
 
         protected virtual async Task RefreshPageModel(object initData = null)
         {
-            if (IsEditing)
+            if (IsEditing == true)
             {
                 if (await ShowAlert("Cambios en los datos!.", "Algun proseso de fondo a modificado los datos.", "Ver Cambios", "Cancelar")) return;
             }
@@ -172,6 +173,39 @@ namespace CheckListNotes.PageModels
             RaisePropertyChanged(nameof(CancelButtonFontColor));
             RaisePropertyChanged(nameof(ViewBoxColor));
         }
+
+        #region Dispose
+
+        ~BasePageModel()
+        {
+            if (IsDisposing == false) Dispose(true);
+        }
+
+        public void Dispose(bool isDisposing)
+        {
+            IsDisposing = isDisposing;
+            if (IsDisposing == true) Dispose();
+        }
+
+        public void Dispose()
+        {
+            Config.Current.PropertyChanged -= ConfigChanged;
+            PageTitle = null;
+            HasLoaded = null;
+            IsLooked = null;
+            IsDisposing = null;
+            HasChanges = null;
+            IsEditing = null;
+            InitData = null;
+            if (Errors != null)
+            {
+                Errors.Clear();
+                Errors = null;
+            }
+        }
+
+        #endregion
+
         #endregion
     }
 }

@@ -1,15 +1,13 @@
 ﻿using System;
+using Xamarin.Forms;
 using PropertyChanged;
 using System.Windows.Input;
 using CheckListNotes.Models;
 using System.ComponentModel;
-using System.Threading.Tasks;
 using PortableClasses.Enums;
 using PortableClasses.Extensions;
-using System.Collections.Generic;
 using CheckListNotes.Models.Interfaces;
 using CheckListNotes.PageModels.Commands;
-using Xamarin.Forms;
 
 namespace CheckListNotes.PageModels
 {
@@ -42,7 +40,7 @@ namespace CheckListNotes.PageModels
         {
             get
             {
-                return save ?? (save = new DelegateCommand(new Action(SaveCommand), (o) => HasChanges));
+                return save ?? (save = new DelegateCommand(new Action(SaveCommand), (o) => HasChanges == true));
             }
         }
 
@@ -64,13 +62,13 @@ namespace CheckListNotes.PageModels
 
         private async void SaveCommand()
         {
-            if (!HasLoaded || IsLooked) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
             if (Task.IsValid)
             {
                 try
                 {
-                    if (IsEditing && !string.IsNullOrEmpty(OldTask.ToastId) &&
+                    if (IsEditing == true && !string.IsNullOrEmpty(OldTask.ToastId) &&
                         (Task.IsChecked || Task.NotifyOn == OldTask.NotifyOn))
                         await UnregisterToast(OldTask.ToastId);
 
@@ -79,7 +77,7 @@ namespace CheckListNotes.PageModels
                         Task.ExpirationDate != OldTask.ExpirationDate || 
                         Task.Expiration != OldTask.Expiration)) await RegisterToast(Task);
 
-                    if (IsEditing) GlobalDataService.UpdateTask(Task);
+                    if (IsEditing == true) GlobalDataService.UpdateTask(Task);
                     else GlobalDataService.AddTask(Task);
                 }
                 catch (Exception ex)
@@ -101,7 +99,7 @@ namespace CheckListNotes.PageModels
         }
         private async void RemoveCommand()
         {
-            if (!HasLoaded || IsLooked) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
             var resoult = await ShowAlert("Pregunta!", "¿Estás seguro de que quieres eliminar la tarea?", "Aceptar", "Cancelar");
             if (resoult)
@@ -114,10 +112,11 @@ namespace CheckListNotes.PageModels
 
         private async void GoBackCommand()
         {
-            if (!HasLoaded || IsLooked) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
             var currentIndex = GlobalDataService.CurrentIndex;
-            if (PreviousPageModel is CheckListPageModel && !string.IsNullOrEmpty(currentIndex))
+            if (PreviousPageModel is CheckListPageModel && !string.IsNullOrEmpty(currentIndex)
+                && IsEditing == true)
             {
                 if (currentIndex.Contains("."))
                     GlobalDataService.CurrentIndex = currentIndex.RemoveLastSplit('.');
@@ -134,38 +133,41 @@ namespace CheckListNotes.PageModels
         {
             IsLooked = !(HasLoaded = false);
 
-            PageTitle = (IsEditing) ? "Editar Tarea" : "Crear Tarea";
-
             if (!(initData is CheckTaskModel task))
                 task = await GlobalDataService.GetCurrentTask();
 
             if (initData is int index) InitData = index;
-            else InitData = task.IsChecked ? 1 : 0;
+            else InitData = task.IsChecked == true ? 1 : 0;
 
             IsEditing = (!string.IsNullOrEmpty(task.Name)) ? true : false;
 
-            Device.BeginInvokeOnMainThread(() => { 
+            PageTitle = (IsEditing == true) ? "Editar Tarea" : "Crear Tarea";
+
+            Device.BeginInvokeOnMainThread(() => 
+            { 
                 Task = new CheckTaskViewModel
                 {
                     Id = task.Id,
                     Name = task.Name,
                     ToastId = task.ToastId,
+                    LastSubId = task.LastSubId,
                     TotalTasks = task.SubTasks?.Count ?? 0,
                     CompletedDate = task.CompletedDate,
                     ExpirationDate = task.ExpirationDate,
                     HasExpiration = task.ExpirationDate != null,
                     Expiration = task.ExpirationDate?.TimeOfDay,
                     ReminderTime = task.ReminderTime,
-                    IsTaskGroup = task.IsTaskGroup,
-                    IsChecked = task.IsChecked,
-                    NotifyOn = task.NotifyOn,
-                    IsDaily = task.IsDaily
+                    IsTaskGroup = task.IsTaskGroup ?? false,
+                    IsChecked = task.IsChecked ?? false,
+                    NotifyOn = task.NotifyOn ?? ToastTypesTime.None,
+                    IsDaily = task.IsDaily ?? false
                 };
 
                 OldTask = new CheckTaskViewModel
                 {
                     Name = Task.Name,
                     ToastId = Task.ToastId,
+                    LastSubId = Task.LastSubId,
                     TotalTasks = Task.TotalTasks,
                     IsTaskGroup = Task.IsTaskGroup,
                     ReminderTime = Task.ReminderTime,
@@ -182,7 +184,6 @@ namespace CheckListNotes.PageModels
             });
 
             Randomizer = new Random();
-
 
             IsLooked = HasChanges = !(HasLoaded = true);
 
@@ -205,15 +206,15 @@ namespace CheckListNotes.PageModels
 
         private async void TaskPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (IsLooked || IsDisposing) return;
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
 
             var name = e.PropertyName;
-            if (HasChanges = !OldTask.Equals(Task))
-                ((DelegateCommand)Save)?.RaiseCanExecuteChanged();
+            HasChanges = !OldTask.Equals(Task);
+            ((DelegateCommand)Save)?.RaiseCanExecuteChanged();
 
             if (e.PropertyName == nameof(Task.HasExpiration))
             {
-                if (!Task.HasExpiration)
+                if (Task.HasExpiration == false)
                 {
                     Task.notifyOn = ToastTypesTime.None;
                     Task.expirationDate = null;
@@ -246,18 +247,26 @@ namespace CheckListNotes.PageModels
 
             if (e.PropertyName == nameof(Task.IsTaskGroup))
             {
-                if (Task.IsTaskGroup) Task.TotalTasks = OldTask.TotalTasks;
-                if (!Task.IsTaskGroup && Task.TotalTasks > 0)
+                if (Task.IsTaskGroup == true)
+                {
+                    Task.LastSubId = OldTask.LastSubId ?? 0;
+                    Task.TotalTasks = OldTask.TotalTasks;
+                }
+                if (Task.IsTaskGroup == false && Task.TotalTasks > 0)
                 {
                     var resoult = await ShowAlert("Advertencia", "Si continua eliminara toda la lista de subtareas.", "Continuar", "Cancelar");
-                    if (resoult) Task.TotalTasks = 0;
-                    else Task.IsTaskGroup = true;
+                    if (!resoult) Task.IsTaskGroup = true;
+                    else 
+                    {
+                        Task.TotalTasks = 0;
+                        Task.LastSubId = null;
+                    }
                 }
             }
 
             if (e.PropertyName == nameof(Task.NotifyOn)) Task.ReminderTime = GetReminderTiem();
 
-            if (e.PropertyName == nameof(Task.IsChecked) && Task.isDaily)
+            if (e.PropertyName == nameof(Task.IsChecked) && Task.isDaily == true)
             {
                 if (Task.IsChecked) Task.ReminderTime = GetReminderTiem();
                 else if (!Task.IsChecked) Task.ReminderTime = GetReminderTiem();
@@ -266,6 +275,7 @@ namespace CheckListNotes.PageModels
 
         private DateTime? GetReminderTiem()
         {
+            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return null;
             switch (Task.NotifyOn)
             {
                 case ToastTypesTime.AHourBefore:
