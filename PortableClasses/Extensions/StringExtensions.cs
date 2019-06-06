@@ -91,7 +91,7 @@
             var stringSplited = value.Split(separator);
             var stringShorted = "";
             for (var i = 0; i < stringSplited.Length - 1; i++)
-                stringShorted += stringSplited[i];
+                stringShorted += i == 0 ? stringSplited[i] : $".{stringSplited[i]}";
             return stringShorted;
         }
 
@@ -102,7 +102,8 @@
         {
             var stringSplited = value.Split(separator);
             var stringShorted = "";
-            for (var i = 1; i < stringSplited.Length; i++) stringShorted += stringSplited[i];
+            for (var i = 1; i < stringSplited.Length; i++)
+                stringShorted += i == 1 ? stringSplited[i] : $".{stringSplited[i]}";
             return stringShorted;
         }
 
