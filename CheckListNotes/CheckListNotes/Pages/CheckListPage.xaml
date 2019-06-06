@@ -70,9 +70,15 @@
                 <!--#endregion-->
 
                 <!--#region Content-->
-                <uc:TabViewControlExtended Grid.RowSpan="1" CurrentIndex="{Binding TabIndex}">
+                <uc:TabViewControlExtended
+                    Grid.RowSpan="1"
+                    CurrentIndex="{Binding TabIndex}"
+                    HeaderBackgroundColor="Black"
+                    HeaderSelectionUnderlineColor="Blue"
+                    HeaderTabTextColor="White"
+                    HeaderTabTextFontAttributes="Bold">
                     <uc:TabViewControlExtended.ItemSource>
-                        <tvs:TabItem HeaderText="Pendientes">
+                        <tvs:TabItem x:Name="TabItemPendientTask">
                             <ListView
                                 HasUnevenRows="true"
                                 ItemsSource="{Binding Tasks}"
@@ -91,7 +97,7 @@
                                 </ListView.ItemTemplate>
                             </ListView>
                         </tvs:TabItem>
-                        <tvs:TabItem HeaderText="Listos">
+                        <tvs:TabItem x:Name="TabItemCompletedTask">
                             <ListView
                                 HasUnevenRows="true"
                                 ItemsSource="{Binding CheckedTasks}"

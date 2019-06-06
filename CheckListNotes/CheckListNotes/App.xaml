@@ -33,6 +33,8 @@
 
             <!--#region TaskList-->
             <x:String x:Key="TaskListButtonNewTaskText" />
+            <x:String x:Key="TaskListPendientTabTitle" />
+            <x:String x:Key="TaskListCompletedTabTitle" />
             <x:String x:Key="TaskList" />
             <!--#endregion-->
 

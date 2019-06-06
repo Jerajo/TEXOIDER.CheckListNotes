@@ -20,6 +20,8 @@
         "ListOfListEntryListNamePlaceHolder": "Lista de Ejemplo",
 
         "TaskListButtonNewTaskText": "Nueva tarea",
+        "TaskListPendientTabTitle": "Tareas pendientes",
+        "TaskListCompletedTabTitle": "Tareas completadas",
 
         "TaskDetailsPageTitle": "Detalles de tarea",
         "TaskDetailsLabelTaskName": "Nombre de la tarea",
@@ -65,6 +67,8 @@
         "ListOfListEntryListNamePlaceHolder": "Example list",
 
         "TaskListButtonNewTaskText": "New task",
+        "TaskListPendientTabTitle": "Pendient tasks",
+        "TaskListCompletedTabTitle": "Completed tasks",
 
         "TaskDetailsPageTitle": "Task details",
         "TaskDetailsLabelTaskName": "Task name",
@@ -110,6 +114,8 @@
         "ListOfListEntryListNamePlaceHolder": "",
 
         "TaskListButtonNewTaskText": "",
+        "TaskListPendientTabTitle": "",
+        "TaskListCompletedTabTitle": "",
 
         "TaskDetailsPageTitle": "",
         "TaskDetailsLabelTaskName": "",

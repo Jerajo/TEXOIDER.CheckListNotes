@@ -393,6 +393,7 @@ namespace CheckListNotes.PageModels
                 {
                     var fileContents = await reader.ReadToEndAsync();
                     Config.Current.AppTheme = JsonConvert.DeserializeObject<AppTheme>(fileContents);
+                    AppResourcesLisener.Current.RisePropertyChanged(AppResourcesLisener.Theme);
                 }
             }
         }
@@ -402,6 +403,7 @@ namespace CheckListNotes.PageModels
             using (var languageService = new LanguageService())
             {
                 await languageService.LoadLanguage();
+                AppResourcesLisener.Current.RisePropertyChanged(AppResourcesLisener.Language);
             }
         }
 
