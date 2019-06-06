@@ -17,11 +17,13 @@ namespace PortableClasses.Extensions
                     returnValue = task.Result;
                     isCompleted = true;
                 }
-                catch (Exception ex)
+                catch (UnauthorizedAccessException ex)
                 {
-                    Debug.Print(ex.Message);
+                    ShowDebugError(ex.Message);
+                    if (count >= maxTries) throw ex;
                     Task.Delay(TimeSpan.FromMilliseconds(100)).Wait();
                 }
+                catch (Exception) { throw; }
             }
 
             return Task.FromResult(returnValue);
@@ -38,14 +40,22 @@ namespace PortableClasses.Extensions
                     task.Wait();
                     isCompleted = true;
                 }
-                catch (Exception ex)
+                catch (UnauthorizedAccessException ex)
                 {
-                    Debug.Print(ex.Message);
+                    ShowDebugError(ex.Message);
+                    if (count >= maxTries) throw ex;
                     Task.Delay(TimeSpan.FromMilliseconds(100)).Wait();
                 }
+                catch (Exception) { throw; }
             }
 
             return Task.CompletedTask;
+        }
+
+        [Conditional("DEBUG")]
+        private static void ShowDebugError(string message)
+        {
+            Debug.WriteLine(message);
         }
     }
 }
