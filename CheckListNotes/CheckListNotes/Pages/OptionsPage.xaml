@@ -45,10 +45,11 @@
                 <Label
                     Grid.ColumnSpan="2"
                     Margin="0,10"
+                    FontAttributes="Bold"
                     HorizontalOptions="FillAndExpand"
                     HorizontalTextAlignment="Center"
                     LineBreakMode="TailTruncation"
-                    Text="{Binding PageTitle}"
+                    Text="{DynamicResource OptionsPageTitle}"
                     TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
             </Grid>
             <!--#endregion-->
@@ -56,8 +57,10 @@
             <!--#region Body-->
             <ScrollView Grid.Row="1">
                 <StackLayout Padding="10">
+                    <!--#region Theme-->
+                    <Label FontAttributes="Bold" Text="{DynamicResource OptionsThemeRegionTitle}" />
                     <Picker
-                        Title="Tema"
+                        Title="{DynamicResource OptionsThemePickerTitle}"
                         BackgroundColor="{Binding EditorBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                         ItemsSource="{Binding Themes}"
                         SelectedItem="{Binding ThemeSelected}"
@@ -68,32 +71,45 @@
                         HorizontalOptions="FillAndExpand"
                         Color="{Binding ViewBoxColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
 
-                    <Picker
-                        Title="Idioma"
-                        BackgroundColor="{Binding EditorBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
-                        ItemsSource="{Binding Languages}"
-                        SelectedItem="{Binding Language}"
-                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
-                        TitleColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <Label Text="{DynamicResource OptionsLateTaskColorPickerTitle}" TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <Button
+                        BackgroundColor="{Binding LateTaskColor, Converter={x:StaticResource StringToColor}, Mode=TwoWay}"
+                        Clicked="Button_Clicked"
+                        Text="{Binding LateTaskColor}"
+                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                     <BoxView
                         HeightRequest="1"
                         HorizontalOptions="FillAndExpand"
                         Color="{Binding ViewBoxColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
 
-                    <Picker
-                        Title="Tipo de notificación"
-                        BackgroundColor="{Binding EditorBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
-                        ItemsSource="{Binding NotificationTypes}"
-                        SelectedItem="{Binding NotificationType}"
-                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
-                        TitleColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <Label Text="{DynamicResource OptionsUrgentTaskColorPickerTitle}" TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <Button
+                        BackgroundColor="{Binding UrgentTaskColor, Converter={x:StaticResource StringToColor}, Mode=TwoWay}"
+                        Clicked="Button_Clicked"
+                        Text="{Binding UrgentTaskColor}"
+                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                     <BoxView
                         HeightRequest="1"
                         HorizontalOptions="FillAndExpand"
                         Color="{Binding ViewBoxColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
 
+                    <Label Text="{DynamicResource OptionsCompletedTaskColorPickerTitle}" TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <Button
+                        BackgroundColor="{Binding CompletedTaskColor, Converter={x:StaticResource StringToColor}, Mode=TwoWay}"
+                        Clicked="Button_Clicked"
+                        Text="{Binding CompletedTaskColor}"
+                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+
+                    <BoxView
+                        HeightRequest="1"
+                        HorizontalOptions="FillAndExpand"
+                        Color="{Binding ViewBoxColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <!--#endregion-->
+
+                    <!--#region Sounds-->
+                    <Label FontAttributes="Bold" Text="{DynamicResource OptionsSoundRegionTitle}" />
                     <Picker
-                        Title="Sonido de notificación"
+                        Title="{DynamicResource OptionsNotificationSoundPickerTitle}"
                         BackgroundColor="{Binding EditorBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                         ItemsSource="{Binding NotificationSounds}"
                         SelectedItem="{Binding NotificationSound}"
@@ -105,7 +121,7 @@
                         Color="{Binding ViewBoxColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
 
                     <Picker
-                        Title="Sonido de toques"
+                        Title="{DynamicResource OptionsTouchSoundPickerTitle}"
                         BackgroundColor="{Binding EditorBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                         ItemsSource="{Binding TouchSounds}"
                         SelectedItem="{Binding TouchSound}"
@@ -115,35 +131,30 @@
                         HeightRequest="1"
                         HorizontalOptions="FillAndExpand"
                         Color="{Binding ViewBoxColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <!--#endregion-->
 
-                    <Label Text="Color de tarea atrasada" TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                    <Button
-                        BackgroundColor="{Binding LateTaskColor, Converter={x:StaticResource StringToColor}, Mode=TwoWay}"
-                        Clicked="Button_Clicked"
-                        Text="{Binding LateTaskColor}"
-                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <!--#region Others-->
+                    <Label FontAttributes="Bold" Text="{DynamicResource OptionsOthersRegionTitle}" />
+                    <Picker
+                        Title="{DynamicResource OptionsLanguagePickerTitle}"
+                        BackgroundColor="{Binding EditorBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                        ItemsSource="{Binding Languages}"
+                        SelectedItem="{Binding Language}"
+                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                        TitleColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                     <BoxView
                         HeightRequest="1"
                         HorizontalOptions="FillAndExpand"
                         Color="{Binding ViewBoxColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
 
-                    <Label Text="Color de tarea urgente" TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                    <Button
-                        BackgroundColor="{Binding UrgentTaskColor, Converter={x:StaticResource StringToColor}, Mode=TwoWay}"
-                        Clicked="Button_Clicked"
-                        Text="{Binding UrgentTaskColor}"
-                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                    <BoxView
-                        HeightRequest="1"
-                        HorizontalOptions="FillAndExpand"
-                        Color="{Binding ViewBoxColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-
-                    <Label Text="Color de tarea completada a tiempo" TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                    <Button
-                        BackgroundColor="{Binding CompletedTaskColor, Converter={x:StaticResource StringToColor}, Mode=TwoWay}"
-                        Clicked="Button_Clicked"
-                        Text="{Binding CompletedTaskColor}"
-                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <Picker
+                        Title="{DynamicResource OptionsNotificationTypePickerTitle}"
+                        BackgroundColor="{Binding EditorBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                        ItemsSource="{Binding NotificationTypes}"
+                        SelectedItem="{Binding NotificationType}"
+                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                        TitleColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <!--#endregion-->
                 </StackLayout>
             </ScrollView>
             <!--#endregion-->

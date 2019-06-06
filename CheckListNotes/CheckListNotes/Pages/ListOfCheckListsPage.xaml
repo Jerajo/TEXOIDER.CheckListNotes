@@ -39,10 +39,11 @@
                 <Label
                     Grid.ColumnSpan="2"
                     Margin="0,10"
+                    FontAttributes="Bold"
                     HorizontalOptions="FillAndExpand"
                     HorizontalTextAlignment="Center"
                     LineBreakMode="TailTruncation"
-                    Text="{Binding PageTitle}"
+                    Text="{DynamicResource ListOfListPageTitle}"
                     TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                 <Button
                     Grid.Column="1"
@@ -92,7 +93,7 @@
                     <Button
                         BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                         Command="{Binding OpenForm}"
-                        Text="Nueva Lista"
+                        Text="{DynamicResource ListOfListNewListButtonText}"
                         TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                 </StackLayout>
                 <!--#endregion-->
@@ -122,9 +123,9 @@
                 <StackLayout>
                     <Label
                         FontAttributes="Bold"
-                        Text="Crear Lista!"
+                        Text="{DynamicResource ListOfListFormNewListTitle}"
                         TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                    <Label Text="Nombre de la lista" TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    <Label Text="{DynamicResource ListOfListEntryListNameTitle}" TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                     <Entry
                         x:Name="EditorNewCeckListName"
                         BackgroundColor="{Binding EditorBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
@@ -132,7 +133,7 @@
                         IsTextPredictionEnabled="True"
                         Keyboard="Text"
                         MaxLength="50"
-                        Placeholder="Lista de Ejemplo"
+                        Placeholder="{DynamicResource ListOfListEntryListNamePlaceHolder}"
                         Text="{Binding OldCheckListName, Mode=OneWay}"
                         TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                     <Grid>
@@ -147,13 +148,13 @@
                             BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                             Command="{Binding Save}"
                             CommandParameter="{Binding Text, Source={x:Reference EditorNewCeckListName}}"
-                            Text="Guardar"
+                            Text="{DynamicResource ButtonSaveText}"
                             TextColor="{Binding AceptButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                         <Button
                             Grid.Column="1"
                             BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                             Command="{Binding Cancel}"
-                            Text="Cancelar"
+                            Text="{DynamicResource ButtonCancelText}"
                             TextColor="{Binding CancelButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                     </Grid>
                 </StackLayout>

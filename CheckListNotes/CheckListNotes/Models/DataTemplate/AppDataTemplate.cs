@@ -20,6 +20,27 @@
         }
     }
 
+    public class LanguagesDataTemplate : IEnumerable
+    {
+        public const string Español = "es";
+        public const string English = "en";
+        public const string French = "fr";
+
+        public IEnumerator GetEnumerator()
+        {
+            yield return Español;
+            yield return English;
+            yield return French;
+        }
+
+        public static bool Contains(string value)
+        {
+            foreach (var item in (new LanguagesDataTemplate()))
+                if ((string)item == value) return true;
+            return false;
+        }
+    }
+
     public class ToastDataTemplate
     {
         public const string AlarmToastArguments = "command=CompleteTask&taskId=";

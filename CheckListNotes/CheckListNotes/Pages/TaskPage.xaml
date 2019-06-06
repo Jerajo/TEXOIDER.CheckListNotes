@@ -61,7 +61,7 @@
                 <!--#region Content-->
                 <ScrollView HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Default">
                     <StackLayout Padding="10,0" BindingContext="{Binding Task}">
-                        <Label Text="Nombre de la tarea" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                        <Label Text="{DynamicResource TaskFormEditorTaskNameTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                         <Editor
                             AutoSize="TextChanges"
                             BackgroundColor="{Binding EditorBackgroundColor, Mode=OneWay}"
@@ -80,12 +80,12 @@
 
                         <Grid Padding="0,0,10,0">
                             <StackLayout HorizontalOptions="StartAndExpand">
-                                <Label Text="Tiene expiración" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                                <Label Text="{DynamicResource TaskFormSwictHasExpirationTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                                 <Switch x:Name="SwitchHasExpiration" IsToggled="{Binding HasExpiration}" />
                             </StackLayout>
 
                             <StackLayout HorizontalOptions="EndAndExpand" IsVisible="{Binding IsToggled, Source={x:Reference SwitchHasExpiration}}">
-                                <Label Text="Es diario" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                                <Label Text="{DynamicResource TaskFormSwictIsDailyTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                                 <Switch x:Name="SwitchIsDaily" IsToggled="{Binding IsDaily}" />
                             </StackLayout>
                             <BoxView
@@ -97,7 +97,7 @@
 
                         <StackLayout IsVisible="{Binding IsToggled, Source={x:Reference SwitchHasExpiration}}">
                             <StackLayout IsVisible="{Binding IsToggled, Source={x:Reference SwitchIsDaily}, Converter={StaticResource InverseBool}}">
-                                <Label Text="Día de expiración" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                                <Label Text="{DynamicResource TaskFormDatePickerTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                                 <DatePicker
                                     BackgroundColor="{Binding EditorBackgroundColor, Mode=OneWay}"
                                     Date="{Binding ExpirationDate}"
@@ -108,7 +108,7 @@
                                     Color="{Binding ViewBoxColor, Mode=OneWay}" />
 
                             </StackLayout>
-                            <Label Text="Hora de expiración" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                            <Label Text="{DynamicResource TaskFormTimePickerTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                             <TimePicker
                                 BackgroundColor="{Binding EditorBackgroundColor, Mode=OneWay}"
                                 TextColor="{Binding AppFontColor, Mode=OneWay}"
@@ -119,7 +119,7 @@
                                 Color="{Binding ViewBoxColor, Mode=OneWay}" />
 
                             <Picker
-                                Title="Notificación"
+                                Title="{DynamicResource TaskFormPickerNotificationTitle}"
                                 BackgroundColor="{Binding EditorBackgroundColor, Mode=OneWay}"
                                 ItemsSource="{Binding NotifyOnDisplayNames, Mode=OneTime}"
                                 SelectedItem="{Binding SelectedNotificationTimeIndex}"
@@ -131,9 +131,9 @@
                                 Color="{Binding ViewBoxColor, Mode=OneWay}" />
 
                         </StackLayout>
-                        <Label Text="Tiene suptareas" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                        <Label Text="{DynamicResource TaskFormSwictIsTaskGroupTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                         <Switch IsToggled="{Binding IsTaskGroup}" />
-                        <Label Text="Está completado" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                        <Label Text="{DynamicResource TaskFormSwictIsCheckedTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                         <Switch IsToggled="{Binding IsChecked}" />
                     </StackLayout>
                 </ScrollView>
@@ -147,7 +147,7 @@
                     <Button
                         BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                         Command="{Binding Save}"
-                        Text="Guardar"
+                        Text="{DynamicResource ButtonSaveText}"
                         TextColor="{Binding AceptButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                 </StackLayout>
                 <!--#endregion-->

@@ -45,7 +45,7 @@
                     HorizontalOptions="FillAndExpand"
                     HorizontalTextAlignment="Center"
                     LineBreakMode="TailTruncation"
-                    Text="{Binding PageTitle}"
+                    Text="{DynamicResource TaskListButtonNewTaskText}"
                     TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                 <Button
                     Grid.Column="2"
@@ -70,7 +70,7 @@
                     <StackLayout Padding="10,0" BindingContext="{Binding Task}">
                         <Label
                             FontAttributes="Bold"
-                            Text="Nombre de la tarea"
+                            Text="{DynamicResource TaskDetailsLabelTaskName}"
                             TextColor="{Binding AppFontColor, Mode=OneWay}" />
                         <Label Text="{Binding Name}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                         <BoxView
@@ -81,7 +81,7 @@
                         <StackLayout HorizontalOptions="FillAndExpand" IsVisible="{Binding ExpirationDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}">
                             <Label
                                 FontAttributes="Bold"
-                                Text="Fecha de expiración"
+                                Text="{DynamicResource TaskDetailsLabelTaskExpirationDate}"
                                 TextColor="{Binding AppFontColor, Mode=OneWay}" />
                             <Label Text="{Binding ExpirationDateText}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                             <BoxView
@@ -91,7 +91,7 @@
 
                             <Label
                                 FontAttributes="Bold"
-                                Text="Notificación"
+                                Text="{DynamicResource TaskDetailsLabelTaskNotification}"
                                 TextColor="{Binding AppFontColor, Mode=OneWay}" />
                             <Label Text="{Binding SelectedNotificationTimeIndex}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                             <BoxView
@@ -103,7 +103,7 @@
                         <StackLayout IsVisible="{Binding CompletedDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}">
                             <Label
                                 FontAttributes="Bold"
-                                Text="Fecha de completado"
+                                Text="{DynamicResource TaskDetailsLabelTaskCompletisionDate}"
                                 TextColor="{Binding AppFontColor, Mode=OneWay}" />
                             <Label Text="{Binding CompletedDateText}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
                         </StackLayout>
@@ -126,13 +126,13 @@
                     <Button
                         BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                         Command="{Binding Edit}"
-                        Text="Editar"
+                        Text="{DynamicResource ButtonEditText}"
                         TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                     <Button
                         Grid.Column="1"
                         BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                         Command="{Binding Remove}"
-                        Text="Elinimar"
+                        Text="{DynamicResource ButtonDeleteText}"
                         TextColor="{Binding CancelButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                 </Grid>
                 <!--#endregion-->

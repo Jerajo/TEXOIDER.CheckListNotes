@@ -123,7 +123,7 @@
                         BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                         Command="{Binding AddNewTask}"
                         IsTabStop="False"
-                        Text="Nuevo"
+                        Text="{DynamicResource TaskListButtonNewTaskText}"
                         TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                 </StackLayout>
                 <!--#endregion-->

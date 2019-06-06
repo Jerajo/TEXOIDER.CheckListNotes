@@ -5,6 +5,7 @@ using Xamarin.Forms;
 using Newtonsoft.Json;
 using Xamarin.Forms.Xaml;
 using Xamarin.Essentials;
+using Newtonsoft.Json.Linq;
 using CheckListNotes.Models;
 using System.Threading.Tasks;
 using PortableClasses.Services;
@@ -12,7 +13,6 @@ using CheckListNotes.PageModels;
 using PortableClasses.Extensions;
 using CheckListNotes.Models.Interfaces;
 using Windows.ApplicationModel.Background;
-using Newtonsoft.Json.Linq;
 
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
 namespace CheckListNotes
@@ -24,7 +24,7 @@ namespace CheckListNotes
             InitializeComponent();
 
             // config.AppSettings.Clear();
-            LoadTheme(); 
+            LoadThemeAndLanguage(); 
             GlobalDataService.Init();
 
             var page = FreshPageModelResolver.ResolvePageModel<ListOfCheckListsPageModel>();
@@ -280,17 +280,30 @@ namespace CheckListNotes
 
         #region UI
 
-        private void LoadTheme()
+        private void LoadThemeAndLanguage()
         {
             Device.BeginInvokeOnMainThread(async () => // Load Theme
             {
-                using (var stream = await FileSystem.OpenAppPackageFileAsync($"{Config.Current.Theme}.json"))
+                try
                 {
-                    using (var reader = new StreamReader(stream))
+                    using (var stream = await FileSystem.OpenAppPackageFileAsync($"{Config.Current.Theme}.json"))
                     {
-                        var fileContents = await reader.ReadToEndAsync();
-                        Config.Current.AppTheme = JsonConvert.DeserializeObject<AppTheme>(fileContents);
+                        using (var reader = new StreamReader(stream))
+                        {
+                            var fileContents = await reader.ReadToEndAsync();
+                            Config.Current.AppTheme = 
+                                JsonConvert.DeserializeObject<AppTheme>(fileContents);
+                        }
                     }
+                    using (var languageService = new LanguageService())
+                    {
+                        await languageService.LoadLanguage();
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    await Application.Current.MainPage.DisplayAlert("Error", ex.Message, "Ok");
                 }
             });
         }

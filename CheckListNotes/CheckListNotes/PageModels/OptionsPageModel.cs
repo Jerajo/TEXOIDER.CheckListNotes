@@ -75,18 +75,18 @@ namespace CheckListNotes.PageModels
             {
                 switch (ConfigLanguage)
                 {
-                    case "En": return Models.Enums.Languages.English;
-                    case "Fr": return Models.Enums.Languages.English;
-                    case "Es": default: return Models.Enums.Languages.Español;
+                    case "en": return Models.Enums.Languages.English;
+                    case "fr": return Models.Enums.Languages.French;
+                    case "es": default: return Models.Enums.Languages.Español;
                 }
             }
             set
             {
                 switch (value)
                 {
-                    case Models.Enums.Languages.English: ConfigLanguage = "En"; break;
-                    case Models.Enums.Languages.French: ConfigLanguage = "Fr"; break;
-                    case Models.Enums.Languages.Español: default: ConfigLanguage = "Es"; break;
+                    case Models.Enums.Languages.English: ConfigLanguage = "en"; break;
+                    case Models.Enums.Languages.French: ConfigLanguage = "fr"; break;
+                    case Models.Enums.Languages.Español: default: ConfigLanguage = "es"; break;
                 }
             }
         }
@@ -95,7 +95,11 @@ namespace CheckListNotes.PageModels
             get => Config.Current.Language;
             set
             {
-                if (!string.IsNullOrEmpty(value)) Config.Current.Language = value;
+                if (!string.IsNullOrEmpty(value))
+                {
+                    Config.Current.Language = value;
+                    LanguageChanged();
+                }
             }
         }
 
@@ -339,8 +343,6 @@ namespace CheckListNotes.PageModels
             NotificationSounds = new List<string> { "Desactivado", "Ring", "Thone", "Bib", "Selecciona uno" };
             TouchSounds = new List<string> { "Desactivado", "Clic", "Touch", "Selecciona uno" };
 
-            PageTitle = "Opciones";
-
             base.Init(initData);
             IsLooked = !(HasLoaded = true);
         }
@@ -392,6 +394,14 @@ namespace CheckListNotes.PageModels
                     var fileContents = await reader.ReadToEndAsync();
                     Config.Current.AppTheme = JsonConvert.DeserializeObject<AppTheme>(fileContents);
                 }
+            }
+        }
+
+        private async void LanguageChanged()
+        {
+            using (var languageService = new LanguageService())
+            {
+                await languageService.LoadLanguage();
             }
         }
 

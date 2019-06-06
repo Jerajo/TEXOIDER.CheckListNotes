@@ -207,8 +207,6 @@ namespace CheckListNotes.PageModels
         {
             InitData = data;
 
-            PageTitle = "Grupo de listas";
-
             ListOfCheckLists = new FulyObservableCollection<CheckListViewModel>();
 
             Device.BeginInvokeOnMainThread(() => 

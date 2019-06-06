@@ -5,9 +5,9 @@ using System.Windows.Input;
 using CheckListNotes.Models;
 using System.Threading.Tasks;
 using PortableClasses.Extensions;
+using PortableClasses.Implementations;
 using CheckListNotes.Models.Interfaces;
 using CheckListNotes.PageModels.Commands;
-using PortableClasses.Implementations;
 
 namespace CheckListNotes.PageModels
 {
@@ -141,7 +141,6 @@ namespace CheckListNotes.PageModels
                 GlobalDataService.CurrentIndex = arguments["taskId"];
             }
 
-            PageTitle = "Detalles de Tarea";
             var task = await GlobalDataService.GetCurrentTask();
 
             Device.BeginInvokeOnMainThread(() => 

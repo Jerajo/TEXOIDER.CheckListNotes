@@ -1,8 +1,76 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<Application xmlns="http://xamarin.com/schemas/2014/forms"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="CheckListNotes.App">
+<Application
+    x:Class="CheckListNotes.App"
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
     <Application.Resources>
+        <ResourceDictionary>
+            <!--#region Language-->
+            <!--#region Options-->
+            <x:String x:Key="OptionsPageTitle" />
+            <x:String x:Key="OptionsThemeRegionTitle" />
+            <x:String x:Key="OptionsThemePickerTitle" />
+            <x:String x:Key="OptionsLateTaskColorPickerTitle" />
+            <x:String x:Key="OptionsUrgentTaskColorPickerTitle" />
+            <x:String x:Key="OptionsCompletedTaskColorPickerTitle" />
+            <x:String x:Key="OptionsSoundRegionTitle" />
+            <x:String x:Key="OptionsNotificationSoundPickerTitle" />
+            <x:String x:Key="OptionsTouchSoundPickerTitle" />
+            <x:String x:Key="OptionsOthersRegionTitle" />
+            <x:String x:Key="OptionsLanguagePickerTitle" />
+            <x:String x:Key="OptionsNotificationTypePickerTitle" />
+            <x:String x:Key="Options" />
+            <!--#endregion-->
 
+            <!--#region ListOfList-->
+            <x:String x:Key="ListOfListPageTitle" />
+            <x:String x:Key="ListOfListNewListButtonText" />
+            <x:String x:Key="ListOfListFormNewListTitle" />
+            <x:String x:Key="ListOfListEntryListNameTitle" />
+            <x:String x:Key="ListOfListEntryListNamePlaceHolder" />
+            <x:String x:Key="ListOfList" />
+            <!--#endregion-->
+
+            <!--#region TaskList-->
+            <x:String x:Key="TaskListButtonNewTaskText" />
+            <x:String x:Key="TaskList" />
+            <!--#endregion-->
+
+            <!--#region TaskDetails-->
+            <x:String x:Key="TaskDetailsPageTitle" />
+            <x:String x:Key="TaskDetailsLabelTaskName" />
+            <x:String x:Key="TaskDetailsLabelTaskExpirationDate" />
+            <x:String x:Key="TaskDetailsLabelTaskNotification" />
+            <x:String x:Key="TaskDetailsLabelTaskCompletisionDate" />
+            <x:String x:Key="TaskDetails" />
+            <!--#endregion-->
+
+            <!--#region TaskForm-->
+            <x:String x:Key="TaskFormPageTitle" />
+            <x:String x:Key="TaskFormPageTitleOnEdition" />
+            <x:String x:Key="TaskFormEditorTaskNameTitle" />
+            <x:String x:Key="TaskFormSwictHasExpirationTitle" />
+            <x:String x:Key="TaskFormSwictIsDailyTitle" />
+            <x:String x:Key="TaskFormDatePickerTitle" />
+            <x:String x:Key="TaskFormTimePickerTitle" />
+            <x:String x:Key="TaskFormPickerNotificationTitle" />
+            <x:String x:Key="TaskFormSwictIsTaskGroupTitle" />
+            <x:String x:Key="TaskFormSwictIsCheckedTitle" />
+            <x:String x:Key="TaskForm" />
+            <!--#endregion-->
+
+            <!--#region Commond-->
+            <x:String x:Key="ButtonOkText" />
+            <x:String x:Key="ButtonEditText" />
+            <x:String x:Key="ButtonDeleteText" />
+            <x:String x:Key="ButtonSaveText" />
+            <x:String x:Key="ButtonCancelText" />
+            <!--#endregion-->
+            <!--#endregion-->
+
+            <!--#region Theme-->
+            <Color x:Key="FontColor">White</Color>
+            <!--#endregion-->
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
