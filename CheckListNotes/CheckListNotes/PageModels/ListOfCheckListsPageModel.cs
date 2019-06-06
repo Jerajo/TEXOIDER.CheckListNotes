@@ -24,7 +24,7 @@ namespace CheckListNotes.PageModels
 
         #region Atributes
 
-        public string OldCheckListName { get; set; }
+        public string CheckListName { get; set; }
 
         public bool IsNewListFormVisible { get; set; }
 
@@ -37,7 +37,8 @@ namespace CheckListNotes.PageModels
                 {
                     IsLooked = true;
                     GlobalDataService.CurrentListName = value.Name;
-                    PushPageModel<CheckListPageModel>(0);
+                    GlobalDataService.CurrentIndex = null;
+                    PushPageModel<CheckListPageModel>(InitData);
                 }
             }
         }
@@ -50,7 +51,7 @@ namespace CheckListNotes.PageModels
 
         public ICommand Save
         {
-            get => new ParamCommand(new Action<object>(SaveCommand));
+            get => new DelegateCommand(new Action(SaveCommand));
         }
 
         public ICommand UpdateOrRemove
@@ -79,35 +80,45 @@ namespace CheckListNotes.PageModels
 
         #region Commands
 
-        private async void SaveCommand(object value)
+        private async void SaveCommand()
         {
             if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
-            var name = value as string;
-            if (ValidateNewCheckListName(name))
+            var oldName = temporalList.OldName;
+            if (ValidateNewCheckListName())
             {
-                IsNewListFormVisible = false;
-                if (OldCheckListName == name)
+                try
                 {
-                    IsLooked = false;
-                    CancelCommand();
-                    return;
+                    if (CheckListName == oldName)
+                    {
+                        IsLooked = false;
+                        CancelCommand();
+                        return;
+                    }
+                    if (!string.IsNullOrEmpty(CheckListName))
+                    {
+                        await GlobalDataService.UpdateList(oldName, CheckListName);
+                        temporalList.OldName = temporalList.Name = CheckListName.Substring(0);
+                        CheckListName = "";
+                        IsLooked = false;
+                        CancelCommand();
+                        return;
+                    }
+                    else
+                    {
+                        await GlobalDataService.AddList(CheckListName);
+                        IsLooked = false;
+                        // Navigate to check list page model
+                        SelectedCheckList = new CheckListViewModel { Name = CheckListName }; 
+                        return;
+                    }
                 }
-                if (!string.IsNullOrEmpty(OldCheckListName))
+                catch (Exception ex)
                 {
-                    await GlobalDataService.RenameList(OldCheckListName, name);
-                    temporalList = null; OldCheckListName = "";
-                }
-                else
-                {
-                    var checkListModel = new CheckListViewModel { LastId=0, Name=name };
-                    await GlobalDataService.AddList(name);
-                    IsLooked = false;
-                    SelectedCheckList = checkListModel; // Navigate to next page
-                    return;
+                    await ShowAlert("Fallo la operación!", ex.Message, "Ok");
                 }
             }
-            else await ShowAlert("Faltan datos", ErrorMessage, "Ok");
+            else await ShowAlert("Fallo la operación!", ErrorMessage, "Ok");
             IsLooked = false;
         }
 
@@ -130,7 +141,7 @@ namespace CheckListNotes.PageModels
             {
                 IsNewListFormVisible = true;
                 temporalList = model;
-                OldCheckListName = model.Name;
+                CheckListName = model.Name.Substring(0);
             }
             IsLooked = false;
         }
@@ -140,7 +151,7 @@ namespace CheckListNotes.PageModels
             if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
             IsNewListFormVisible = true;
-            OldCheckListName = "";
+            CheckListName = "";
             IsLooked = false;
         }
 
@@ -159,7 +170,7 @@ namespace CheckListNotes.PageModels
         {
             if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
-            await PushPageModel<OptionsPageModel>(0);
+            await PushPageModel<OptionsPageModel>(InitData);
         }
 
         #endregion
@@ -205,39 +216,44 @@ namespace CheckListNotes.PageModels
 
         private Task InitializeComponet(object data)
         {
-            InitData = data;
-
-            ListOfCheckLists = new FulyObservableCollection<CheckListViewModel>();
-
-            Device.BeginInvokeOnMainThread(() => 
+            return Task.Run(() => 
             {
-                foreach (var item in GlobalDataService.GetAllLists())
+                Device.BeginInvokeOnMainThread(() =>
                 {
-                    ListOfCheckLists.Add(new CheckListViewModel
+                    InitData = data ?? 0;
+
+                    ListOfCheckLists = new FulyObservableCollection<CheckListViewModel>();
+            
+                    foreach (var item in GlobalDataService.GetAllLists())
                     {
-                        LastId = item.LastId,
-                        Name = item.Name,
-                        CompletedTasks = item.CheckListTasks.Where(m => m.IsChecked == true).Count(),
-                        TotalTasks = item.CheckListTasks.Count()
-                    });
-                }
+                        ListOfCheckLists.Add(new CheckListViewModel
+                        {
+                            LastId = item.LastId,
+                            Name = item.Name,
+                            OldName = item.Name,
+                            CompletedTasks = item.CheckListTasks.Where(m => 
+                                m.IsChecked == true).Count(),
+                            TotalTasks = item.CheckListTasks.Count()
+                        });
+                    }
+
+                    Errors = new List<string>();
+
+                    //TODO: Implement business logic for licence: [free, premium].
+                    //var deviceHelper = DependencyService.Get<IDeviceHelper>();
+                    //And so on...
+                });
             });
-
-            Errors = new List<string>();
-
-            //TODO: Implement business logic for licence: [free, premium].
-            //var deviceHelper = DependencyService.Get<IDeviceHelper>();
-            //And so on...
-            return Task.CompletedTask;
         }
 
-        private bool ValidateNewCheckListName(string name)
+        private bool ValidateNewCheckListName()
         {
             Errors.Clear();
+            var name = CheckListName;
+            if (temporalList != null && temporalList.OldName == name) return true;
             if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name)) Errors.Add("Debe ingresar el nobre de la nueba lista de tareas. ");
             if (ListOfCheckLists.Where(m => m.Name == name).FirstOrDefault() != null) Errors.Add("\nYa existe una lista con este nombre. ");
             if (!string.IsNullOrEmpty(name) && name.Length > 50) Errors.Add("\nEl nombre de la lista no puede ser mayor de 50 caractetes. ");
-            if (!string.IsNullOrEmpty(name) && name == OldCheckListName) return true;
             return (Errors?.Count <= 0);
         }
 

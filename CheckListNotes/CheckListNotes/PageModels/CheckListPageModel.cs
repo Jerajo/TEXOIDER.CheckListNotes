@@ -168,7 +168,7 @@ namespace CheckListNotes.PageModels
                 GlobalDataService.CurrentIndex = currentIndex.RemoveLastSplit('.');
                 await RefreshUI();
             }
-            else await PopPageModel(0);
+            else await PopPageModel(TabIndex);
         }
 
         #endregion

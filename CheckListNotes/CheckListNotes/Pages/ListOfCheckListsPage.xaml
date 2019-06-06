@@ -127,14 +127,13 @@
                         TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                     <Label Text="{DynamicResource ListOfListEntryListNameTitle}" TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                     <Entry
-                        x:Name="EditorNewCeckListName"
                         BackgroundColor="{Binding EditorBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                         IsSpellCheckEnabled="True"
                         IsTextPredictionEnabled="True"
                         Keyboard="Text"
                         MaxLength="50"
                         Placeholder="{DynamicResource ListOfListEntryListNamePlaceHolder}"
-                        Text="{Binding OldCheckListName, Mode=OneWay}"
+                        Text="{Binding CheckListName, Mode=TwoWay}"
                         TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                     <Grid>
                         <!--#region Culums-->
@@ -147,7 +146,6 @@
                         <Button
                             BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
                             Command="{Binding Save}"
-                            CommandParameter="{Binding Text, Source={x:Reference EditorNewCeckListName}}"
                             Text="{DynamicResource ButtonSaveText}"
                             TextColor="{Binding AceptButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                         <Button
