@@ -19,6 +19,17 @@
             <x:String x:Key="OptionsOthersRegionTitle" />
             <x:String x:Key="OptionsLanguagePickerTitle" />
             <x:String x:Key="OptionsNotificationTypePickerTitle" />
+            <x:String x:Key="OptionsThemeDarkText" />
+            <x:String x:Key="OptionsThemeLightText" />
+            <x:String x:Key="OptionsAlarText" />
+            <x:String x:Key="OptionsNotificationText" />
+            <x:String x:Key="OptionsRingSoundText" />
+            <x:String x:Key="OptionsThoneSoundText" />
+            <x:String x:Key="OptionsBibSoundText" />
+            <x:String x:Key="OptionsClicSoundText" />
+            <x:String x:Key="OptionsTouchSoundText" />
+            <x:String x:Key="OptionsDisableSoundText" />
+            <x:String x:Key="OptionsSelectSoundText" />
             <x:String x:Key="Options" />
             <!--#endregion-->
 
@@ -28,6 +39,11 @@
             <x:String x:Key="ListOfListFormNewListTitle" />
             <x:String x:Key="ListOfListEntryListNameTitle" />
             <x:String x:Key="ListOfListEntryListNamePlaceHolder" />
+            <x:String x:Key="ListOfListErrorMessageNullName" />
+            <x:String x:Key="ListOfListErrorMessageListRepeated" />
+            <x:String x:Key="ListOfListErrorMessageNameTooLong" />
+            <x:String x:Key="ListOfListErrorMessageInvalidCharacters" />
+            <x:String x:Key="ListOfListDeleteListMessage" />
             <x:String x:Key="ListOfList" />
             <!--#endregion-->
 
@@ -35,6 +51,16 @@
             <x:String x:Key="TaskListButtonNewTaskText" />
             <x:String x:Key="TaskListPendientTabTitle" />
             <x:String x:Key="TaskListCompletedTabTitle" />
+            <x:String x:Key="TaskListDeleteTaskMessage" />
+            <x:String x:Key="TaskListTaskCellDeails" />
+            <x:String x:Key="TaskListTaskCellCompletedNormalExpirationText" />
+            <x:String x:Key="TaskListTaskCellCompletedDailyExpirationText" />
+            <x:String x:Key="TaskListTaskCellDailyExpirationText" />
+            <x:String x:Key="TaskListTaskCellDailyLateExpirationText" />
+            <x:String x:Key="TaskListTaskCellNormalExpirationText" />
+            <x:String x:Key="TaskListTaskCellNormalLateExpirationText" />
+            <x:String x:Key="TaskListTaskCellDailyCompletionText" />
+            <x:String x:Key="TaskListTaskCellNormalCompletionText" />
             <x:String x:Key="TaskList" />
             <!--#endregion-->
 
@@ -44,6 +70,13 @@
             <x:String x:Key="TaskDetailsLabelTaskExpirationDate" />
             <x:String x:Key="TaskDetailsLabelTaskNotification" />
             <x:String x:Key="TaskDetailsLabelTaskCompletisionDate" />
+            <x:String x:Key="TaskDetailsNotification1HourBefore" />
+            <x:String x:Key="TaskDetailsNotification30MinutesBefore" />
+            <x:String x:Key="TaskDetailsNotification15MinutesBefore" />
+            <x:String x:Key="TaskDetailsNotificationNone" />
+            <x:String x:Key="TaskDetailsNotification15MinutesAfter" />
+            <x:String x:Key="TaskDetailsNotification30MinutesAfter" />
+            <x:String x:Key="TaskDetailsNotification1HourAfter" />
             <x:String x:Key="TaskDetails" />
             <!--#endregion-->
 
@@ -58,10 +91,34 @@
             <x:String x:Key="TaskFormPickerNotificationTitle" />
             <x:String x:Key="TaskFormSwictIsTaskGroupTitle" />
             <x:String x:Key="TaskFormSwictIsCheckedTitle" />
+            <x:String x:Key="TaskFormSwictIsTaskGroupActionMessage" />
             <x:String x:Key="TaskForm" />
             <!--#endregion-->
 
+            <!--#region ExampleList-->
+            <x:String x:Key="ExampleListName" />
+            <x:String x:Key="ExampleListPendientTask" />
+            <x:String x:Key="ExampleListCompletedTask" />
+            <x:String x:Key="ExampleListLateTask" />
+            <x:String x:Key="ExampleListCompletedLateTask" />
+            <x:String x:Key="ExampleListUrgentTask" />
+            <x:String x:Key="ExampleListCompletedTaskOnTime" />
+            <x:String x:Key="ExampleListDailyTask" />
+            <x:String x:Key="ExampleListCompletedDailyTask" />
+            <x:String x:Key="ExampleListTaskGroup" />
+            <x:String x:Key="ExampleListAlarmExampleTitle" />
+            <x:String x:Key="ExampleListSubTaskAlarmExampleMessage" />
+            <x:String x:Key="ExampleListSubTaskCompleted" />
+            <x:String x:Key="ExampleListToastExampleTitle" />
+            <x:String x:Key="ExampleListTaskToastExampleMessage" />
+            <x:String x:Key="ExampleList" />
+            <!--#endregion-->
+
             <!--#region Commond-->
+            <x:String x:Key="AlertErrorTitle" />
+            <x:String x:Key="AlertDeleteTitle" />
+            <x:String x:Key="AlertLoseDataTitle" />
+            <x:String x:Key="AlertLoseNotSavedDataTitle" />
             <x:String x:Key="ButtonOkText" />
             <x:String x:Key="ButtonEditText" />
             <x:String x:Key="ButtonDeleteText" />
@@ -72,6 +129,10 @@
 
             <!--#region Theme-->
             <Color x:Key="FontColor">White</Color>
+            <Color x:Key="BadActionColor">Red</Color>
+            <Color x:Key="GoogActionColor">Green</Color>
+            <Color x:Key="CompletedProgresbarColor">Green</Color>
+            <Color x:Key="BackgroundProgresbarColor">Gray</Color>
             <!--#endregion-->
         </ResourceDictionary>
     </Application.Resources>

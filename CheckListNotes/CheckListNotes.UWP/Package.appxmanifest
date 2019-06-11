@@ -41,6 +41,11 @@
             <Task Type="pushNotification" />
           </BackgroundTasks>
         </Extension>
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="startnotes" DesiredView="useHalf" ReturnResults="optional">
+            <uap:DisplayName>Check List Notes</uap:DisplayName>
+          </uap:Protocol>
+        </uap:Extension>
       </Extensions>
     </Application>
   </Applications>

@@ -13,6 +13,8 @@ using CheckListNotes.PageModels;
 using PortableClasses.Extensions;
 using CheckListNotes.Models.Interfaces;
 using Windows.ApplicationModel.Background;
+using System.ComponentModel;
+using System.Diagnostics;
 
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
 namespace CheckListNotes
@@ -24,19 +26,17 @@ namespace CheckListNotes
             InitializeComponent();
 
             // config.AppSettings.Clear();
+            AppResourcesLisener.Current.PropertyChanged += OnlaguageChanged;
+            Randomizer = new Random();
             LoadThemeAndLanguage(); 
             GlobalDataService.Init();
-
-            var page = FreshPageModelResolver.ResolvePageModel<ListOfCheckListsPageModel>();
-            NavigationContainer = new FreshNavigationContainer(page);
-            MainPage = NavigationContainer;
         }
 
         #region Getters And Setters
 
         public FreshNavigationContainer NavigationContainer { get; set; }
 
-        private Random Randomizer { get; set; } = new Random();
+        private Random Randomizer { get; set; }
 
         #endregion
 
@@ -67,7 +67,7 @@ namespace CheckListNotes
         protected override void OnStart()
         {
             ConfigPlatform();
-            LoadState();
+            //LoadState(); //Activate on mememto
         }
 
         /// <summary>
@@ -141,6 +141,18 @@ namespace CheckListNotes
             }
         }
 
+        private void OnlaguageChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (GlobalDataService.IsFirtsInit())
+                (new TutorialListExample()).Create();
+
+            (new TutorialListExample()).Create(); // For debug use.
+
+            var page = FreshPageModelResolver.ResolvePageModel<ListOfCheckListsPageModel>();
+            NavigationContainer = new FreshNavigationContainer(page);
+            MainPage = NavigationContainer;
+        }
+
         #endregion
 
         #endregion
@@ -165,9 +177,8 @@ namespace CheckListNotes
                 initFile.LastListName = GlobalDataService.CurrentListName;
                 initFile.LastIndex = GlobalDataService.CurrentIndex;
 
-                var document = JToken.FromObject(initFile);
                 Task.Run(() =>
-                    fileService.Write(document, initFilePath)).TryTo().Wait();
+                    fileService.Write(initFile, initFilePath)).TryTo().Wait();
             }
 
         }
@@ -240,7 +251,7 @@ namespace CheckListNotes
                 var initFilePath = $"{localFoldeer}/init.bin";
                 var initFile = Task.Run(() =>
                     fileService.Read<InitFile>(initFilePath)).TryTo().Result;
-                if (initFile.LastResetTime.DayOfYear == DateTime.Now.DayOfYear) return;
+                if (initFile.LastResetTime.TimeOfDay == DateTime.Now.TimeOfDay) return;
 
                 if ((uint)(DateTime.Today.AddDays(1) - DateTime.Now).TotalMinutes < 15) return;
 
@@ -316,6 +327,20 @@ namespace CheckListNotes
         }
 
         #endregion
+
+        #endregion
+
+        #region Disose
+
+        ~App()
+        {
+            AppResourcesLisener.Current.PropertyChanged -= OnlaguageChanged;
+            NavigationContainer = null;
+            Randomizer = null;
+#if DEBUG
+            Debug.WriteLine("Object destroyed: [ Id: {1}, Name: {0} ].", this.GetHashCode(), nameof(App));
+#endif
+        }
 
         #endregion
     }

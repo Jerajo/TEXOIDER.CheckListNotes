@@ -1,27 +1,26 @@
 ﻿namespace CheckListNotes
 {
-    using Xamarin.Forms;
     using CheckListNotes.Models;
     public class AppResourcesLisener : BaseModel
     {
-        #region Intance
-
-        private static AppResourcesLisener current;
-        public static AppResourcesLisener Current 
-        {
-            get => current ?? (current = new AppResourcesLisener());
-        }
-
-        #endregion
-
-        #region GETTERS AND SETTERS
+        #region Atributes
 
         public const string Language = "Language";
         public const string Theme = "Theme";
 
-        public ResourceDictionary Resources
+        #endregion
+
+        #region Intance
+
+        private static AppResourcesLisener current;
+        public static AppResourcesLisener Current
         {
-            get => Application.Current.Resources;
+            get => current ?? (current = new AppResourcesLisener());
+        }
+        public string this[string index]
+        {
+            get => App.Current.Resources[index].ToString();
+            set => App.Current.Resources[index] = value;
         }
 
         #endregion

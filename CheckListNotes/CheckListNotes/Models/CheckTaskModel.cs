@@ -20,6 +20,8 @@
         public bool? IsChecked { get; set; }
         public bool? IsDaily { get; set; }
 
+        #region Disose
+
         ~CheckTaskModel()
         {
             Id = null;
@@ -42,5 +44,6 @@
             //Debug.WriteLine($"Object destroyect: Name: {nameof(CheckTaskModel)}, Id: {this.GetHashCode()}].");
 #endif
         }
+        #endregion
     }
 }

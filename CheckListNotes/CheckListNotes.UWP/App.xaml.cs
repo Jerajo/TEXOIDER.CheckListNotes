@@ -44,7 +44,9 @@ namespace CheckListNotes.UWP
                     library.OnLaunchedOrActivated(toastEvent?.Argument);
             }
             if (rootFrame.Content == null)
-                rootFrame.Navigate(typeof(MainPage), e); 
+                rootFrame.Navigate(typeof(MainPage), e);
+
+            //Window.Current.
             Window.Current.Activate();
 
             base.OnActivated(e);

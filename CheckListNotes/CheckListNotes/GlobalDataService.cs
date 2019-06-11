@@ -340,6 +340,9 @@ namespace CheckListNotes
 
         #endregion
 
+        public static bool IsFirtsInit() =>
+            (Directory.GetDirectories(storageFolder)?.Length <= 0);
+
         #endregion
 
         #region Private Methos
@@ -380,9 +383,7 @@ namespace CheckListNotes
 
         private static Task Write(object data, string pathToFile)
         {
-            var document = (data is string value) ? JToken.Parse(value) :
-                JToken.FromObject(data);
-            return Task.Run(() => (new FileService()).Write(document, pathToFile)).TryTo();
+            return Task.Run(() => (new FileService()).Write(data, pathToFile)).TryTo();
         }
 
         #endregion
@@ -394,48 +395,8 @@ namespace CheckListNotes
             var initFile = new InitFile { LastResetTime = DateTime.Now };
             Write(initFile, $"{storageFolder}/init.bin").Wait();
 
-            var IdCount = 0;
-            var model = new CheckListTasksModel
-            {
-                Name = "Lista de ejemplo",
-                CheckListTasks = new List<CheckTaskModel>
-                {
-                    new CheckTaskModel
-                    {
-                        Id=((IdCount++).ToString()).ToString(), Name="Tarea atrasada", ExpirationDate=DateTime.Now.AddHours(-1),
-                        CompletedDate=null, IsChecked=false, IsDaily=false
-                    },
-                    new CheckTaskModel
-                    {
-                        Id=((IdCount++).ToString()).ToString(), Name="Tarea urgente", ExpirationDate=DateTime.Now.AddHours(1), CompletedDate=null, IsChecked=false, IsDaily=false
-                    },
-                    new CheckTaskModel
-                    {
-                        Id=((IdCount++).ToString()).ToString(), Name="Tarea diaria", ExpirationDate=DateTime.Now.AddHours(5), CompletedDate=null, IsChecked=false, IsDaily=true
-                    },
-                    new CheckTaskModel
-                    {
-                        Id=((IdCount++).ToString()).ToString(), Name="Tarea sin expiracíon", ExpirationDate=null, CompletedDate=null, IsChecked=false, IsDaily=false
-                    },
-                    new CheckTaskModel
-                    {
-                        Id=(IdCount++).ToString(), Name="Tarea completada a tiempo", ExpirationDate=DateTime.Now.AddHours(2), CompletedDate=DateTime.Now, IsChecked=true, IsDaily=false
-                    },
-                    new CheckTaskModel
-                    {
-                        Id=(IdCount).ToString(), Name="Tarea completada atrasada", ExpirationDate=DateTime.Now.AddHours(-1), CompletedDate=DateTime.Now, IsChecked=true, IsDaily=false
-                    }
-                },
-                LastId = IdCount
-            };
-
             Directory.CreateDirectory($"{storageFolder}/Data");
-            Write(model, $"{storageFolder}/Data/{model.Name}.bin");
-        }
-
-        private static bool IsFirtsInit()
-        {
-            return (Directory.GetDirectories(storageFolder)?.Length <= 0);
+            (new TutorialListExample()).Create();
         }
 
         // Throw a not initialized exception if the method Init() hasn't been call
