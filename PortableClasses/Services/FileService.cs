@@ -72,7 +72,7 @@ namespace PortableClasses.Services
             using (var fileReader = System.IO.File.Open(Path, System.IO.FileMode.Create))
             {
                 var binaryWriter = new System.IO.BinaryWriter(fileReader, Encoding.UTF8);
-                var text = ((JObject)Value).ToString();
+                var text = JToken.FromObject(Value).ToString();
 
                 byte[] stringInBytes = Encoding.UTF8.GetBytes(text);
                 binaryWriter.Write(SecurityProtocolService.EncryptTripleDES(stringInBytes));
@@ -156,25 +156,44 @@ namespace PortableClasses.Services
 
         #endregion
     }
-
-    #region Implementación
-
-    /* Get File Model
-     * var img = Application.Current.Resources?["img.svg"] as FileService;
-     * 
-     * Get File Value
-     * ImageSource = img.Value;
-     * 
-     * Get a copy of the file
-     * var img2 = img.Read();
-     * 
-     * Update File Value
-     * img.Value = ImageSource;
-     * 
-     * Rite File Document
-     * img.Write();
-     * 
-     */
-
-    #endregion
 }
+
+#region Implementación
+
+/* /-----------------------/ Read /-----------------------/
+ * 1.1) Get json with value
+ * var pathToFile = "/Data/File.bin";
+ * var json = (new FileService(pathToFile)).Value;
+ * 
+ * 1.2) Get json with method
+ * using (var service = new FileService())
+ * {
+ *     var pathToFile = "/Data/File.bin";
+ *     var json = service.Read(pathToFile);
+ * }
+ * 
+ * 1.3) Get object
+ * using (var service = new FileService())
+ * {
+ *     var pathToFile = "/Data/File.bin";
+ *     T object = service.Read<T>(pathToFile);
+ * }
+ */
+
+/* /-----------------------/ Write /-----------------------/
+ * 2.1) Write File using the explisit Value
+ * var pathToFile = "/Data/File.bin";
+ * using (var service = new FileService(pathToFile))
+ * {
+ *     T object = defoult; // The object could be any Type
+ *     service.Value = object;
+ *     service.Write();
+ * }
+ * 
+ * 2.2) Write File Document
+ * T object = defoult; // The object could be any Type
+ * var pathToFile = "/Data/File.bin";
+ * (new FileService(pathToFile)).Write(object, pathToFile); //Needs two arguments.
+ */
+
+#endregion

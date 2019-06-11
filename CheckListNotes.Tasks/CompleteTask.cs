@@ -104,8 +104,7 @@ namespace CheckListNotes.Tasks
                             parentTask.IsChecked = !parentTask.SubTasks.Any(m => m.IsChecked == false);
                         }
 
-                        var document = JToken.FromObject(list);
-                        await Task.Run(() => fileService.Write(document, pathToFile)).TryTo();
+                        await Task.Run(() => fileService.Write(list, pathToFile)).TryTo();
                     }
                 }
             }

@@ -2,7 +2,6 @@
 using System.IO;
 using Windows.Storage;
 using System.Diagnostics;
-using Newtonsoft.Json.Linq;
 using CheckListNotes.Models;
 using PortableClasses.Enums;
 using System.Threading.Tasks;
@@ -10,6 +9,7 @@ using PortableClasses.Services;
 using PortableClasses.Extensions;
 using System.Collections.Generic;
 using Windows.ApplicationModel.Background;
+using Windows.System;
 
 namespace CheckListNotes.Tasks
 {
@@ -66,13 +66,12 @@ namespace CheckListNotes.Tasks
                         fileService.Read<InitFile>(initFilePath)).TryTo();
 
                     if (initFile == null) CancelTask();
-                    else if (initFile.LastResetTime.DayOfYear == DateTime.Now.DayOfYear)
+                    else if (initFile.LastResetTime.TimeOfDay == DateTime.Now.TimeOfDay)
                         CancelTask();
                     else
                     {
                         initFile.LastResetTime = DateTime.Now;
-                        var document = JToken.FromObject(initFile);
-                        await Task.Run(() => fileService.Write(document, initFilePath)).TryTo();
+                        await Task.Run(() => fileService.Write(initFile, initFilePath)).TryTo();
                     }
 
                     var userDataFilePath = $"{localFoldeer.Path}/Data/";
@@ -99,14 +98,18 @@ namespace CheckListNotes.Tasks
 
                         if (cancelRequested) CancelTask();
 
-                        var document = JToken.FromObject(list);
-                        await Task.Run(() => fileService.Write(document, filePath)).TryTo();
+                        await Task.Run(() => fileService.Write(list, filePath)).TryTo();
                     }
+
+                    //var success = await Launcher.LaunchUriAsync(new Uri("startnotes:"));
+                    var success = await (new CMD()).ExecuteAsync("start startnotes:");
                 }
             }
             catch (Exception ex)
             {
+#if DEBUG
                 Debug.Print(ex.Message);
+#endif
                 cancelReason = BackgroundTaskCancellationReason.Abort;
             }
             finally
