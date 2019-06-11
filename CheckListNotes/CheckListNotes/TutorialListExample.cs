@@ -93,7 +93,7 @@ namespace CheckListNotes
                     {
                         Id = $"{IdCount++}", IsTaskGroup = false,
                         Name = resources["ExampleListCompletedDailyTask"],
-                        ExpirationDate = DateTime.Now.AddHours(2),
+                        ExpirationDate = DateTime.Now.AddHours(-1),
                         NotifyOn = ToastTypesTime.None,
                         CompletedDate = DateTime.Now, IsChecked = true, IsDaily = true
                     },
@@ -109,14 +109,18 @@ namespace CheckListNotes
                             new CheckTaskModel
                             {
                                 Id = $"{IdCount}.{IdCount+1}", IsTaskGroup = false,
-                                Name = resources["ExampleListSubTaskAlarmExampleMessage"],
+                                Name = string.Format(
+                                    resources["ExampleListSubTaskAlarmExampleMessage"], 
+                                    DateTime.Now.AddMinutes(1).ToString("hh:mm tt")),
                                 ExpirationDate = DateTime.Now.AddHours(1).AddMinutes(1),
                                 CompletedDate = null, IsChecked = false, IsDaily = true,
                                 NotifyOn = ToastTypesTime.AHourBefore,
                                 ToastId = RegisterToast(new ToastModel
                                 {
                                     Title = resources["ExampleListAlarmExampleTitle"],
-                                    Body = resources["ExampleListSubTaskAlarmExampleMessage"],
+                                    Body = string.Format(
+                                        resources["ExampleListSubTaskAlarmExampleMessage"],
+                                        DateTime.Now.AddMinutes(1).ToString("hh:mm tt")),
                                     Time = DateTime.Now.AddMinutes(1),
                                     Type = ToastTypes.Alarm,
                                 }, 
