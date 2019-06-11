@@ -2,9 +2,11 @@
 using System.Linq;
 using Xamarin.Forms;
 using PropertyChanged;
+using System.Diagnostics;
 using System.Windows.Input;
 using CheckListNotes.Models;
 using PortableClasses.Enums;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -45,6 +47,8 @@ namespace CheckListNotes.PageModels
         }
 
         public FulyObservableCollection<CheckListViewModel> ListOfCheckLists { get; set; }
+
+        public string ExampleListName { get; private set; }
 
         #endregion
 
@@ -246,6 +250,15 @@ namespace CheckListNotes.PageModels
 
                     Errors = new List<string>();
 
+                    var resources = AppResourcesLisener.Current;
+                    var exampleListName = resources["ExampleListName"];
+                    if (ListOfCheckLists.Any(m => m.Name == exampleListName))
+                    {
+                        AppResourcesLisener.Current.PropertyChanged += OnLanguageChanged;
+                        ExampleListName = exampleListName;
+                    }
+
+
                     //TODO: Implement business logic for licence: [free, premium].
                     //var deviceHelper = DependencyService.Get<IDeviceHelper>();
                     //And so on...
@@ -268,6 +281,34 @@ namespace CheckListNotes.PageModels
             if (!string.IsNullOrEmpty(name) && name.Length > 50)
                 Errors.Add(resourses["ListOfListErrorMessageNameTooLong"].ToString());
             return (Errors?.Count <= 0);
+        }
+
+        private void OnLanguageChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != AppResourcesLisener.Language) return;
+            try
+            {
+                if (!string.IsNullOrEmpty(ExampleListName))
+                {
+                    GlobalDataService.RemoveList(ExampleListName);
+                    (new TutorialListExample()).Create();
+                }
+            }
+            catch (Exception) { }
+        }
+
+        #endregion
+
+        #region Dispose
+
+        ~ListOfCheckListsPageModel()
+        {
+            if (!string.IsNullOrEmpty(ExampleListName))
+                AppResourcesLisener.Current.PropertyChanged -= OnLanguageChanged;
+            ViewIsDisappearing(null, null);
+#if DEBUG
+            Debug.WriteLine("Object destroyed: [ Id: {1}, Name: {0} ].", this.GetHashCode(), nameof(ListOfCheckListsPageModel));
+#endif
         }
 
         #endregion
