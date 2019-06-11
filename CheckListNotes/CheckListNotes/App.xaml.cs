@@ -5,16 +5,15 @@ using Xamarin.Forms;
 using Newtonsoft.Json;
 using Xamarin.Forms.Xaml;
 using Xamarin.Essentials;
-using Newtonsoft.Json.Linq;
+using System.Diagnostics;
 using CheckListNotes.Models;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using PortableClasses.Services;
 using CheckListNotes.PageModels;
 using PortableClasses.Extensions;
 using CheckListNotes.Models.Interfaces;
 using Windows.ApplicationModel.Background;
-using System.ComponentModel;
-using System.Diagnostics;
 
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
 namespace CheckListNotes
@@ -26,10 +25,15 @@ namespace CheckListNotes
             InitializeComponent();
 
             // config.AppSettings.Clear();
-            AppResourcesLisener.Current.PropertyChanged += OnlaguageChanged;
             Randomizer = new Random();
-            LoadThemeAndLanguage(); 
+            LoadThemeAndLanguage();
+
             GlobalDataService.Init();
+            //(new TutorialListExample()).Create(); // For debug use.
+
+            var page = FreshPageModelResolver.ResolvePageModel<ListOfCheckListsPageModel>();
+            NavigationContainer = new FreshNavigationContainer(page);
+            MainPage = NavigationContainer;
         }
 
         #region Getters And Setters
@@ -139,18 +143,6 @@ namespace CheckListNotes
                     await pageModel.PushPageModel<OptionsPageModel>(arguments);
                     break;
             }
-        }
-
-        private void OnlaguageChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (GlobalDataService.IsFirtsInit())
-                (new TutorialListExample()).Create();
-
-            (new TutorialListExample()).Create(); // For debug use.
-
-            var page = FreshPageModelResolver.ResolvePageModel<ListOfCheckListsPageModel>();
-            NavigationContainer = new FreshNavigationContainer(page);
-            MainPage = NavigationContainer;
         }
 
         #endregion
@@ -293,30 +285,26 @@ namespace CheckListNotes
 
         private void LoadThemeAndLanguage()
         {
-            Device.BeginInvokeOnMainThread(async () => // Load Theme
+            try
             {
-                try
+                using (var stream = FileSystem.OpenAppPackageFileAsync($"{Config.Current.Theme}.json").Result)
                 {
-                    using (var stream = await FileSystem.OpenAppPackageFileAsync($"{Config.Current.Theme}.json"))
+                    using (var reader = new StreamReader(stream))
                     {
-                        using (var reader = new StreamReader(stream))
-                        {
-                            var fileContents = await reader.ReadToEndAsync();
-                            Config.Current.AppTheme = 
-                                JsonConvert.DeserializeObject<AppTheme>(fileContents);
-                        }
+                        var fileContents = reader.ReadToEnd();
+                        Config.Current.AppTheme = 
+                            JsonConvert.DeserializeObject<AppTheme>(fileContents);
                     }
-                    using (var languageService = new LanguageService())
-                    {
-                        await languageService.LoadLanguage();
-                    }
-
                 }
-                catch (Exception ex)
+                using (var languageService = new LanguageService())
                 {
-                    await Application.Current.MainPage.DisplayAlert("Error", ex.Message, "Ok");
+                    languageService.LoadLanguage().Wait();
                 }
-            });
+            }
+            catch (Exception ex)
+            {
+                Application.Current.MainPage.DisplayAlert("Error", ex.Message, "Ok");
+            }
         }
 
         private async void RefreshUI()
@@ -334,7 +322,6 @@ namespace CheckListNotes
 
         ~App()
         {
-            AppResourcesLisener.Current.PropertyChanged -= OnlaguageChanged;
             NavigationContainer = null;
             Randomizer = null;
 #if DEBUG
