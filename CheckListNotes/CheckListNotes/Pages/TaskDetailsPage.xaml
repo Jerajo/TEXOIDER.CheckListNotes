@@ -45,7 +45,7 @@
                     HorizontalOptions="FillAndExpand"
                     HorizontalTextAlignment="Center"
                     LineBreakMode="TailTruncation"
-                    Text="{DynamicResource TaskListButtonNewTaskText}"
+                    Text="{DynamicResource TaskDetailsPageTitle}"
                     TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
                 <Button
                     Grid.Column="2"
