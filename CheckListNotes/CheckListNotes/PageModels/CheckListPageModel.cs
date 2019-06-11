@@ -133,12 +133,16 @@ namespace CheckListNotes.PageModels
             IsLooked = true;
             if (model.SelectedReason == SelectedFor.Delete)
             {
-                var resoult = await ShowAlert("Pregunta!", "¿Estás seguro de que quieres eliminar esta tarea?", "Aceptar", "Cancelar");
+                var title = string.Format(AppResourcesLisener.Current["AlertDeleteTitle"], model.Name);
+                var message = AppResourcesLisener.Current["TaskListDeleteTaskMessage"];
+                var resoult = await ShowAlertQuestion(title, message);
                 if (resoult)
                 {
                     if (TabIndex <= 0) Tasks.Remove(model);
                     else CheckedTasks.Remove(model);
-                    GlobalDataService.RemoveTask(model.Id);
+                    try { GlobalDataService.RemoveTask(model.Id); }
+                    catch (Exception ex) { await ShowAlertError(ex.Message); }
+                    finally { IsLooked = false; }
                 }
                 else model.SelectedReason = SelectedFor.Create;
             }
@@ -334,14 +338,14 @@ namespace CheckListNotes.PageModels
                 }
                 catch (Exception ex)
                 {
-                    await ShowAlert("Fallo en la acción.", ex.Message, "Ok");
+                    await ShowAlertError(ex.Message);
                 }
                 finally
                 {
                     task = null;
                 }
             }
-            else await ShowAlert("Fallo en la acción.", task.ErrorMessage, "Ok");
+            else await ShowAlertError(task.ErrorMessage);
         }
 
         // Save all changes to LocalFolder/Data/fileName.bin

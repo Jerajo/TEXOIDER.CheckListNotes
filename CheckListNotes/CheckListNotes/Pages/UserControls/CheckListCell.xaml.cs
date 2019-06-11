@@ -1,7 +1,7 @@
 ﻿using System;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
-using System.Windows.Input;
+using System.Diagnostics;
 using PortableClasses.Enums;
 using System.Threading.Tasks;
 
@@ -126,6 +126,17 @@ namespace CheckListNotes.Pages.UserControls
             var reasonFor = (SelectedFor)newValue;
             var binging = bindable as CheckListCell;
             if (reasonFor == SelectedFor.Create) binging.ResetAnimations();
+        }
+
+        #endregion
+
+        #region Dispose
+
+        ~CheckListCell()
+        {
+#if DEBUG
+            Debug.WriteLine($"Object destroyect: Name: {nameof(CheckListCell)}, Id: {this.GetHashCode()}].");
+#endif
         }
 
         #endregion

@@ -60,13 +60,21 @@ namespace CheckListNotes.PageModels
         }
         private async void RemoveCommand()
         {
-            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
-            IsLooked = true;
-            var resoult = await ShowAlert("Pregunta!", "¿Estás seguro de que quieres eliminar la tarea?", "Aceptar", "Cancelar");
+            var title = string.Format(AppResourcesLisener.Current["AlertDeleteTitle"], Task.Name);
+            var message = AppResourcesLisener.Current["TaskListDeleteTaskMessage"];
+            var resoult = await ShowAlertQuestion(title, message);
+            string error = "";
             if (resoult)
             {
-                GlobalDataService.RemoveTask(Task.Id); IsLooked = false;
-                GoBackCommand(); return;
+                try { GlobalDataService.RemoveTask(Task.Id); }
+                catch (Exception ex) { error = ex.Message; }
+                finally
+                {
+                    IsLooked = false;
+                    if (string.IsNullOrEmpty(error)) GoBackCommand();
+                    else await ShowAlertError(error);
+                }
+                return;
             }
             IsLooked = false;
         }
@@ -84,8 +92,8 @@ namespace CheckListNotes.PageModels
             IsLooked = true;
             if (GlobalDataService.PreviousIndex != null)
             {
-                GlobalDataService.CurrentListName = GlobalDataService.PreviousListName;
-                GlobalDataService.CurrentIndex = GlobalDataService.PreviousIndex;
+                GlobalDataService.CurrentListName = GlobalDataService.PreviousListName.Substring(0);
+                GlobalDataService.CurrentIndex = GlobalDataService.PreviousIndex.Substring(0);
                 GlobalDataService.CurrentListName = null;
                 GlobalDataService.PreviousIndex = null;
             }

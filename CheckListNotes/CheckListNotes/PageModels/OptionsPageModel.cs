@@ -1,13 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Xamarin.Forms;
 using Newtonsoft.Json;
 using PropertyChanged;
 using Xamarin.Essentials;
 using System.Windows.Input;
 using CheckListNotes.Models;
 using PortableClasses.Enums;
-using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using CheckListNotes.Models.Interfaces;
@@ -233,13 +233,13 @@ namespace CheckListNotes.PageModels
                 switch (value)
                 {
                     case Models.Enums.TouchSounds.None:
-                        ConfigNotificationSound = "None"; break;
+                        ConfigTouchSound = "None"; break;
                     case Models.Enums.TouchSounds.Clic:
-                        ConfigNotificationSound = "Clic"; break;
+                        ConfigTouchSound = "Clic"; break;
                     case Models.Enums.TouchSounds.Custom:
-                        ConfigNotificationSound = "Custom"; break;
+                        ConfigTouchSound = "Custom"; break;
                     case Models.Enums.TouchSounds.Touch:
-                    default: ConfigNotificationSound = "Touch"; break;
+                    default: ConfigTouchSound = "Touch"; break;
                 }
             }
         }
@@ -255,11 +255,11 @@ namespace CheckListNotes.PageModels
         public List<string> TouchSounds { get; set; }
         public string TouchSound
         {
-            get => TouchSounds?.ElementAtOrDefault((int)SelectedNotificationSound);
+            get => TouchSounds?.ElementAtOrDefault((int)SelectedTouchSound);
             set
             {
                 if (!string.IsNullOrEmpty(value))
-                    SelectedNotificationSound = (Models.Enums.NotificationSounds)TouchSounds.IndexOf(value);
+                    SelectedTouchSound = (Models.Enums.TouchSounds)TouchSounds.IndexOf(value);
             }
         }
 
@@ -330,19 +330,21 @@ namespace CheckListNotes.PageModels
 
         #region Overrided Methods
 
-        public override void Init(object initData)
+        public override async void Init(object initData)
         {
             IsLooked = !(HasLoaded = false);
 
-            InitData = initData;
+            await Task.Run(() => 
+            {
+                Device.BeginInvokeOnMainThread(() => 
+                {
+                    InitData = initData;
 
-            //TODO: Create with language file
-            Themes = new List<string> { "Oscuro", "Claro" };
-            Languages = new List<string> { "Español", "English", "French" };
-            NotificationTypes = new List<string> { "Alarma", "Notificación" };
-            NotificationSounds = new List<string> { "Desactivado", "Ring", "Thone", "Bib", "Selecciona uno" };
-            TouchSounds = new List<string> { "Desactivado", "Clic", "Touch", "Selecciona uno" };
+                    Languages = new List<string> { "Español", "English", "French" };
 
+                    LanguageChanged();
+                });
+            });
             base.Init(initData);
             IsLooked = !(HasLoaded = true);
         }
@@ -403,7 +405,32 @@ namespace CheckListNotes.PageModels
             using (var languageService = new LanguageService())
             {
                 await languageService.LoadLanguage();
-                AppResourcesLisener.Current.RisePropertyChanged(AppResourcesLisener.Language);
+                var resourses = AppResourcesLisener.Current;
+                Themes = new List<string>
+                {
+                    resourses["OptionsThemeDarkText"],
+                    resourses["OptionsThemeLightText"]
+                };
+                NotificationTypes = new List<string>
+                {
+                    resourses["OptionsAlarText"],
+                    resourses["OptionsNotificationText"]
+                };
+                NotificationSounds = new List<string>
+                {
+                    resourses["OptionsDisableSoundText"],
+                    resourses["OptionsRingSoundText"],
+                    resourses["OptionsThoneSoundText"],
+                    resourses["OptionsBibSoundText"],
+                    resourses["OptionsSelectSoundText"]
+                };
+                TouchSounds = new List<string>
+                {
+                    resourses["OptionsDisableSoundText"],
+                    resourses["OptionsClicSoundText"],
+                    resourses["OptionsTouchSoundText"],
+                    resourses["OptionsSelectSoundText"]
+                };
             }
         }
 

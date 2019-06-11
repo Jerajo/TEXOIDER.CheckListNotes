@@ -2,6 +2,7 @@
 using Xamarin.Forms.Xaml;
 using System.Diagnostics;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace CheckListNotes.Pages
 {
@@ -21,12 +22,19 @@ namespace CheckListNotes.Pages
 
         #region Methods
 
-        private void OnLanguageChanged(object sender, PropertyChangedEventArgs e)
+        private async void OnLanguageChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName != AppResourcesLisener.Language) return;
-            var resourses = Application.Current.Resources;
-            TabItemPendientTask.HeaderText = resourses["TaskListPendientTabTitle"].ToString();
-            TabItemCompletedTask.HeaderText = resourses["TaskListCompletedTabTitle"].ToString();
+            await Task.Run(() => 
+            { 
+                Device.BeginInvokeOnMainThread(() => 
+                {
+                    TabItemPendientTask.HeaderText = AppResourcesLisener
+                        .Current["TaskListPendientTabTitle"];
+                    TabItemCompletedTask.HeaderText = AppResourcesLisener
+                        .Current["TaskListCompletedTabTitle"];
+                });
+            });
         }
 
         #endregion

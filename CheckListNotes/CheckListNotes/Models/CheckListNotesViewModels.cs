@@ -62,42 +62,37 @@ namespace CheckListNotes.Models
         {
             get
             {
+                string text = "";
                 if (HasExpiration == true)
                 {
+                    var resourses = AppResourcesLisener.Current;
+                    var dateText = ExpirationDate?.ToString("dd/MM/yyyy");
+                    var timeText = ExpirationDate?.ToString("hh:mm tt");
                     if (IsCompleted)
                     {
-                        if (IsDaily == true) return $"Expira mañana a las: {ExpirationDate?.ToString("hh:mm tt")}";
-                        else return $"Fecha de expiración: {ExpirationDate?.ToString("dd/MM/yyyy")} a las {ExpirationDate?.ToString("hh:mm tt")}";
+                        if (IsDaily == true) text = string.Format(resourses
+                            ["TaskListTaskCellCompletedNormalExpirationText"], timeText);
+                        else text = string.Format(resourses["TaskListTaskCellCompletedDailyExpirationText"], dateText, timeText);
                     }
                     else
                     {
                         if (IsDaily == true)
                         {
-                            switch (ExpirationDate)
-                            {
-                                case var time when ExpirationDate?.TimeOfDay > DateTime.Now.TimeOfDay:
-                                    return $"Expira hoy a las: {ExpirationDate?.ToString("hh:mm tt")}";
-                                case var time when ExpirationDate?.TimeOfDay < DateTime.Now.TimeOfDay:
-                                    return $"Expiró hoy a las: {ExpirationDate?.ToString("hh:mm tt")}";
-                                default:
-                                    return "Error t.t";
-                            }
+                            if (ExpirationDate?.TimeOfDay > DateTime.Now.TimeOfDay)
+                                text = string.Format(resourses["TaskListTaskCellDailyExpirationText"], timeText);
+                            if (ExpirationDate?.TimeOfDay < DateTime.Now.TimeOfDay)
+                                text = string.Format(resourses["TaskListTaskCellDailyLateExpirationText"], timeText);
                         }
                         else
                         {
-                            switch (ExpirationDate)
-                            {
-                                case var time when ExpirationDate > DateTime.Now:
-                                    return $"Expira el: {ExpirationDate?.ToString("dd/MM/yyyy")} a las {ExpirationDate?.ToString("hh:mm tt")}";
-                                case var time when ExpirationDate < DateTime.Now:
-                                    return $"Expiró el: {ExpirationDate?.ToString("dd/MM/yyyy")} a las {ExpirationDate?.ToString("hh:mm tt")}";
-                                default:
-                                    return "Error t.t";
-                            }
+                            if (ExpirationDate?.TimeOfDay > DateTime.Now.TimeOfDay)
+                                text = string.Format(resourses["TaskListTaskCellNormalExpirationText"], dateText, timeText);
+                            if (ExpirationDate?.TimeOfDay < DateTime.Now.TimeOfDay)
+                                text = string.Format(resourses["TaskListTaskCellNormalLateExpirationText"], dateText, timeText);
                         }
                     }
                 }
-                else return "";
+                return text;
             }
         }
 
@@ -105,12 +100,18 @@ namespace CheckListNotes.Models
         {
             get
             {
+                string text = "";
                 if (IsCompleted)
                 {
-                    if (IsDaily == true) return $"Completado hoy a las: {CompletedDate?.ToString("hh:mm tt")}";
-                    else return $"Completado el: {CompletedDate?.ToString("dd/MM/yyyy")} a las {CompletedDate?.ToString("hh:mm tt")}";
+                    var resourses = AppResourcesLisener.Current;
+                    var dateText = ExpirationDate?.ToString("dd/MM/yyyy");
+                    var timeText = ExpirationDate?.ToString("hh:mm tt");
+                    if (IsDaily == true)
+                        text = string.Format(resourses["TaskListTaskCellDailyCompletionText"], timeText);
+                    else text = string.Format(resourses["TaskListTaskCellNormalCompletionText"],
+                        dateText, timeText);
                 }
-                else return "";
+                return text;
             }
         }
 
@@ -126,15 +127,16 @@ namespace CheckListNotes.Models
         {
             get
             {
+                var resources = AppResourcesLisener.Current;
                 return new List<string>
                 {
-                    "Una hora antes",
-                    "Media hora antes",
-                    "Quince minutos antes",
-                    "Ninguna",
-                    "Quince minutos despues",
-                    "Media hora despues",
-                    "Una hora despues"
+                    resources["TaskDetailsNotification1HourBefore"],
+                    resources["TaskDetailsNotification30MinutesBefore"],
+                    resources["TaskDetailsNotification15MinutesBefore"],
+                    resources["TaskDetailsNotificationNone"],
+                    resources["TaskDetailsNotification15MinutesAfter"],
+                    resources["TaskDetailsNotification30MinutesAfter"],
+                    resources["TaskDetailsNotification1HourAfter"]
                 };
             }
         }
@@ -170,19 +172,26 @@ namespace CheckListNotes.Models
             }
         }
 
-        public string Detail { get => $"Tareas finalizadas: {CompletedTasks} / {TotalTasks}"; }
+        public string Detail
+        {
+            get => string.Format(AppResourcesLisener.Current["TaskListTaskCellDeails"],
+                    CompletedTasks, TotalTasks);
+        }
 
         public bool IsValid
         {
             get
             {
-                // Reinicia la lista de errores
                 Errors = new List<string>();
-
-                // Verifica los atributos
-                if (string.IsNullOrEmpty(Name) || string.IsNullOrWhiteSpace(Name)) Errors.Add("Debe ingresar el nombre de la tarea.\n");
-                if (IsDaily == true && HasExpiration == false) Errors.Add("Debe seleccionar la hora de expiración.\n");
-                if (IsChecked && !IsCompleted) Errors.Add("Error fecha de completado no encontrada.\n");
+                var resourses = AppResourcesLisener.Current;
+                if (IsDaily == true && HasExpiration == false)
+                    throw new Exception(resourses["TaskFormErrorMessageNullExpiration"]);
+                if (IsChecked && CompletedDate == null)
+                    throw new Exception(resourses["TaskFormErrorMessageNullCompletion"]);
+                if (string.IsNullOrEmpty(Name) || string.IsNullOrWhiteSpace(Name))
+                    Errors.Add(resourses["TaskFormErrorMessageNullName"]);
+                if (!string.IsNullOrEmpty(Name) && Name.Length > 500)
+                    Errors.Add(resourses["TaskFormErrorMessageNameTooLong"]);
                 return (Errors.Count <= 0);
             }
         }
@@ -388,7 +397,11 @@ namespace CheckListNotes.Models
 
         public SelectedFor? SelectedReason { get => selectedReason; set => selectedReason = value; }
 
-        public string Detail { get => $"Tareas finalizadas: {CompletedTasks} / {TotalTasks}"; }
+        public string Detail
+        {
+            get => string.Format(AppResourcesLisener.Current["ListOfListTaskCellDeails"],
+                    CompletedTasks, TotalTasks);
+        }
 
         public bool NameHasChange { get => (OldName != Name); }
 

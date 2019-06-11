@@ -41,6 +41,10 @@ namespace CheckListNotes
                 var resourses = document[languageCode].ToObject<Dictionary<string,string>>();
                 foreach (var item in resourses) App.Current.Resources[item.Key] = item.Value;
             }
+
+            // Notify that the current language has changed.
+            AppResourcesLisener.Current.RisePropertyChanged(AppResourcesLisener.Language);
+
             return Task.CompletedTask;
         }
 

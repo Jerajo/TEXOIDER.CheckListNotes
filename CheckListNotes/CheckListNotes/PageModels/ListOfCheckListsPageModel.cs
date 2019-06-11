@@ -7,6 +7,7 @@ using CheckListNotes.Models;
 using PortableClasses.Enums;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using PortableClasses.Implementations;
 using CheckListNotes.Models.Interfaces;
 using CheckListNotes.PageModels.Commands;
@@ -26,7 +27,7 @@ namespace CheckListNotes.PageModels
 
         public string CheckListName { get; set; }
 
-        public bool IsNewListFormVisible { get; set; }
+        public bool? IsNewListFormVisible { get => IsEditing; set => IsEditing = value; }
 
         public CheckListViewModel SelectedCheckList
         {
@@ -84,7 +85,7 @@ namespace CheckListNotes.PageModels
         {
             if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
-            var oldName = temporalList.OldName;
+            var oldName = temporalList?.OldName;
             if (ValidateNewCheckListName())
             {
                 try
@@ -95,7 +96,7 @@ namespace CheckListNotes.PageModels
                         CancelCommand();
                         return;
                     }
-                    if (!string.IsNullOrEmpty(CheckListName))
+                    if (!string.IsNullOrEmpty(oldName))
                     {
                         await GlobalDataService.UpdateList(oldName, CheckListName);
                         temporalList.OldName = temporalList.Name = CheckListName.Substring(0);
@@ -107,18 +108,20 @@ namespace CheckListNotes.PageModels
                     else
                     {
                         await GlobalDataService.AddList(CheckListName);
+                        IsNewListFormVisible = false;
                         IsLooked = false;
                         // Navigate to check list page model
                         SelectedCheckList = new CheckListViewModel { Name = CheckListName }; 
                         return;
                     }
                 }
-                catch (Exception ex)
-                {
-                    await ShowAlert("Fallo la operación!", ex.Message, "Ok");
-                }
+                catch (Exception ex) { await ShowAlertError(ex.Message); }
             }
-            else await ShowAlert("Fallo la operación!", ErrorMessage, "Ok");
+            else
+            {
+                //TODO: Implemnt validation error adaptive text control.
+                await ShowAlertError(ErrorMessage);
+            }
             IsLooked = false;
         }
 
@@ -129,11 +132,15 @@ namespace CheckListNotes.PageModels
             IsLooked = true;
             if (model.SelectedReason == SelectedFor.Delete)
             {
-                var resoult = await ShowAlert("Pregunta!", "¿Estás seguro de que quieres eliminar esta lista?", "Aceptar", "Cancelar");
+                var title = string.Format(AppResourcesLisener.Current["AlertDeleteTitle"], model.Name);
+                var message = AppResourcesLisener.Current["ListOfListDeleteListMessage"];
+                var resoult = await ShowAlertQuestion(title, message);
                 if (resoult)
                 {
                     ListOfCheckLists.Remove(model);
-                    GlobalDataService.RemoveList(model.Name);
+                    try { GlobalDataService.RemoveList(model.Name); }
+                    catch (Exception ex) { await ShowAlertError(ex.Message); }
+                    finally { IsLooked = false; }
                 }
                 else model.SelectedReason = SelectedFor.Create;
             }
@@ -250,10 +257,16 @@ namespace CheckListNotes.PageModels
         {
             Errors.Clear();
             var name = CheckListName;
+            var resourses = Application.Current.Resources;
             if (temporalList != null && temporalList.OldName == name) return true;
-            if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name)) Errors.Add("Debe ingresar el nobre de la nueba lista de tareas. ");
-            if (ListOfCheckLists.Where(m => m.Name == name).FirstOrDefault() != null) Errors.Add("\nYa existe una lista con este nombre. ");
-            if (!string.IsNullOrEmpty(name) && name.Length > 50) Errors.Add("\nEl nombre de la lista no puede ser mayor de 50 caractetes. ");
+            if ((new Regex("[^A-Za-z0-9 ]")).IsMatch(name))
+                Errors.Add(resourses["ListOfListErrorMessageInvalidCharacters"].ToString());
+            if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name))
+                Errors.Add(resourses["ListOfListErrorMessageNullName"].ToString());
+            if (ListOfCheckLists.Any(m => m.Name == name))
+                Errors.Add(resourses["ListOfListErrorMessageListRepeated"].ToString());
+            if (!string.IsNullOrEmpty(name) && name.Length > 50)
+                Errors.Add(resourses["ListOfListErrorMessageNameTooLong"].ToString());
             return (Errors?.Count <= 0);
         }
 

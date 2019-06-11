@@ -124,9 +124,19 @@ namespace CheckListNotes.PageModels
 
         #region Alerts
 
-        public Task<bool> ShowAlert(string title, string message, string accept, string cancel) => Application.Current.MainPage.DisplayAlert(title, message, accept, cancel);
+        public Task<bool> ShowAlertQuestion(string title, string message)
+        {
+            var accept = AppResourcesLisener.Current["ButtonOkText"];
+            var cancel = AppResourcesLisener.Current["ButtonCancelText"];
+            return Application.Current.MainPage.DisplayAlert(title, message, accept, cancel);
+        }
 
-        public Task ShowAlert(string title, string message, string cancel) => Application.Current.MainPage.DisplayAlert(title, message, cancel);
+        public Task ShowAlertError(string message)
+        {
+            var title = AppResourcesLisener.Current["AlertErrorTitle"];
+            var cancel = AppResourcesLisener.Current["ButtonOkText"];
+            return Application.Current.MainPage.DisplayAlert(title, message, cancel);
+        }
 
         #endregion
 
@@ -148,7 +158,7 @@ namespace CheckListNotes.PageModels
         {
             if (IsEditing == true)
             {
-                if (await ShowAlert("Cambios en los datos!.", "Algun proseso de fondo a modificado los datos.", "Ver Cambios", "Cancelar")) return;
+                if (await ShowAlertQuestion("Cambios en los datos!", "Algun proseso de fondo a modificado los datos.")) return;
             }
             var data = initData ?? InitData ?? 0;
             ViewIsDisappearing(null, null); Init(data);

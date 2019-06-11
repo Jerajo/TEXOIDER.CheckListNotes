@@ -25,24 +25,24 @@
         <Grid
             x:Name="GridEdit"
             Padding="20"
-            BackgroundColor="Green"
+            BackgroundColor="{DynamicResource GoogActionColor}"
             Opacity="0"
             TranslationX="-100">
             <Label
-                Text="Editar"
-                TextColor="White"
+                Text="{DynamicResource ButtonEditText}"
+                TextColor="{DynamicResource FontColor}"
                 VerticalOptions="Center" />
         </Grid>
         <Grid
             x:Name="GridDelete"
             Padding="20"
-            BackgroundColor="Red"
+            BackgroundColor="{DynamicResource BadActionColor}"
             Opacity="0"
             TranslationX="100">
             <Label
                 HorizontalOptions="End"
-                Text="Eliminar"
-                TextColor="White"
+                Text="{DynamicResource ButtonDeleteText}"
+                TextColor="{DynamicResource FontColor}"
                 VerticalOptions="Center" />
         </Grid>
         <!--#endregion-->
@@ -60,29 +60,31 @@
                     FontAttributes="Bold"
                     FontSize="14"
                     Text="{Binding Name}"
-                    TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                    TextColor="{DynamicResource FontColor}" />
                 <Label
                     FontSize="12"
                     Text="{Binding Detail}"
-                    TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                    TextColor="{DynamicResource FontColor}" />
                 <!--#endregion-->
 
                 <!--#region Percentage-->
                 <Grid ColumnSpacing="0" RowSpacing="0">
+                    <!--#region Colum-->
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="{Binding CompletedPercentage, Converter={x:StaticResource DoubleToGridLength}, Mode=OneWay}" />
                         <ColumnDefinition Width="{Binding PendientPercentage, Converter={x:StaticResource DoubleToGridLength}, Mode=OneWay}" />
                     </Grid.ColumnDefinitions>
+                    <!--#endregion-->
 
                     <BoxView
                         Margin="0"
                         HeightRequest="10"
-                        Color="{Binding CompletedPercentageColor, Mode=OneWay}" />
+                        Color="{DynamicResource CompletedProgresbarColor}" />
                     <BoxView
                         Grid.Column="1"
                         Margin="0"
                         HeightRequest="10"
-                        Color="{Binding PendientPercentageColor, Mode=OneWay}" />
+                        Color="{DynamicResource BackgroundProgresbarColor}" />
                 </Grid>
                 <!--#endregion-->
             </StackLayout>

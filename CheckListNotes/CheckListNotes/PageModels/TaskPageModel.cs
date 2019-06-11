@@ -44,11 +44,6 @@ namespace CheckListNotes.PageModels
             }
         }
 
-        public ICommand Remove
-        {
-            get => new DelegateCommand(new Action(RemoveCommand));
-        }
-
         public ICommand GoBack
         {
             get => new DelegateCommand(new Action(GoBackCommand));
@@ -69,45 +64,30 @@ namespace CheckListNotes.PageModels
                 try
                 {
                     if (IsEditing == true && !string.IsNullOrEmpty(OldTask.ToastId) &&
-                        (Task.IsChecked || Task.NotifyOn == OldTask.NotifyOn))
+                    (Task.IsChecked || Task.NotifyOn == OldTask.NotifyOn))
                         await UnregisterToast(OldTask.ToastId);
 
                     if (Task.NotifyOn != ToastTypesTime.None &&
-                        (Task.NotifyOn != OldTask.NotifyOn || 
-                        Task.ExpirationDate != OldTask.ExpirationDate || 
+                        (Task.NotifyOn != OldTask.NotifyOn ||
+                        Task.ExpirationDate != OldTask.ExpirationDate ||
                         Task.Expiration != OldTask.Expiration)) await RegisterToast(Task);
 
                     if (IsEditing == true) GlobalDataService.UpdateTask(Task);
                     else GlobalDataService.AddTask(Task);
                 }
-                catch (Exception ex)
-                {
-                    Task.Errors.Add($"Error: {ex.Message}.\n");
-                }
+                catch (Exception ex) { Task.Errors.Add(ex.Message); }
                 finally
                 {
                     IsLooked = false;
                     if (string.IsNullOrEmpty(Task.ErrorMessage)) GoBackCommand();
-                    else await ShowAlert("Error", Task.ErrorMessage, "Ok");
+                    else await ShowAlertError(Task.ErrorMessage);
                 }
             }
             else
             {
-                await ShowAlert("Faltan datos", Task.ErrorMessage, "Ok");
+                await ShowAlertError(Task.ErrorMessage);
                 IsLooked = false;
             }
-        }
-        private async void RemoveCommand()
-        {
-            if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
-            IsLooked = true;
-            var resoult = await ShowAlert("Pregunta!", "¿Estás seguro de que quieres eliminar la tarea?", "Aceptar", "Cancelar");
-            if (resoult)
-            {
-                GlobalDataService.RemoveTask(Task.Id); IsLooked = false;
-                GoBackCommand(); return;
-            }
-            IsLooked = false;
         }
 
         private async void GoBackCommand()
@@ -133,61 +113,66 @@ namespace CheckListNotes.PageModels
         {
             IsLooked = !(HasLoaded = false);
 
-            if (!(initData is CheckTaskModel task))
-                task = await GlobalDataService.GetCurrentTask();
-
-            if (initData is int index) InitData = index;
-            else InitData = task.IsChecked == true ? 1 : 0;
-
-            IsEditing = (!string.IsNullOrEmpty(task.Name)) ? true : false;
-
-            PageTitle = (IsEditing == true) ? "Editar Tarea" : "Crear Tarea";
-
-            Device.BeginInvokeOnMainThread(() => 
+            await System.Threading.Tasks.Task.Run(() => 
             { 
-                Task = new CheckTaskViewModel
+                Device.BeginInvokeOnMainThread(async () =>
                 {
-                    Id = task.Id,
-                    Name = task.Name,
-                    ToastId = task.ToastId,
-                    LastSubId = task.LastSubId,
-                    TotalTasks = task.SubTasks?.Count ?? 0,
-                    CompletedDate = task.CompletedDate,
-                    ExpirationDate = task.ExpirationDate,
-                    HasExpiration = task.ExpirationDate != null,
-                    Expiration = task.ExpirationDate?.TimeOfDay,
-                    ReminderTime = task.ReminderTime,
-                    IsTaskGroup = task.IsTaskGroup ?? false,
-                    IsChecked = task.IsChecked ?? false,
-                    NotifyOn = task.NotifyOn ?? ToastTypesTime.None,
-                    IsDaily = task.IsDaily ?? false
-                };
+                    var resources = AppResourcesLisener.Current;
 
-                OldTask = new CheckTaskViewModel
-                {
-                    Name = Task.Name,
-                    ToastId = Task.ToastId,
-                    LastSubId = Task.LastSubId,
-                    TotalTasks = Task.TotalTasks,
-                    IsTaskGroup = Task.IsTaskGroup,
-                    ReminderTime = Task.ReminderTime,
-                    CompletedDate = Task.CompletedDate,
-                    ExpirationDate = Task.ExpirationDate,
-                    HasExpiration = Task.HasExpiration,
-                    Expiration = Task.Expiration,
-                    IsChecked = Task.IsChecked,
-                    NotifyOn = Task.NotifyOn,
-                    IsDaily = Task.IsDaily
-                };
+                    if (!(initData is CheckTaskModel task))
+                        task = await GlobalDataService.GetCurrentTask();
 
-                Task.PropertyChanged += TaskPropertyChanged;
+                    if (initData is int index) InitData = index;
+                    else InitData = task.IsChecked == true ? 1 : 0;
+
+                    IsEditing = (!string.IsNullOrEmpty(task.Name)) ? true : false;
+
+                    PageTitle = (IsEditing == true) ? 
+                        resources["TaskFormPageTitleOnEdition"] :
+                        resources["TaskFormPageTitle"];
+            
+                    Task = new CheckTaskViewModel
+                    {
+                        Id = task.Id,
+                        Name = task.Name,
+                        ToastId = task.ToastId,
+                        LastSubId = task.LastSubId,
+                        TotalTasks = task.SubTasks?.Count ?? 0,
+                        CompletedDate = task.CompletedDate,
+                        ExpirationDate = task.ExpirationDate,
+                        HasExpiration = task.ExpirationDate != null,
+                        Expiration = task.ExpirationDate?.TimeOfDay,
+                        ReminderTime = task.ReminderTime,
+                        IsTaskGroup = task.IsTaskGroup ?? false,
+                        IsChecked = task.IsChecked ?? false,
+                        NotifyOn = task.NotifyOn ?? ToastTypesTime.None,
+                        IsDaily = task.IsDaily ?? false
+                    };
+
+                    OldTask = new CheckTaskViewModel
+                    {
+                        Name = Task.Name,
+                        ToastId = Task.ToastId,
+                        LastSubId = Task.LastSubId,
+                        TotalTasks = Task.TotalTasks,
+                        IsTaskGroup = Task.IsTaskGroup,
+                        ReminderTime = Task.ReminderTime,
+                        CompletedDate = Task.CompletedDate,
+                        ExpirationDate = Task.ExpirationDate,
+                        HasExpiration = Task.HasExpiration,
+                        Expiration = Task.Expiration,
+                        IsChecked = Task.IsChecked,
+                        NotifyOn = Task.NotifyOn,
+                        IsDaily = Task.IsDaily
+                    };
+
+                    Task.PropertyChanged += TaskPropertyChanged;
+                });
             });
 
             Randomizer = new Random();
-
-            IsLooked = HasChanges = !(HasLoaded = true);
-
             base.Init(initData);
+            IsLooked = HasChanges = !(HasLoaded = true);
         }
 
         protected override void ViewIsDisappearing(object sender, EventArgs e)
@@ -254,7 +239,10 @@ namespace CheckListNotes.PageModels
                 }
                 if (Task.IsTaskGroup == false && Task.TotalTasks > 0)
                 {
-                    var resoult = await ShowAlert("Advertencia", "Si continua eliminara toda la lista de subtareas.", "Continuar", "Cancelar");
+                    var resourses = AppResourcesLisener.Current;
+                    var title = string.Format(resourses["AlertLoseDataTitle"], Task.Name);
+                    var message = resourses["TaskFormSwictIsTaskGroupActionMessage"];
+                    var resoult = await ShowAlertQuestion(title, message);
                     if (!resoult) Task.IsTaskGroup = true;
                     else 
                     {
