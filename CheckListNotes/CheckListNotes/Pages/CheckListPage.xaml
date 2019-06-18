@@ -6,7 +6,8 @@
     xmlns:behavior="clr-namespace:CheckListNotes.Pages.Behaviors"
     xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters"
     xmlns:tvs="clr-namespace:Xam.Plugin.TabView;assembly=Xam.Plugin.TabView"
-    xmlns:uc="clr-namespace:CheckListNotes.Pages.UserControls">
+    xmlns:uc="clr-namespace:CheckListNotes.Pages.UserControls"
+    BackgroundColor="{DynamicResource ContentDP00}">
 
     <!--#region Resources-->
     <ContentPage.Resources>
@@ -20,7 +21,7 @@
     <!--#endregion-->
 
     <ContentPage.Content>
-        <Grid BackgroundColor="{Binding AppBackgroundColor, Converter={x:StaticResource StringToColor}}" RowSpacing="0">
+        <Grid RowSpacing="0">
             <!--#region Rows-->
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -29,7 +30,7 @@
             <!--#endregion-->
 
             <!--#region Header-->
-            <Grid BackgroundColor="{Binding HeaderAndHeaderAndFooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
+            <Grid BackgroundColor="{DynamicResource ContentDP03}">
                 <!--#region Columns-->
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -39,24 +40,25 @@
                 <!--#endregion-->
 
                 <Button
-                    BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                    BackgroundColor="#00FFFFFF"
                     Command="{Binding GoBack}"
                     Text="Back"
-                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    TextColor="{DynamicResource FontColor}" />
                 <Label
                     Grid.ColumnSpan="3"
                     Margin="0,10"
+                    FontAttributes="Bold"
                     HorizontalOptions="FillAndExpand"
                     HorizontalTextAlignment="Center"
                     LineBreakMode="TailTruncation"
                     Text="{Binding PageTitle}"
-                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    TextColor="{DynamicResource FontColor}" />
                 <Button
                     Grid.Column="2"
-                    BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                    BackgroundColor="#00FFFFFF"
                     Command="{Binding GoToOptions}"
                     Text="Opt"
-                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    TextColor="{DynamicResource FontColor}" />
             </Grid>
             <!--#endregion-->
 
@@ -73,9 +75,9 @@
                 <uc:TabViewControlExtended
                     Grid.RowSpan="1"
                     CurrentIndex="{Binding TabIndex}"
-                    HeaderBackgroundColor="Black"
-                    HeaderSelectionUnderlineColor="Blue"
-                    HeaderTabTextColor="White"
+                    HeaderBackgroundColor="{DynamicResource ContentDP02}"
+                    HeaderSelectionUnderlineColor="{DynamicResource ContentPrimary}"
+                    HeaderTabTextColor="{DynamicResource FontColor}"
                     HeaderTabTextFontAttributes="Bold">
                     <uc:TabViewControlExtended.ItemSource>
                         <tvs:TabItem x:Name="TabItemPendientTask">
@@ -124,13 +126,13 @@
                 <StackLayout
                     Grid.Row="1"
                     Padding="10,5"
-                    BackgroundColor="{Binding HeaderAndFooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
+                    BackgroundColor="{DynamicResource ContentDP03}">
                     <Button
-                        BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                        BackgroundColor="#00FFFFFF"
                         Command="{Binding AddNewTask}"
                         IsTabStop="False"
                         Text="{DynamicResource TaskListButtonNewTaskText}"
-                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                        TextColor="{DynamicResource FontColor}" />
                 </StackLayout>
                 <!--#endregion-->
             </Grid>

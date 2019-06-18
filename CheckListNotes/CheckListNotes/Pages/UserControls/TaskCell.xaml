@@ -5,7 +5,10 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters">
 
-    <Grid ColumnSpacing="0" RowSpacing="0">
+    <Grid
+        Margin="0,5"
+        ColumnSpacing="0"
+        RowSpacing="0">
         <!--#region Rows-->
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -26,7 +29,7 @@
         <Grid
             x:Name="GridEdit"
             Padding="20"
-            BackgroundColor="{DynamicResource GoogActionColor}"
+            BackgroundColor="{DynamicResource Good}"
             Opacity="0"
             TranslationX="-100">
             <Label
@@ -37,7 +40,7 @@
         <Grid
             x:Name="GridDelete"
             Padding="20"
-            BackgroundColor="{DynamicResource BadActionColor}"
+            BackgroundColor="{DynamicResource Error}"
             Opacity="0"
             TranslationX="100">
             <Label
@@ -52,9 +55,8 @@
         <Frame
             x:Name="FrameCell"
             Margin="10,0"
-            BackgroundColor="{Binding CellBackgroundColor, Mode=OneWay}"
-            BorderColor="{Binding CellBorderColor, Mode=OneWay}"
-            HasShadow="False">
+            BackgroundColor="{DynamicResource ContentDP01}"
+            HasShadow="True">
             <StackLayout>
                 <!--#region Text-->
                 <Grid RowSpacing="0">
@@ -119,12 +121,12 @@
                         <BoxView
                             Margin="0"
                             HeightRequest="10"
-                            Color="{DynamicResource CompletedProgresbarColor}" />
+                            Color="{DynamicResource Progress}" />
                         <BoxView
                             Grid.Column="1"
                             Margin="0"
                             HeightRequest="10"
-                            Color="{DynamicResource BackgroundProgresbarColor}" />
+                            Color="{DynamicResource Remaining}" />
                     </Grid>
                 </StackLayout>
                 <!--#endregion-->

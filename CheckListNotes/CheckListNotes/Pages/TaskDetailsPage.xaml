@@ -3,7 +3,8 @@
     x:Class="CheckListNotes.Pages.TaskDetailsPage"
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters">
+    xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters"
+    BackgroundColor="{DynamicResource ContentDP00}">
 
     <!--#region Resources-->
     <ContentPage.Resources>
@@ -16,7 +17,7 @@
     <!--#endregion-->
 
     <ContentPage.Content>
-        <Grid BackgroundColor="{Binding AppBackgroundColor, Converter={x:StaticResource StringToColor}}" RowSpacing="0">
+        <Grid RowSpacing="0">
             <!--#region Rows-->
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -25,7 +26,7 @@
             <!--#endregion-->
 
             <!--#region Header-->
-            <Grid BackgroundColor="{Binding HeaderAndHeaderAndFooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
+            <Grid BackgroundColor="{DynamicResource ContentDP03}">
                 <!--#region Columns-->
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -35,24 +36,25 @@
                 <!--#endregion-->
 
                 <Button
-                    BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                    BackgroundColor="#00FFFFFF"
                     Command="{Binding GoBack}"
                     Text="Back"
-                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    TextColor="{DynamicResource FontColor}" />
                 <Label
                     Grid.ColumnSpan="3"
                     Margin="0,10"
+                    FontAttributes="Bold"
                     HorizontalOptions="FillAndExpand"
                     HorizontalTextAlignment="Center"
                     LineBreakMode="TailTruncation"
                     Text="{DynamicResource TaskDetailsPageTitle}"
-                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    TextColor="{DynamicResource FontColor}" />
                 <Button
                     Grid.Column="2"
-                    BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                    BackgroundColor="#00FFFFFF"
                     Command="{Binding GoToOptions}"
                     Text="Opt"
-                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    TextColor="{DynamicResource FontColor}" />
             </Grid>
             <!--#endregion-->
 
@@ -71,41 +73,29 @@
                         <Label
                             FontAttributes="Bold"
                             Text="{DynamicResource TaskDetailsLabelTaskName}"
-                            TextColor="{Binding AppFontColor, Mode=OneWay}" />
-                        <Label Text="{Binding Name}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
-                        <BoxView
-                            HeightRequest="1"
-                            HorizontalOptions="FillAndExpand"
-                            Color="{Binding ViewBoxColor, Mode=OneWay}" />
+                            TextColor="{DynamicResource FontColor}" />
+                        <Label Text="{Binding Name}" TextColor="{DynamicResource FontColor}" />
 
                         <StackLayout HorizontalOptions="FillAndExpand" IsVisible="{Binding ExpirationDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}">
                             <Label
                                 FontAttributes="Bold"
                                 Text="{DynamicResource TaskDetailsLabelTaskExpirationDate}"
-                                TextColor="{Binding AppFontColor, Mode=OneWay}" />
-                            <Label Text="{Binding ExpirationDateText}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
-                            <BoxView
-                                HeightRequest="1"
-                                HorizontalOptions="FillAndExpand"
-                                Color="{Binding ViewBoxColor, Mode=OneWay}" />
+                                TextColor="{DynamicResource FontColor}" />
+                            <Label Text="{Binding ExpirationDateText}" TextColor="{DynamicResource FontColor}" />
 
                             <Label
                                 FontAttributes="Bold"
                                 Text="{DynamicResource TaskDetailsLabelTaskNotification}"
-                                TextColor="{Binding AppFontColor, Mode=OneWay}" />
-                            <Label Text="{Binding SelectedNotificationTimeIndex}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
-                            <BoxView
-                                HeightRequest="1"
-                                HorizontalOptions="FillAndExpand"
-                                Color="{Binding ViewBoxColor, Mode=OneWay}" />
+                                TextColor="{DynamicResource FontColor}" />
+                            <Label Text="{Binding SelectedNotificationTimeIndex}" TextColor="{DynamicResource FontColor}" />
 
                         </StackLayout>
                         <StackLayout IsVisible="{Binding CompletedDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}">
                             <Label
                                 FontAttributes="Bold"
                                 Text="{DynamicResource TaskDetailsLabelTaskCompletisionDate}"
-                                TextColor="{Binding AppFontColor, Mode=OneWay}" />
-                            <Label Text="{Binding CompletedDateText}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                                TextColor="{DynamicResource FontColor}" />
+                            <Label Text="{Binding CompletedDateText}" TextColor="{DynamicResource FontColor}" />
                         </StackLayout>
                     </StackLayout>
                 </ScrollView>
@@ -115,7 +105,7 @@
                 <Grid
                     Grid.Row="1"
                     Padding="10,5"
-                    BackgroundColor="{Binding HeaderAndFooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
+                    BackgroundColor="{DynamicResource ContentDP03}">
                     <!--#region Columns-->
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -124,16 +114,16 @@
                     <!--#endregion-->
 
                     <Button
-                        BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                        BackgroundColor="#00FFFFFF"
                         Command="{Binding Edit}"
                         Text="{DynamicResource ButtonEditText}"
-                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                        TextColor="{DynamicResource FontColor}" />
                     <Button
                         Grid.Column="1"
-                        BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                        BackgroundColor="#00FFFFFF"
                         Command="{Binding Remove}"
                         Text="{DynamicResource ButtonDeleteText}"
-                        TextColor="{Binding CancelButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                        TextColor="{DynamicResource Error}" />
                 </Grid>
                 <!--#endregion-->
             </Grid>

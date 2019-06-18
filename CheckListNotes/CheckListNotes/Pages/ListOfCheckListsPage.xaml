@@ -5,7 +5,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:behavior="clr-namespace:CheckListNotes.Pages.Behaviors"
     xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters"
-    xmlns:uc="clr-namespace:CheckListNotes.Pages.UserControls">
+    xmlns:uc="clr-namespace:CheckListNotes.Pages.UserControls"
+    BackgroundColor="{DynamicResource ContentDP00}">
 
     <!--#region Resources-->
     <ContentPage.Resources>
@@ -19,7 +20,7 @@
     <!--#endregion-->
 
     <ContentPage.Content>
-        <Grid BackgroundColor="{Binding AppBackgroundColor, Converter={x:StaticResource StringToColor}}" RowSpacing="0">
+        <Grid RowSpacing="0">
             <!--#region Rows-->
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -27,42 +28,8 @@
             </Grid.RowDefinitions>
             <!--#endregion-->
 
-            <!--#region Header-->
-            <Grid BackgroundColor="{Binding HeaderAndHeaderAndFooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
-                <!--#region Columns-->
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <!--#endregion-->
-
-                <Label
-                    Grid.ColumnSpan="2"
-                    Margin="0,10"
-                    FontAttributes="Bold"
-                    HorizontalOptions="FillAndExpand"
-                    HorizontalTextAlignment="Center"
-                    LineBreakMode="TailTruncation"
-                    Text="{DynamicResource ListOfListPageTitle}"
-                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                <Button
-                    Grid.Column="1"
-                    BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
-                    Command="{Binding GoToOptions}"
-                    Text="Opt"
-                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-            </Grid>
-            <!--#endregion-->
-
             <!--#region Body-->
             <Grid Grid.Row="1" RowSpacing="0">
-                <!--#region Rows-->
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <!--#endregion-->
-
                 <!--#region Content-->
                 <ListView
                     x:Name="ListViewTaskList"
@@ -85,57 +52,105 @@
                 <!--#endregion-->
 
                 <!--#region Footer-->
+                <uc:SVGImaggeButton
+                    Margin="20"
+                    BackgroundColor="{DynamicResource ContentPrimary}"
+                    Command="{Binding OpenForm}"
+                    CornerRadius="40"
+                    HeightRequest="80"
+                    HorizontalOptions="End"
+                    IconColor="{DynamicResource FontColor}"
+                    VerticalOptions="End"
+                    WidthRequest="80" />
+                <!-- UWP
                 <StackLayout
                     x:Name="StackLayoutFooter"
                     Grid.Row="1"
                     Padding="10,5"
-                    BackgroundColor="{Binding HeaderAndFooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
+                    BackgroundColor="{DynamicResource ContentDP03}">
                     <Button
-                        BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                        BackgroundColor="{StaticResource Transparent}"
                         Command="{Binding OpenForm}"
                         Text="{DynamicResource ListOfListNewListButtonText}"
-                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                </StackLayout>
+                        TextColor="{DynamicResource FontColor}" />
+                </StackLayout>-->
                 <!--#endregion-->
             </Grid>
             <!--#endregion-->
 
-            <!--#region Bloqueador-->
-            <Grid
-                x:Name="GridBlocker"
-                Grid.RowSpan="2"
-                BackgroundColor="#FFFFFFFF"
-                IsVisible="{Binding IsNewListFormVisible}"
-                Opacity="0.8" />
+            <!--#region Header-->
+            <uc:MaterialGrid
+                CornerRadius="0"
+                ShadowSize="0,0,0,10"
+                SurfaceColor="{DynamicResource ContentDP03}">
+                <!--#region Columns-->
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <!--#endregion-->
+
+                <Label
+                    x:Name="LabelTitle"
+                    Grid.ColumnSpan="2"
+                    Margin="0,10"
+                    FontAttributes="Bold"
+                    HorizontalOptions="FillAndExpand"
+                    HorizontalTextAlignment="Center"
+                    LineBreakMode="TailTruncation"
+                    Text="{DynamicResource ListOfListPageTitle}"
+                    TextColor="{DynamicResource FontColor}"
+                    VerticalOptions="CenterAndExpand" />
+                <uc:SVGImaggeButton
+                    Grid.Column="1"
+                    Margin="10,5"
+                    Command="{Binding GoToOptions}"
+                    IconColor="{DynamicResource FontColor}"
+                    SVGSource="Add-New.svg" />
+            </uc:MaterialGrid>
             <!--#endregion-->
 
             <!--#region NewCheckListForm-->
-            <Frame
+            <Grid
                 Grid.RowSpan="2"
-                Margin="20"
-                Padding="20"
-                BackgroundColor="{Binding DialogBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
-                BorderColor="{Binding CellBorderColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
-                CornerRadius="0"
-                HasShadow="False"
-                IsVisible="{Binding IsNewListFormVisible}"
-                VerticalOptions="Center">
-                <StackLayout>
+                BackgroundColor="{DynamicResource Blocker}"
+                IsVisible="{Binding IsNewListFormVisible}">
+                <uc:MaterialGrid
+                    Margin="60,0"
+                    Padding="20"
+                    CornerRadius="10"
+                    HorizontalOptions="FillAndExpand"
+                    ShadowSize="10"
+                    SurfaceColor="{DynamicResource ContentDP04}"
+                    VerticalOptions="Center">
+                    <!--#region Rows-->
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <!--#endregion-->
+
                     <Label
                         FontAttributes="Bold"
                         Text="{DynamicResource ListOfListFormNewListTitle}"
-                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                    <Label Text="{DynamicResource ListOfListEntryListNameTitle}" TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                    <Entry
-                        BackgroundColor="{Binding EditorBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
-                        IsSpellCheckEnabled="True"
-                        IsTextPredictionEnabled="True"
-                        Keyboard="Text"
-                        MaxLength="50"
-                        Placeholder="{DynamicResource ListOfListEntryListNamePlaceHolder}"
-                        Text="{Binding CheckListName, Mode=TwoWay}"
-                        TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
-                    <Grid>
+                        TextColor="{DynamicResource FontColor}" />
+
+                    <StackLayout Grid.Row="1" VerticalOptions="CenterAndExpand">
+                        <Label Text="{DynamicResource ListOfListEntryListNameTitle}" TextColor="{DynamicResource FontColor}" />
+                        <Entry
+                            BackgroundColor="{StaticResource Transparent}"
+                            IsSpellCheckEnabled="True"
+                            IsTextPredictionEnabled="True"
+                            Keyboard="Text"
+                            MaxLength="50"
+                            Placeholder="{DynamicResource ListOfListEntryListNamePlaceHolder}"
+                            Text="{Binding CheckListName, Mode=TwoWay}"
+                            TextColor="{DynamicResource FontColor}" />
+                    </StackLayout>
+
+                    <!--#region Buttons-->
+                    <Grid Grid.Row="2">
                         <!--#region Culums-->
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -144,19 +159,20 @@
                         <!--#endregion-->
 
                         <Button
-                            BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                            BackgroundColor="{StaticResource Transparent}"
                             Command="{Binding Save}"
                             Text="{DynamicResource ButtonSaveText}"
-                            TextColor="{Binding AceptButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                            TextColor="{DynamicResource Good}" />
                         <Button
                             Grid.Column="1"
-                            BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                            BackgroundColor="{StaticResource Transparent}"
                             Command="{Binding Cancel}"
                             Text="{DynamicResource ButtonCancelText}"
-                            TextColor="{Binding CancelButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                            TextColor="{DynamicResource FontColor}" />
                     </Grid>
-                </StackLayout>
-            </Frame>
+                    <!--#endregion-->
+                </uc:MaterialGrid>
+            </Grid>
             <!--#endregion-->
         </Grid>
     </ContentPage.Content>

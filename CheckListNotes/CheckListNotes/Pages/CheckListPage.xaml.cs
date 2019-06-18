@@ -29,10 +29,9 @@ namespace CheckListNotes.Pages
             { 
                 Device.BeginInvokeOnMainThread(() => 
                 {
-                    TabItemPendientTask.HeaderText = AppResourcesLisener
-                        .Current["TaskListPendientTabTitle"];
-                    TabItemCompletedTask.HeaderText = AppResourcesLisener
-                        .Current["TaskListCompletedTabTitle"];
+                    var language = AppResourcesLisener.Languages;
+                    TabItemPendientTask.HeaderText = language["TaskListPendientTabTitle"];
+                    TabItemCompletedTask.HeaderText = language["TaskListCompletedTabTitle"];
                 });
             });
         }

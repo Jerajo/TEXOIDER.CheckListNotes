@@ -63,4 +63,32 @@
         //public const string BackgroundTasksGroupName = "CheckListNotesTasks";
         //public const string BackgroundTasksGroupId = "890fd9-342u3-42342-f4sg53-dh4s5hgf";
     }
+
+    /// <summary>
+    /// Indicate the sadow position and margin and padding behavior.
+    /// </summary>
+    public enum ShadowPositionTemplate
+    {
+        /// <summary>
+        ///  Use the shadow size and rewrite the padding with the shadow size.
+        /// </summary>
+        Inside = 0,
+        /// <summary>
+        /// The shadow size is taken from the padding size.
+        /// </summary>
+        AtThePadding = 1,
+        /// <summary>
+        /// Use the shadow size and rewrite the padding and the marging with 
+        /// the half of the shadow size.
+        /// </summary>
+        AtTheMiddle = 2,
+        /// <summary>
+        /// The shadow size is taken from the margin size size.
+        /// </summary>
+        AtTheMargin = 3,
+        /// <summary>
+        /// Use the shadow size and rewrite the marging with the shadow size.
+        /// </summary>
+        Outside = 4
+    }
 }

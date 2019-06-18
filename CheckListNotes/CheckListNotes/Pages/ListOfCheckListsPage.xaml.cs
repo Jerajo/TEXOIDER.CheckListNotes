@@ -5,6 +5,7 @@ using System.Diagnostics;
 using CheckListNotes.Models;
 using PortableClasses.Enums;
 using PortableClasses.Services;
+using System.Threading.Tasks;
 
 namespace CheckListNotes.Pages
 {
@@ -18,17 +19,15 @@ namespace CheckListNotes.Pages
             NavigationPage.SetHasBackButton(this, false);
             NavigationPage.SetHasNavigationBar(this, false);
 
-            AddDebugControls();
+            //AddDebugControls();
         }
+
+        #region Debug Methods
 
         [Conditional("DEBUG")]
         private void AddDebugControls()
         {
             var grid = new Grid();
-            grid.ColumnDefinitions.Add(new ColumnDefinition {
-                Width = new GridLength(1, GridUnitType.Star) });
-            grid.ColumnDefinitions.Add(new ColumnDefinition {
-                Width = new GridLength(1, GridUnitType.Star) });
 
             var notyfyButton = new Button { Text = "Notificar",
                 Command = new Command(() => ShowReminder(null, null)) };
@@ -36,18 +35,18 @@ namespace CheckListNotes.Pages
                 Command = new Command(() => ShowAlarm(null, null)) };
 
             var colorConverter = this.Resources["StringToColor"] as IValueConverter;
-            notyfyButton.SetBinding(Button.TextColorProperty, "AppFontColor", 
+            notyfyButton.SetBinding(Button.TextColorProperty, "FontColor", 
                 converter: colorConverter);
             notyfyButton.SetBinding(BackgroundColorProperty, "ButtonBackgroundColor", 
                 converter: colorConverter);
-            AlarmButton.SetBinding(Button.TextColorProperty, "AppFontColor", 
+            AlarmButton.SetBinding(Button.TextColorProperty, "FontColor", 
                 converter: colorConverter);
             AlarmButton.SetBinding(BackgroundColorProperty, "ButtonBackgroundColor", 
                 converter: colorConverter);
 
             grid.Children.Add(notyfyButton, 0, 0);
             grid.Children.Add(AlarmButton, 1, 0);
-            StackLayoutFooter.Children.Add(grid);
+            //StackLayoutFooter.Children.Add(grid);
         }
 
         [Conditional("DEBUG")]
@@ -86,5 +85,7 @@ namespace CheckListNotes.Pages
                 service.ShowToast(toast);
             }
         }
+
+        #endregion
     }
 }

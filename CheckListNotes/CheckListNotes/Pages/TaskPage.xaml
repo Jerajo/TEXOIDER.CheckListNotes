@@ -3,7 +3,8 @@
     x:Class="CheckListNotes.Pages.TaskPage"
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters">
+    xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters"
+    BackgroundColor="{DynamicResource ContentDP00}">
 
     <!--#region Resources-->
     <ContentPage.Resources>
@@ -16,7 +17,7 @@
     <!--#endregion-->
 
     <ContentPage.Content>
-        <Grid BackgroundColor="{Binding AppBackgroundColor, Converter={x:StaticResource StringToColor}}" RowSpacing="0">
+        <Grid RowSpacing="0">
             <!--#region Rows-->
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -34,18 +35,19 @@
                 <!--#endregion-->
 
                 <Button
-                    BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                    BackgroundColor="#00FFFFFF"
                     Command="{Binding GoBack}"
                     Text="Back"
-                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    TextColor="{DynamicResource FontColor}" />
                 <Label
                     Grid.ColumnSpan="2"
                     Margin="0,10"
+                    FontAttributes="Bold"
                     HorizontalOptions="FillAndExpand"
                     HorizontalTextAlignment="Center"
                     LineBreakMode="TailTruncation"
                     Text="{Binding PageTitle}"
-                    TextColor="{Binding AppFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                    TextColor="{DynamicResource FontColor}" />
             </Grid>
             <!--#endregion-->
 
@@ -61,10 +63,10 @@
                 <!--#region Content-->
                 <ScrollView HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Default">
                     <StackLayout Padding="10,0" BindingContext="{Binding Task}">
-                        <Label Text="{DynamicResource TaskFormEditorTaskNameTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                        <Label Text="{DynamicResource TaskFormEditorTaskNameTitle}" TextColor="{DynamicResource FontColor}" />
                         <Editor
                             AutoSize="TextChanges"
-                            BackgroundColor="{Binding EditorBackgroundColor, Mode=OneWay}"
+                            BackgroundColor="{StaticResource Transparent}"
                             IsSpellCheckEnabled="True"
                             IsTabStop="True"
                             IsTextPredictionEnabled="True"
@@ -72,68 +74,47 @@
                             MaxLength="500"
                             Placeholder="Nueva tarea"
                             Text="{Binding Name}"
-                            TextColor="{Binding AppFontColor, Mode=OneWay}" />
-                        <BoxView
-                            HeightRequest="1"
-                            HorizontalOptions="FillAndExpand"
-                            Color="{Binding ViewBoxColor, Mode=OneWay}" />
+                            TextColor="{DynamicResource FontColor}" />
 
                         <Grid Padding="0,0,10,0">
                             <StackLayout HorizontalOptions="StartAndExpand">
-                                <Label Text="{DynamicResource TaskFormSwictHasExpirationTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                                <Label Text="{DynamicResource TaskFormSwictHasExpirationTitle}" TextColor="{DynamicResource FontColor}" />
                                 <Switch x:Name="SwitchHasExpiration" IsToggled="{Binding HasExpiration}" />
                             </StackLayout>
 
                             <StackLayout HorizontalOptions="EndAndExpand" IsVisible="{Binding IsToggled, Source={x:Reference SwitchHasExpiration}}">
-                                <Label Text="{DynamicResource TaskFormSwictIsDailyTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                                <Label Text="{DynamicResource TaskFormSwictIsDailyTitle}" TextColor="{DynamicResource FontColor}" />
                                 <Switch x:Name="SwitchIsDaily" IsToggled="{Binding IsDaily}" />
                             </StackLayout>
-                            <BoxView
-                                HeightRequest="1"
-                                HorizontalOptions="FillAndExpand"
-                                VerticalOptions="End"
-                                Color="{Binding ViewBoxColor, Mode=OneWay}" />
                         </Grid>
 
                         <StackLayout IsVisible="{Binding IsToggled, Source={x:Reference SwitchHasExpiration}}">
                             <StackLayout IsVisible="{Binding IsToggled, Source={x:Reference SwitchIsDaily}, Converter={StaticResource InverseBool}}">
-                                <Label Text="{DynamicResource TaskFormDatePickerTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                                <Label Text="{DynamicResource TaskFormDatePickerTitle}" TextColor="{DynamicResource FontColor}" />
                                 <DatePicker
-                                    BackgroundColor="{Binding EditorBackgroundColor, Mode=OneWay}"
+                                    BackgroundColor="{StaticResource Transparent}"
                                     Date="{Binding ExpirationDate}"
-                                    TextColor="{Binding AppFontColor, Mode=OneWay}" />
-                                <BoxView
-                                    HeightRequest="1"
-                                    HorizontalOptions="FillAndExpand"
-                                    Color="{Binding ViewBoxColor, Mode=OneWay}" />
-
+                                    TextColor="{DynamicResource FontColor}" />
                             </StackLayout>
-                            <Label Text="{DynamicResource TaskFormTimePickerTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+
+                            <Label Text="{DynamicResource TaskFormTimePickerTitle}" TextColor="{DynamicResource FontColor}" />
                             <TimePicker
-                                BackgroundColor="{Binding EditorBackgroundColor, Mode=OneWay}"
-                                TextColor="{Binding AppFontColor, Mode=OneWay}"
+                                BackgroundColor="{StaticResource Transparent}"
+                                TextColor="{DynamicResource FontColor}"
                                 Time="{Binding Expiration}" />
-                            <BoxView
-                                HeightRequest="1"
-                                HorizontalOptions="FillAndExpand"
-                                Color="{Binding ViewBoxColor, Mode=OneWay}" />
 
                             <Picker
                                 Title="{DynamicResource TaskFormPickerNotificationTitle}"
-                                BackgroundColor="{Binding EditorBackgroundColor, Mode=OneWay}"
+                                BackgroundColor="{StaticResource Transparent}"
                                 ItemsSource="{Binding NotifyOnDisplayNames, Mode=OneTime}"
                                 SelectedItem="{Binding SelectedNotificationTimeIndex}"
-                                TextColor="{Binding AppFontColor, Mode=OneWay}"
-                                TitleColor="{Binding AppFontColor, Mode=OneWay}" />
-                            <BoxView
-                                HeightRequest="1"
-                                HorizontalOptions="FillAndExpand"
-                                Color="{Binding ViewBoxColor, Mode=OneWay}" />
-
+                                TextColor="{DynamicResource FontColor}"
+                                TitleColor="{DynamicResource FontColor}" />
                         </StackLayout>
-                        <Label Text="{DynamicResource TaskFormSwictIsTaskGroupTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+
+                        <Label Text="{DynamicResource TaskFormSwictIsTaskGroupTitle}" TextColor="{DynamicResource FontColor}" />
                         <Switch IsToggled="{Binding IsTaskGroup}" />
-                        <Label Text="{DynamicResource TaskFormSwictIsCheckedTitle}" TextColor="{Binding AppFontColor, Mode=OneWay}" />
+                        <Label Text="{DynamicResource TaskFormSwictIsCheckedTitle}" TextColor="{DynamicResource FontColor}" />
                         <Switch IsToggled="{Binding IsChecked}" />
                     </StackLayout>
                 </ScrollView>
@@ -143,12 +124,12 @@
                 <StackLayout
                     Grid.Row="1"
                     Padding="10,5"
-                    BackgroundColor="{Binding HeaderAndFooterBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}">
+                    BackgroundColor="{DynamicResource ContentDP03}">
                     <Button
-                        BackgroundColor="{Binding ButtonBackgroundColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}"
+                        BackgroundColor="{StaticResource Transparent}"
                         Command="{Binding Save}"
                         Text="{DynamicResource ButtonSaveText}"
-                        TextColor="{Binding AceptButtonFontColor, Converter={x:StaticResource StringToColor}, Mode=OneWay}" />
+                        TextColor="{DynamicResource Good}" />
                 </StackLayout>
                 <!--#endregion-->
             </Grid>

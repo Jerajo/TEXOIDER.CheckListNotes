@@ -12,35 +12,9 @@ namespace CheckListNotes.PageModels
     [AddINotifyPropertyChangedInterface]
     public class BasePageModel : FreshBasePageModel, IDisposable
     {
-        public BasePageModel() : base() =>
-            Config.Current.PropertyChanged += ConfigChanged;
+        public BasePageModel() : base() { }
 
         #region SETTERS AND GETTERS
-
-        #region Theme
-
-        public string AppFontColor { get => Config.Current.AppTheme?.AppFontColor; }
-        public string AppBackgroundColor
-        { get => Config.Current.AppTheme?.AppBackgroundColor; }
-        public string HeaderAndHeaderAndFooterBackgroundColor
-        { get => Config.Current.AppTheme?.HeaderAndHeaderAndFooterBackgroundColor; }
-        public string CellBackgroundColor
-        { get => Config.Current.AppTheme?.CellBackgroundColor; }
-        public string CellBorderColor { get => Config.Current.AppTheme?.CellBorderColor; }
-        public string EditorBorderColor
-        { get => Config.Current.AppTheme?.EditorBorderColor; }
-        public string EditorBackgroundColor { get => Config.Current.AppTheme?.EditorBackgroundColor; }
-        public string ButtonBackgroundColor
-        { get => Config.Current.AppTheme?.ButtonBackgroundColor; }
-        public string DialogBackgroundColor
-        { get => Config.Current.AppTheme?.DialogBackgroundColor; }
-        public string AceptButtonFontColor
-        { get => Config.Current.AppTheme?.AceptButtonFontColor; }
-        public string CancelButtonFontColor
-        { get => Config.Current.AppTheme?.CancelButtonFontColor; }
-        public string ViewBoxColor { get => Config.Current.AppTheme?.ViewBoxColor; }
-
-        #endregion
 
         /// <summary>
         /// The page Header Title.
@@ -126,15 +100,17 @@ namespace CheckListNotes.PageModels
 
         public Task<bool> ShowAlertQuestion(string title, string message)
         {
-            var accept = AppResourcesLisener.Current["ButtonOkText"];
-            var cancel = AppResourcesLisener.Current["ButtonCancelText"];
+            var language = AppResourcesLisener.Languages;
+            var accept = language["ButtonOkText"];
+            var cancel = language["ButtonCancelText"];
             return Application.Current.MainPage.DisplayAlert(title, message, accept, cancel);
         }
 
         public Task ShowAlertError(string message)
         {
-            var title = AppResourcesLisener.Current["AlertErrorTitle"];
-            var cancel = AppResourcesLisener.Current["ButtonOkText"];
+            var language = AppResourcesLisener.Languages;
+            var title = language["AlertErrorTitle"];
+            var cancel = language["ButtonOkText"];
             return Application.Current.MainPage.DisplayAlert(title, message, cancel);
         }
 
@@ -165,24 +141,8 @@ namespace CheckListNotes.PageModels
         }
 
         #endregion
-
-        //TODO: Depricate this on dynamy resources
-        private void ConfigChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName != nameof(Config.Current.AppTheme)) return;
-            RaisePropertyChanged(nameof(AppFontColor));
-            RaisePropertyChanged(nameof(AppBackgroundColor));
-            RaisePropertyChanged(nameof(HeaderAndHeaderAndFooterBackgroundColor));
-            RaisePropertyChanged(nameof(CellBackgroundColor));
-            RaisePropertyChanged(nameof(CellBorderColor));
-            RaisePropertyChanged(nameof(EditorBorderColor));
-            RaisePropertyChanged(nameof(EditorBackgroundColor));
-            RaisePropertyChanged(nameof(ButtonBackgroundColor));
-            RaisePropertyChanged(nameof(DialogBackgroundColor));
-            RaisePropertyChanged(nameof(AceptButtonFontColor));
-            RaisePropertyChanged(nameof(CancelButtonFontColor));
-            RaisePropertyChanged(nameof(ViewBoxColor));
-        }
+        
+        #endregion
 
         #region Dispose
 
@@ -199,7 +159,6 @@ namespace CheckListNotes.PageModels
 
         public void Dispose()
         {
-            Config.Current.PropertyChanged -= ConfigChanged;
             PageTitle = null;
             HasLoaded = null;
             IsLooked = null;
@@ -213,8 +172,6 @@ namespace CheckListNotes.PageModels
                 Errors = null;
             }
         }
-
-        #endregion
 
         #endregion
     }
