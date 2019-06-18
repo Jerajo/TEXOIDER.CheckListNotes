@@ -1,23 +1,29 @@
 ﻿using System;
 using Plugin.Settings;
 using PropertyChanged;
+using System.Diagnostics;
 using System.Globalization;
 using PortableClasses.Enums;
 using Plugin.Settings.Abstractions;
-using CheckListNotes.Models.Interfaces;
 
 namespace CheckListNotes.Models
 {
     [AddINotifyPropertyChangedInterfaceAttribute]
     public class Config : BaseModel, IDisposable
     {
-        public Config() { }
+        #region Atributes
+
+        private static Config current;
+        private bool? isDisposing;
+
+        #endregion
+
+        public Config() { isDisposing = false; }
 
         #region SETTERS AND GETTERS
 
         #region Instances
 
-        private static Config current;
         public static Config Current { get => current ?? (current = new Config()); }
 
         public ISettings AppSettings
@@ -32,17 +38,11 @@ namespace CheckListNotes.Models
 
         #endregion
 
-        #region Theme
-
         public string Theme
         {
             get => AppSettings.GetValueOrDefault(nameof(Theme), "Dark");
             set => AppSettings.AddOrUpdateValue(nameof(Theme), value);
         }
-
-        public IAppTheme AppTheme { get; set; } = new AppTheme();
-
-        #endregion
 
         public string Language
         {
@@ -88,9 +88,28 @@ namespace CheckListNotes.Models
 
         #endregion
 
-        #region Methods
+        #region Disposing
 
-        public void Dispose() { }
+        ~Config()
+        {
+            if (isDisposing == false) Dispose(true);
+        }
+
+        public void Dispose(bool isDisposing)
+        {
+            this.isDisposing = isDisposing;
+            if (this.isDisposing == true) Dispose();
+        }
+
+        public void Dispose()
+        {
+            isDisposing = null;
+#if DEBUG
+            Debug.WriteLine("Object destroyect: [ Id: {0}, Name: {1} ].",
+                this.GetHashCode(), nameof(LanguageService));
+#endif
+            current = null;
+        }
 
         #endregion
     }
