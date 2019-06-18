@@ -339,10 +339,8 @@ namespace CheckListNotes.PageModels
                 Device.BeginInvokeOnMainThread(() => 
                 {
                     InitData = initData;
-
                     Languages = new List<string> { "Español", "English", "French" };
-
-                    LanguageChanged();
+                    LoadOptions();
                 });
             });
             base.Init(initData);
@@ -389,14 +387,9 @@ namespace CheckListNotes.PageModels
         {
             if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
 
-            using (var stream = await FileSystem.OpenAppPackageFileAsync($"{themeName}.json"))
+            using (var themeService = new ThemeService($"{themeName}.json"))
             {
-                using (var reader = new StreamReader(stream))
-                {
-                    var fileContents = await reader.ReadToEndAsync();
-                    Config.Current.AppTheme = JsonConvert.DeserializeObject<AppTheme>(fileContents);
-                    AppResourcesLisener.Current.RisePropertyChanged(AppResourcesLisener.Theme);
-                }
+                await themeService.LoadTheme();
             }
         }
 
@@ -405,33 +398,38 @@ namespace CheckListNotes.PageModels
             using (var languageService = new LanguageService())
             {
                 await languageService.LoadLanguage();
-                var resourses = AppResourcesLisener.Current;
-                Themes = new List<string>
-                {
-                    resourses["OptionsThemeDarkText"],
-                    resourses["OptionsThemeLightText"]
-                };
-                NotificationTypes = new List<string>
-                {
-                    resourses["OptionsAlarText"],
-                    resourses["OptionsNotificationText"]
-                };
-                NotificationSounds = new List<string>
-                {
-                    resourses["OptionsDisableSoundText"],
-                    resourses["OptionsRingSoundText"],
-                    resourses["OptionsThoneSoundText"],
-                    resourses["OptionsBibSoundText"],
-                    resourses["OptionsSelectSoundText"]
-                };
-                TouchSounds = new List<string>
-                {
-                    resourses["OptionsDisableSoundText"],
-                    resourses["OptionsClicSoundText"],
-                    resourses["OptionsTouchSoundText"],
-                    resourses["OptionsSelectSoundText"]
-                };
+                LoadOptions();
             }
+        }
+
+        void LoadOptions()
+        {
+            var resourses = AppResourcesLisener.Languages;
+            Themes = new List<string>
+            {
+                resourses["OptionsThemeDarkText"],
+                resourses["OptionsThemeLightText"]
+            };
+            NotificationTypes = new List<string>
+            {
+                resourses["OptionsAlarText"],
+                resourses["OptionsNotificationText"]
+            };
+            NotificationSounds = new List<string>
+            {
+                resourses["OptionsDisableSoundText"],
+                resourses["OptionsRingSoundText"],
+                resourses["OptionsThoneSoundText"],
+                resourses["OptionsBibSoundText"],
+                resourses["OptionsSelectSoundText"]
+            };
+            TouchSounds = new List<string>
+            {
+                resourses["OptionsDisableSoundText"],
+                resourses["OptionsClicSoundText"],
+                resourses["OptionsTouchSoundText"],
+                resourses["OptionsSelectSoundText"]
+            };
         }
 
         #endregion

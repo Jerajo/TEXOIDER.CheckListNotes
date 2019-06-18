@@ -128,11 +128,33 @@
             <!--#endregion-->
 
             <!--#region Theme-->
-            <Color x:Key="FontColor">White</Color>
-            <Color x:Key="BadActionColor">Red</Color>
-            <Color x:Key="GoogActionColor">Green</Color>
-            <Color x:Key="CompletedProgresbarColor">Green</Color>
-            <Color x:Key="BackgroundProgresbarColor">Gray</Color>
+            <Color x:Key="FontColor" />
+            <Color x:Key="FontColorInverse" />
+            <Color x:Key="ContentDP00" />
+            <Color x:Key="ContentDP01" />
+            <Color x:Key="ContentDP02" />
+            <Color x:Key="ContentDP03" />
+            <Color x:Key="ContentDP04" />
+            <Color x:Key="ContentDP06" />
+            <Color x:Key="ContentDP08" />
+            <Color x:Key="ContentDP12" />
+            <Color x:Key="ContentDP16" />
+            <Color x:Key="ContentDP24" />
+            <Color x:Key="ContentPrimary" />
+            <Color x:Key="ContentSecundary" />
+            <Color x:Key="Error" />
+            <Color x:Key="Good" />
+            <Color x:Key="Progress" />
+            <Color x:Key="Remaining" />
+            <Color x:Key="Blocker" />
+            <!--#region Constanst-->
+            <Color x:Key="ShadowColor" />
+            <Color x:Key="Transparent">#00FFFFFF</Color>
+            <!--#endregion-->
+            <!--#endregion-->
+
+            <!--#region SVG Images-->
+            <x:String x:Key="Add-New.svg">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path fill=&quot;#000&quot; d=&quot;M111.298 59.002h33.4v52.302H197v33.4h-52.302v52.294h-33.4v-52.294H59v-33.4h52.298z&quot; /&gt;&lt;/svg&gt;</x:String>
             <!--#endregion-->
         </ResourceDictionary>
     </Application.Resources>

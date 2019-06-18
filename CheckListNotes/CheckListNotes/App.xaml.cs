@@ -1,13 +1,10 @@
 ﻿using System;
 using FreshMvvm;
-using System.IO;
 using Xamarin.Forms;
-using Newtonsoft.Json;
 using Xamarin.Forms.Xaml;
 using Xamarin.Essentials;
 using System.Diagnostics;
 using CheckListNotes.Models;
-using System.ComponentModel;
 using System.Threading.Tasks;
 using PortableClasses.Services;
 using CheckListNotes.PageModels;
@@ -287,14 +284,9 @@ namespace CheckListNotes
         {
             try
             {
-                using (var stream = FileSystem.OpenAppPackageFileAsync($"{Config.Current.Theme}.json").Result)
+                using (var themeService = new ThemeService($"{Config.Current.Theme}.json"))
                 {
-                    using (var reader = new StreamReader(stream))
-                    {
-                        var fileContents = reader.ReadToEnd();
-                        Config.Current.AppTheme = 
-                            JsonConvert.DeserializeObject<AppTheme>(fileContents);
-                    }
+                    themeService.LoadTheme().Wait();
                 }
                 using (var languageService = new LanguageService())
                 {

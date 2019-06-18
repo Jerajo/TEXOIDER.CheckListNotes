@@ -13,10 +13,14 @@
 
   <ItemGroup>
     <None Remove="FodyWeavers.xml" />
+    <None Remove="Resourses\Add-New.svg" />
+    <None Remove="Resourses\Garbage-Closed.svg" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="FodyWeavers.xml" />
+    <EmbeddedResource Include="Resourses\Add-New.svg" />
+    <EmbeddedResource Include="Resourses\Garbage-Closed.svg" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,7 +42,7 @@
     <PackageReference Include="Xam.Plugins.Notifier" Version="3.0.1" />
     <PackageReference Include="Xam.Plugins.Settings" Version="3.1.1" />
     <PackageReference Include="Xamarin.Essentials" Version="1.1.0" />
-    <PackageReference Include="Xamarin.Forms" Version="4.0.0.482894" />
+    <PackageReference Include="Xamarin.Forms" Version="4.0.0.497661" />
   </ItemGroup>
 
   <ItemGroup>
@@ -71,6 +75,9 @@
     </Compile>
     <Compile Update="Pages\UserControls\TaskCell.xaml.cs">
       <DependentUpon>TaskCell.xaml</DependentUpon>
+    </Compile>
+    <Compile Update="Pages\UserControls\ButtonSvgImage.xaml.cs">
+      <DependentUpon>ButtonSvgImage.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
 
