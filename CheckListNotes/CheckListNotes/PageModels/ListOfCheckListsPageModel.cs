@@ -136,8 +136,9 @@ namespace CheckListNotes.PageModels
             IsLooked = true;
             if (model.SelectedReason == SelectedFor.Delete)
             {
-                var title = string.Format(AppResourcesLisener.Current["AlertDeleteTitle"], model.Name);
-                var message = AppResourcesLisener.Current["ListOfListDeleteListMessage"];
+                var language = AppResourcesLisener.Languages;
+                var title = string.Format(language["AlertDeleteTitle"], model.Name);
+                var message = language["ListOfListDeleteListMessage"];
                 var resoult = await ShowAlertQuestion(title, message);
                 if (resoult)
                 {
@@ -250,14 +251,12 @@ namespace CheckListNotes.PageModels
 
                     Errors = new List<string>();
 
-                    var resources = AppResourcesLisener.Current;
-                    var exampleListName = resources["ExampleListName"];
+                    var exampleListName = AppResourcesLisener.Languages["ExampleListName"];
                     if (ListOfCheckLists.Any(m => m.Name == exampleListName))
                     {
                         AppResourcesLisener.Current.PropertyChanged += OnLanguageChanged;
                         ExampleListName = exampleListName;
                     }
-
 
                     //TODO: Implement business logic for licence: [free, premium].
                     //var deviceHelper = DependencyService.Get<IDeviceHelper>();

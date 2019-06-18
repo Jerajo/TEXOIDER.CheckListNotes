@@ -117,7 +117,7 @@ namespace CheckListNotes.PageModels
             { 
                 Device.BeginInvokeOnMainThread(async () =>
                 {
-                    var resources = AppResourcesLisener.Current;
+                    var language = AppResourcesLisener.Languages;
 
                     if (!(initData is CheckTaskModel task))
                         task = await GlobalDataService.GetCurrentTask();
@@ -128,8 +128,8 @@ namespace CheckListNotes.PageModels
                     IsEditing = (!string.IsNullOrEmpty(task.Name)) ? true : false;
 
                     PageTitle = (IsEditing == true) ? 
-                        resources["TaskFormPageTitleOnEdition"] :
-                        resources["TaskFormPageTitle"];
+                        language["TaskFormPageTitleOnEdition"] :
+                        language["TaskFormPageTitle"];
             
                     Task = new CheckTaskViewModel
                     {
@@ -239,9 +239,9 @@ namespace CheckListNotes.PageModels
                 }
                 if (Task.IsTaskGroup == false && Task.TotalTasks > 0)
                 {
-                    var resourses = AppResourcesLisener.Current;
-                    var title = string.Format(resourses["AlertLoseDataTitle"], Task.Name);
-                    var message = resourses["TaskFormSwictIsTaskGroupActionMessage"];
+                    var language = AppResourcesLisener.Languages;
+                    var title = string.Format(language["AlertLoseDataTitle"], Task.Name);
+                    var message = language["TaskFormSwictIsTaskGroupActionMessage"];
                     var resoult = await ShowAlertQuestion(title, message);
                     if (!resoult) Task.IsTaskGroup = true;
                     else 

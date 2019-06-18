@@ -62,33 +62,33 @@ namespace CheckListNotes.Models
         {
             get
             {
+                var language = AppResourcesLisener.Languages;
                 string text = "";
                 if (HasExpiration == true)
                 {
-                    var resourses = AppResourcesLisener.Current;
                     var dateText = ExpirationDate?.ToString("dd/MM/yyyy");
                     var timeText = ExpirationDate?.ToString("hh:mm tt");
                     if (IsCompleted)
                     {
-                        if (IsDaily == true) text = string.Format(resourses
+                        if (IsDaily == true) text = string.Format(language
                             ["TaskListTaskCellCompletedNormalExpirationText"], timeText);
-                        else text = string.Format(resourses["TaskListTaskCellCompletedDailyExpirationText"], dateText, timeText);
+                        else text = string.Format(language["TaskListTaskCellCompletedDailyExpirationText"], dateText, timeText);
                     }
                     else
                     {
                         if (IsDaily == true)
                         {
                             if (ExpirationDate?.TimeOfDay > DateTime.Now.TimeOfDay)
-                                text = string.Format(resourses["TaskListTaskCellDailyExpirationText"], timeText);
+                                text = string.Format(language["TaskListTaskCellDailyExpirationText"], timeText);
                             if (ExpirationDate?.TimeOfDay < DateTime.Now.TimeOfDay)
-                                text = string.Format(resourses["TaskListTaskCellDailyLateExpirationText"], timeText);
+                                text = string.Format(language["TaskListTaskCellDailyLateExpirationText"], timeText);
                         }
                         else
                         {
                             if (ExpirationDate?.TimeOfDay > DateTime.Now.TimeOfDay)
-                                text = string.Format(resourses["TaskListTaskCellNormalExpirationText"], dateText, timeText);
+                                text = string.Format(language["TaskListTaskCellNormalExpirationText"], dateText, timeText);
                             if (ExpirationDate?.TimeOfDay < DateTime.Now.TimeOfDay)
-                                text = string.Format(resourses["TaskListTaskCellNormalLateExpirationText"], dateText, timeText);
+                                text = string.Format(language["TaskListTaskCellNormalLateExpirationText"], dateText, timeText);
                         }
                     }
                 }
@@ -101,14 +101,14 @@ namespace CheckListNotes.Models
             get
             {
                 string text = "";
+                var language = AppResourcesLisener.Languages;
                 if (IsCompleted)
                 {
-                    var resourses = AppResourcesLisener.Current;
                     var dateText = ExpirationDate?.ToString("dd/MM/yyyy");
                     var timeText = ExpirationDate?.ToString("hh:mm tt");
                     if (IsDaily == true)
-                        text = string.Format(resourses["TaskListTaskCellDailyCompletionText"], timeText);
-                    else text = string.Format(resourses["TaskListTaskCellNormalCompletionText"],
+                        text = string.Format(language["TaskListTaskCellDailyCompletionText"], timeText);
+                    else text = string.Format(language["TaskListTaskCellNormalCompletionText"],
                         dateText, timeText);
                 }
                 return text;
@@ -127,16 +127,16 @@ namespace CheckListNotes.Models
         {
             get
             {
-                var resources = AppResourcesLisener.Current;
+                var language = AppResourcesLisener.Languages;
                 return new List<string>
                 {
-                    resources["TaskDetailsNotification1HourBefore"],
-                    resources["TaskDetailsNotification30MinutesBefore"],
-                    resources["TaskDetailsNotification15MinutesBefore"],
-                    resources["TaskDetailsNotificationNone"],
-                    resources["TaskDetailsNotification15MinutesAfter"],
-                    resources["TaskDetailsNotification30MinutesAfter"],
-                    resources["TaskDetailsNotification1HourAfter"]
+                    language["TaskDetailsNotification1HourBefore"],
+                    language["TaskDetailsNotification30MinutesBefore"],
+                    language["TaskDetailsNotification15MinutesBefore"],
+                    language["TaskDetailsNotificationNone"],
+                    language["TaskDetailsNotification15MinutesAfter"],
+                    language["TaskDetailsNotification30MinutesAfter"],
+                    language["TaskDetailsNotification1HourAfter"]
                 };
             }
         }
@@ -174,7 +174,7 @@ namespace CheckListNotes.Models
 
         public string Detail
         {
-            get => string.Format(AppResourcesLisener.Current["TaskListTaskCellDeails"],
+            get => string.Format(AppResourcesLisener.Languages["TaskListTaskCellDeails"],
                     CompletedTasks, TotalTasks);
         }
 
@@ -182,16 +182,16 @@ namespace CheckListNotes.Models
         {
             get
             {
+                var language = AppResourcesLisener.Languages;
                 Errors = new List<string>();
-                var resourses = AppResourcesLisener.Current;
                 if (IsDaily == true && HasExpiration == false)
-                    throw new Exception(resourses["TaskFormErrorMessageNullExpiration"]);
+                    throw new Exception(language["TaskFormErrorMessageNullExpiration"]);
                 if (IsChecked && CompletedDate == null)
-                    throw new Exception(resourses["TaskFormErrorMessageNullCompletion"]);
+                    throw new Exception(language["TaskFormErrorMessageNullCompletion"]);
                 if (string.IsNullOrEmpty(Name) || string.IsNullOrWhiteSpace(Name))
-                    Errors.Add(resourses["TaskFormErrorMessageNullName"]);
+                    Errors.Add(language["TaskFormErrorMessageNullName"]);
                 if (!string.IsNullOrEmpty(Name) && Name.Length > 500)
-                    Errors.Add(resourses["TaskFormErrorMessageNameTooLong"]);
+                    Errors.Add(language["TaskFormErrorMessageNameTooLong"]);
                 return (Errors.Count <= 0);
             }
         }
@@ -233,15 +233,11 @@ namespace CheckListNotes.Models
             }
         }
 
-        public Color AppFontColor 
-        {
-            get => Color.FromHex(Config.Current.AppTheme?.AppFontColor);
-        }
-
         public Color CellBackgroundColor
         {
             get
             {
+                var cellColor = AppResourcesLisener.Themes["ContentDP02"];
                 if (HasExpiration == true)
                 {
                     if (IsCompleted)
@@ -250,47 +246,17 @@ namespace CheckListNotes.Models
                             return Color.FromHex(Config.Current.CompletedTaskColor);
                         else if (CompletedDate <= ExpirationDate)
                             return Color.FromHex(Config.Current.CompletedTaskColor);
-                        else return Color.FromHex(Config.Current.AppTheme?.CellBackgroundColor);
+                        else return cellColor;
                     }
                     else
                     {
                         if (IsLate) return Color.FromHex(Config.Current.LateTaskColor);
                         else if (IsUrgent) return Color.FromHex(Config.Current.UrgentTaskColor);
-                        else return Color.FromHex(Config.Current.AppTheme?.CellBackgroundColor);
+                        else return cellColor;
                     }
                 }
-                else return Color.FromHex(Config.Current.AppTheme?.CellBackgroundColor);
+                else return cellColor;
             }
-        }
-
-        public Color CellBorderColor
-        {
-            get => Color.FromHex(Config.Current.AppTheme?.CellBorderColor);
-        }
-
-        public Color EditorBackgroundColor
-        {
-            get => Color.FromHex(Config.Current.AppTheme?.EditorBackgroundColor);
-        }
-
-        public Color EditorBorderColor
-        {
-            get => Color.FromHex(Config.Current.AppTheme?.EditorBorderColor);
-        }
-
-        public Color ViewBoxColor
-        {
-            get => Color.FromHex(Config.Current.AppTheme?.ViewBoxColor);
-        }
-
-        public Color CompletedPercentageColor //TODO:
-        {
-            get => Color.FromHex("#0F0");
-        }
-
-        public Color PendientPercentageColor //TODO:
-        {
-            get => Color.FromHex("#888");
         }
 
         #endregion
@@ -378,8 +344,6 @@ namespace CheckListNotes.Models
 
         #endregion
 
-        public CheckListViewModel() => Config.Current.PropertyChanged += ConfigChanged;
-
         #region Base Atributes
 
         public int? LastId { get; set; }
@@ -399,7 +363,7 @@ namespace CheckListNotes.Models
 
         public string Detail
         {
-            get => string.Format(AppResourcesLisener.Current["ListOfListTaskCellDeails"],
+            get => string.Format(AppResourcesLisener.Languages["ListOfListTaskCellDeails"],
                     CompletedTasks, TotalTasks);
         }
 
@@ -408,31 +372,6 @@ namespace CheckListNotes.Models
         #endregion
 
         #region Visuals
-
-        public Color AppFontColor
-        {
-            get => Color.FromHex(Config.Current.AppTheme?.AppFontColor ?? "#FF000000");
-        }
-
-        public Color CellBackgroundColor
-        {
-            get => Color.FromHex(Config.Current.AppTheme?.CellBackgroundColor ?? "#FF000000");
-        }
-
-        public Color CellBorderColor
-        {
-            get => Color.FromHex(Config.Current.AppTheme?.CellBorderColor ?? "#FF000000");
-        }
-
-        public Color CompletedPercentageColor //TODO:
-        {
-            get => Color.FromHex("#0F0");
-        }
-
-        public Color PendientPercentageColor //TODO:
-        {
-            get => Color.FromHex("#888");
-        }
 
         public double PendientPercentage
         {
@@ -459,20 +398,6 @@ namespace CheckListNotes.Models
 
         #endregion
 
-        #region Methods
-
-        private void ConfigChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName != nameof(Config.Current.AppTheme)) return;
-            OnPropertyChanged(nameof(AppFontColor));
-            OnPropertyChanged(nameof(CellBackgroundColor));
-            OnPropertyChanged(nameof(CellBorderColor));
-            OnPropertyChanged(nameof(CompletedPercentageColor));
-            OnPropertyChanged(nameof(PendientPercentageColor));
-        }
-
-        #endregion
-
         #region Dispose
 
         ~CheckListViewModel()
@@ -491,7 +416,6 @@ namespace CheckListNotes.Models
 
         public void Dispose()
         {
-            Config.Current.PropertyChanged -= ConfigChanged;
             CompletedTasks = null;
             selectedReason = null;
             isAnimating = null;

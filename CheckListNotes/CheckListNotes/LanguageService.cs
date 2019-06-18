@@ -27,7 +27,7 @@ namespace CheckListNotes
             stream = FileSystem.OpenAppPackageFileAsync(resourcePath).Result;
         }
 
-        #region Methods
+        #region Main Method
 
         public Task LoadLanguage()
         {
@@ -65,12 +65,13 @@ namespace CheckListNotes
 
         public void Dispose()
         {
-#if DEBUG
-            Debug.WriteLine($"Object destroyect: Name: {nameof(LanguageService)}, Id: {this.GetHashCode()}].");
-#endif
             isDisposing = null;
             resourcePath = null;
             stream = null;
+#if DEBUG
+            Debug.WriteLine("Object destroyect: [ Id: {0}, Name: {1} ].",
+                this.GetHashCode(), nameof(LanguageService));
+#endif
         }
         
         #endregion

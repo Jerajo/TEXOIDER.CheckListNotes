@@ -32,22 +32,20 @@ namespace CheckListNotes.PageModels
             set
             {
                 tabIndex = value;
-                Device.BeginInvokeOnMainThread(() => 
+                Task.Run(() => 
                 {
-                    Task.Run(() => 
+                    Device.BeginInvokeOnMainThread(() => 
                     {
                         if (tabIndex > 0)
                         {
                             Tasks.Clear();
-                            var taskList = GetAllTasks();
-                            foreach(var task in GetTasks(taskList, true))
+                            foreach (var task in GetTasks(GetAllTasks(), true))
                                 CheckedTasks.Add(task);
                         }
                         else
                         {
                             CheckedTasks.Clear();
-                            var taskList = GetAllTasks();
-                            foreach (var task in GetTasks(taskList, false))
+                            foreach (var task in GetTasks(GetAllTasks(), false))
                                 Tasks.Add(task);
                         }
                     });
@@ -133,8 +131,9 @@ namespace CheckListNotes.PageModels
             IsLooked = true;
             if (model.SelectedReason == SelectedFor.Delete)
             {
-                var title = string.Format(AppResourcesLisener.Current["AlertDeleteTitle"], model.Name);
-                var message = AppResourcesLisener.Current["TaskListDeleteTaskMessage"];
+                var language = AppResourcesLisener.Languages;
+                var title = string.Format(language["AlertDeleteTitle"], model.Name);
+                var message = language["TaskListDeleteTaskMessage"];
                 var resoult = await ShowAlertQuestion(title, message);
                 if (resoult)
                 {
@@ -232,7 +231,6 @@ namespace CheckListNotes.PageModels
             return Task.Run(() =>
             {
                 Device.BeginInvokeOnMainThread(async () => {
-                    TabIndex = (int)data;
                     List<CheckTaskModel> taskList;
                     if (!string.IsNullOrEmpty(GlobalDataService.CurrentIndex))
                     {
@@ -265,11 +263,12 @@ namespace CheckListNotes.PageModels
                     CheckedTasks = new FulyObservableCollection<CheckTaskViewModel>();
                     CheckedTasks.ItemPropertyChanged += ItemPropertyChanged;
 
-                    if (TabIndex > 0 && taskList.Count > 0)
-                        CheckedTasks.AddRange(GetTasks(taskList, true));
-                    else if (taskList.Count > 0) Tasks.AddRange(GetTasks(taskList, false));
-
                     Randomizer = new Random();
+
+                    TabIndex = (int)data;
+
+                    if (TabIndex <= 0 && Tasks.Count <= 0) 
+                        foreach (var task in GetTasks(GetAllTasks(), false)) Tasks.Add(task);
 
                     RefreshTaskColor();
                 });

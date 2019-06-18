@@ -29,30 +29,30 @@ namespace CheckListNotes
         public void Create()
         {
             var IdCount = 0;
-            var resources = AppResourcesLisener.Current;
+            var language = AppResourcesLisener.Languages;
             var model = new CheckListTasksModel
             {
-                Name = resources["ExampleListName"],
+                Name = language["ExampleListName"],
                 CheckListTasks = new List<CheckTaskModel>
                 {
                     new CheckTaskModel
                     {
                         Id = $"{IdCount++}", IsTaskGroup = false,
-                        Name = resources["ExampleListPendientTask"],
+                        Name = language["ExampleListPendientTask"],
                         ExpirationDate = null, NotifyOn = ToastTypesTime.None,
                         CompletedDate = null, IsChecked = false, IsDaily = false
                     },
                     new CheckTaskModel
                     {
                         Id = $"{IdCount++}", IsTaskGroup = false,
-                        Name = resources["ExampleListCompletedTask"],
+                        Name = language["ExampleListCompletedTask"],
                         ExpirationDate = null, NotifyOn = ToastTypesTime.None,
                         CompletedDate = DateTime.Now, IsChecked = true, IsDaily = false
                     },
                     new CheckTaskModel
                     {
                         Id = $"{IdCount++}", IsTaskGroup = false,
-                        Name = resources["ExampleListLateTask"],
+                        Name = language["ExampleListLateTask"],
                         ExpirationDate = DateTime.Now.AddHours(-1),
                         NotifyOn = ToastTypesTime.None,
                         CompletedDate = null, IsChecked = false, IsDaily = false
@@ -60,7 +60,7 @@ namespace CheckListNotes
                     new CheckTaskModel
                     {
                         Id = $"{IdCount++}", IsTaskGroup = false,
-                        Name = resources["ExampleListCompletedLateTask"],
+                        Name = language["ExampleListCompletedLateTask"],
                         ExpirationDate = DateTime.Now.AddHours(-1),
                         NotifyOn = ToastTypesTime.None,
                         CompletedDate = DateTime.Now, IsChecked = true, IsDaily = false
@@ -68,7 +68,7 @@ namespace CheckListNotes
                     new CheckTaskModel
                     {
                         Id = $"{IdCount++}", IsTaskGroup = false,
-                        Name = resources["ExampleListUrgentTask"],
+                        Name = language["ExampleListUrgentTask"],
                         ExpirationDate = DateTime.Now.AddHours(1),
                         NotifyOn = ToastTypesTime.None,
                         CompletedDate = null, IsChecked = false, IsDaily = false
@@ -76,7 +76,7 @@ namespace CheckListNotes
                     new CheckTaskModel
                     {
                         Id = $"{IdCount++}", IsTaskGroup = false,
-                        Name = resources["ExampleListCompletedTaskOnTime"],
+                        Name = language["ExampleListCompletedTaskOnTime"],
                         ExpirationDate = DateTime.Now.AddHours(2),
                         NotifyOn = ToastTypesTime.None,
                         CompletedDate = DateTime.Now, IsChecked = true, IsDaily = false
@@ -84,7 +84,7 @@ namespace CheckListNotes
                     new CheckTaskModel
                     {
                         Id = $"{IdCount++}", IsTaskGroup = false,
-                        Name = resources["ExampleListDailyTask"],
+                        Name = language["ExampleListDailyTask"],
                         ExpirationDate = DateTime.Now.AddHours(2),
                         NotifyOn = ToastTypesTime.None,
                         CompletedDate = DateTime.Now, IsChecked = false, IsDaily = true
@@ -92,7 +92,7 @@ namespace CheckListNotes
                     new CheckTaskModel
                     {
                         Id = $"{IdCount++}", IsTaskGroup = false,
-                        Name = resources["ExampleListCompletedDailyTask"],
+                        Name = language["ExampleListCompletedDailyTask"],
                         ExpirationDate = DateTime.Now.AddHours(-1),
                         NotifyOn = ToastTypesTime.None,
                         CompletedDate = DateTime.Now, IsChecked = true, IsDaily = true
@@ -100,7 +100,7 @@ namespace CheckListNotes
                     new CheckTaskModel
                     {
                         Id = $"{IdCount}", IsTaskGroup = true,
-                        Name =resources["ExampleListTaskGroup"],
+                        Name =language["ExampleListTaskGroup"],
                         ExpirationDate = null, CompletedDate = null,
                         NotifyOn = ToastTypesTime.None,
                         IsChecked = false, IsDaily = false,
@@ -110,26 +110,26 @@ namespace CheckListNotes
                             {
                                 Id = $"{IdCount}.{IdCount+1}", IsTaskGroup = false,
                                 Name = string.Format(
-                                    resources["ExampleListSubTaskAlarmExampleMessage"], 
+                                    language["ExampleListSubTaskAlarmExampleMessage"], 
                                     DateTime.Now.AddMinutes(1).ToString("hh:mm tt")),
                                 ExpirationDate = DateTime.Now.AddHours(1).AddMinutes(1),
                                 CompletedDate = null, IsChecked = false, IsDaily = true,
                                 NotifyOn = ToastTypesTime.AHourBefore,
                                 ToastId = RegisterToast(new ToastModel
                                 {
-                                    Title = resources["ExampleListAlarmExampleTitle"],
+                                    Title = language["ExampleListAlarmExampleTitle"],
                                     Body = string.Format(
-                                        resources["ExampleListSubTaskAlarmExampleMessage"],
+                                        language["ExampleListSubTaskAlarmExampleMessage"],
                                         DateTime.Now.AddMinutes(1).ToString("hh:mm tt")),
                                     Time = DateTime.Now.AddMinutes(1),
                                     Type = ToastTypes.Alarm,
                                 }, 
-                                resources["ExampleListName"], $"{IdCount}.{IdCount+1}")
+                                language["ExampleListName"], $"{IdCount}.{IdCount+1}")
                             },
                             new CheckTaskModel
                             {
                                 Id = $"{IdCount}.{IdCount+2}", IsTaskGroup = false,
-                                Name = resources["ExampleListSubTaskCompleted"],
+                                Name = language["ExampleListSubTaskCompleted"],
                                 NotifyOn = ToastTypesTime.None,
                                 ExpirationDate = DateTime.Now.AddHours(1),
                                 CompletedDate = DateTime.Now, IsChecked = true, IsDaily = false
@@ -139,18 +139,18 @@ namespace CheckListNotes
                     new CheckTaskModel
                     {
                         Id = $"{++IdCount}", IsTaskGroup = false,
-                        Name = resources["ExampleListTaskToastExampleMessage"],
+                        Name = language["ExampleListTaskToastExampleMessage"],
                         ExpirationDate = DateTime.Now.AddHours(2),
                         CompletedDate = DateTime.Now, IsChecked = false, IsDaily = true,
                         NotifyOn = ToastTypesTime.AHourBefore,
                         ToastId = RegisterToast(new ToastModel
                         {
-                            Title = resources["ExampleListToastExampleTitle"],
-                            Body = resources["ExampleListTaskToastExampleMessage"],
+                            Title = language["ExampleListToastExampleTitle"],
+                            Body = language["ExampleListTaskToastExampleMessage"],
                             Time = DateTime.Now.AddSeconds(10),
                             Type = ToastTypes.Notification,
                         },
-                        resources["ExampleListName"], $"{IdCount}")
+                        language["ExampleListName"], $"{IdCount}")
                     },
                 },
                 LastId = IdCount

@@ -60,8 +60,9 @@ namespace CheckListNotes.PageModels
         }
         private async void RemoveCommand()
         {
-            var title = string.Format(AppResourcesLisener.Current["AlertDeleteTitle"], Task.Name);
-            var message = AppResourcesLisener.Current["TaskListDeleteTaskMessage"];
+            var language = AppResourcesLisener.Languages;
+            var title = string.Format(language["AlertDeleteTitle"], Task.Name);
+            var message = language["TaskListDeleteTaskMessage"];
             var resoult = await ShowAlertQuestion(title, message);
             string error = "";
             if (resoult)
