@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
+using Xamarin.Forms;
 using System.Diagnostics;
 using Xamarin.Essentials;
 using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using Xamarin.Forms;
 
 namespace CheckListNotes
 {

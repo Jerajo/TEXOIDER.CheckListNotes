@@ -27,10 +27,6 @@ namespace CheckListNotes
 
             GlobalDataService.Init();
             //(new TutorialListExample()).Create(); // For debug use.
-
-            var page = FreshPageModelResolver.ResolvePageModel<ListOfCheckListsPageModel>();
-            NavigationContainer = new FreshNavigationContainer(page);
-            MainPage = NavigationContainer;
         }
 
         #region Getters And Setters
@@ -67,6 +63,10 @@ namespace CheckListNotes
         /// </summary>
         protected override void OnStart()
         {
+            var page = FreshPageModelResolver.ResolvePageModel<ListOfCheckListsPageModel>();
+            NavigationContainer = new FreshNavigationContainer(page);
+            MainPage = NavigationContainer;
+
             ConfigPlatform();
             //LoadState(); //Activate on mememto
         }
