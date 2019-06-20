@@ -154,7 +154,10 @@
             <!--#endregion-->
 
             <!--#region SVG Images-->
-            <x:String x:Key="Add-New.svg">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path fill=&quot;#000&quot; d=&quot;M111.298 59.002h33.4v52.302H197v33.4h-52.302v52.294h-33.4v-52.294H59v-33.4h52.298z&quot; /&gt;&lt;/svg&gt;</x:String>
+            <x:String x:Key="Back-Button">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path d=&quot;M197 101.263v53.475h-77.194V197l-30.619-34.5L59 128l30.619-34.5L120.237 59v42.263z&quot;/&gt;&lt;/svg&gt;</x:String>
+            <x:String x:Key="Settings">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path d=&quot;M114.187 58.935h27.626V86.56h-27.626zM114.187 114.187h27.626v27.626h-27.626zM114.187 169.439h27.626v27.626h-27.626z&quot;/&gt;&lt;path fill-opacity=&quot;.511&quot; d=&quot;M-159.542 84.952h3.835v1.534h-3.835z&quot;/&gt;&lt;/svg&gt;</x:String>
+            <x:String x:Key="Search">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path d=&quot;M114.343 78.855c-16.35 0-30.546 11.182-32.267 26.241-1.72 15.917 11.187 30.545 29.252 31.835 18.07 1.72 33.987-9.897 35.708-26.242 1.72-15.917-11.182-30.545-29.252-31.834zm-.432-19.79c1.721 0 3.873 0 5.594.431 30.114 2.579 52.052 26.673 49.042 53.772-1.29 9.466-5.162 18.07-11.187 25.383l36.57 39.149c4.73 4.73 3.868 12.476-1.72 16.344-5.594 4.304-13.77 3.442-18.501-1.29l-36.997-40.006c-8.604 3.441-18.07 5.162-28.394 4.3-30.114-2.58-52.052-26.669-49.042-53.773 3.01-25.383 27.104-44.31 54.635-44.31z&quot;/&gt;&lt;/svg&gt;</x:String>
+            <x:String x:Key="Add-New">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path d=&quot;M111.298 59.002h33.4v52.302H197v33.4h-52.302v52.294h-33.4v-52.294H59v-33.4h52.298z&quot;/&gt;&lt;/svg&gt;</x:String>
             <!--#endregion-->
         </ResourceDictionary>
     </Application.Resources>
