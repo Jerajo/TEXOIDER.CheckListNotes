@@ -4,6 +4,8 @@ using System.Diagnostics;
 using SkiaSharp.Views.Forms;
 using CheckListNotes.Models;
 using Xamarin.Forms.Internals;
+using System.Threading.Tasks;
+using CheckListNotes.Pages.Extensions;
 using CheckListNotes.PageModels.Converters;
 
 namespace CheckListNotes.Pages.UserControls
@@ -12,17 +14,33 @@ namespace CheckListNotes.Pages.UserControls
     {
         #region Atributes
 
+#if DEBUG
+        int draws = 0, invalidations = 0, repositions = 0;
+#endif
+        bool? hasChanges;
+        bool? isDrawing;
         bool? isDisposing;
         SKCanvasView canvas;
+        SKPaint previousPaint;
+        Rectangle? previousBounds;
+        Thickness? previousPaddin;
+        Thickness? previousMargin;
+        SKRoundRect previousRoundRect;
         StringToColorConverter stringToColor;
         StringToThicknessConverter stringToThickness;
         StringToCornerRadiusConverter stringToCornerRadius;
+        Color? previousSurfaceColor;
+        Color? previousShadowColor;
 
         #endregion
 
         public MaterialGrid() : base()
         {
+            hasChanges = false;
+            isDrawing = false;
             isDisposing = false;
+            previousSurfaceColor = Color.Transparent;
+            previousShadowColor = Color.Transparent;
             stringToColor = new StringToColorConverter();
             stringToThickness = new StringToThicknessConverter();
             stringToCornerRadius = new StringToCornerRadiusConverter();
@@ -39,8 +57,8 @@ namespace CheckListNotes.Pages.UserControls
             set => SetValue(SurfaceColorProperty, value);
         }
 
-        private static readonly BindableProperty SurfaceColorProperty =
-            BindableProperty.Create(nameof(SurfaceColor), typeof(object), typeof(MaterialPanel),
+        public static readonly BindableProperty SurfaceColorProperty =
+            BindableProperty.Create(nameof(SurfaceColor), typeof(object), typeof(MaterialGrid),
             Color.Transparent, BindingMode.OneWay, propertyChanged: OnPropertyChanged);
 
         public object ShadowColor
@@ -49,8 +67,8 @@ namespace CheckListNotes.Pages.UserControls
             set => SetValue(ShadowColorProperty, value);
         }
 
-        private static readonly BindableProperty ShadowColorProperty =
-            BindableProperty.Create(nameof(ShadowColor), typeof(object), typeof(MaterialPanel),
+        public static readonly BindableProperty ShadowColorProperty =
+            BindableProperty.Create(nameof(ShadowColor), typeof(object), typeof(MaterialGrid),
             Color.FromHex("#B3000000"), BindingMode.OneWay, propertyChanged: OnPropertyChanged);
 
         public object ShadowSize
@@ -59,9 +77,9 @@ namespace CheckListNotes.Pages.UserControls
             set => SetValue(ShadowSizeProperty, value);
         }
 
-        private static readonly BindableProperty ShadowSizeProperty =
+        public static readonly BindableProperty ShadowSizeProperty =
             BindableProperty.Create(nameof(ShadowSize), typeof(object),
-            typeof(MaterialPanel), new Thickness(5d), BindingMode.OneWay,
+            typeof(MaterialGrid), new Thickness(5d), BindingMode.OneWay,
             propertyChanged: OnPropertyChanged);
 
         public object CornerRadius
@@ -70,9 +88,9 @@ namespace CheckListNotes.Pages.UserControls
             set => SetValue(CornerRadiusProperty, value);
         }
 
-        private static readonly BindableProperty CornerRadiusProperty =
+        public static readonly BindableProperty CornerRadiusProperty =
             BindableProperty.Create(nameof(CornerRadius), typeof(object),
-            typeof(MaterialPanel), new CornerRadius(5d), BindingMode.OneWay,
+            typeof(MaterialGrid), new CornerRadius(5d), BindingMode.OneWay,
             propertyChanged: OnPropertyChanged);
 
         public ShadowPositionTemplate ShadowPosition
@@ -81,9 +99,9 @@ namespace CheckListNotes.Pages.UserControls
             set => SetValue(ShadowPositionProperty, value);
         }
 
-        private static readonly BindableProperty ShadowPositionProperty =
+        public static readonly BindableProperty ShadowPositionProperty =
             BindableProperty.Create(nameof(CornerRadius), typeof(ShadowPositionTemplate),
-            typeof(MaterialPanel), ShadowPositionTemplate.Outside, BindingMode.OneWay,
+            typeof(MaterialGrid), ShadowPositionTemplate.Outside, BindingMode.OneWay,
             propertyChanged: OnPropertyChanged);
 
         #endregion
@@ -133,14 +151,27 @@ namespace CheckListNotes.Pages.UserControls
         private static void OnPropertyChanged(BindableObject bindable, object oldValue, object newValue)
         {
             var control = (MaterialGrid)bindable;
+            if (control?.Parent == null || control?.Bounds.IsEmpty == true) return;
             control?.canvas?.InvalidateSurface();
         }
 
-        protected void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
+        protected async void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
-            if (SurfaceColor is null || ShadowColor is null || ShadowSize is null ||
-                CornerRadius is null) return;
-            else RedrawSurface(e);
+            if (this.Parent == null || this.Bounds.IsEmpty) return;
+            if (SurfaceColor is null || ShadowColor is null || ShadowSize is null || CornerRadius is null || isDrawing == true) return;
+#if DEBUG
+            Debug.WriteLine($"Invalidated G: #{++invalidations}");
+#endif
+            if (UpdateShadowPosition()) await RedrawSurface(e);
+            else if (previousRoundRect != null && previousPaint != null)
+            {
+                SKCanvas canvas = e.Surface.Canvas;
+                canvas.DrawRoundRect(previousRoundRect, previousPaint);
+                canvas.Flush();
+#if DEBUG
+                Debug.WriteLine($"Drawed G: #{++draws}");
+#endif
+            }
         }
 
         #endregion
@@ -149,98 +180,127 @@ namespace CheckListNotes.Pages.UserControls
 
         #region Methods
 
-        private void RedrawSurface(SKPaintSurfaceEventArgs e)
+        private Task RedrawSurface(SKPaintSurfaceEventArgs e)
         {
+            isDrawing = true;
+            previousBounds = this.Bounds;
+            previousSurfaceColor = (Color)SurfaceColor;
+            previousShadowColor = (Color)ShadowColor;
             SKImageInfo info = e.Info;
             SKSurface surface = e.Surface;
             SKCanvas canvas = surface.Canvas;
             Thickness shadow = (Thickness)ShadowSize;
-            SKColor surfaceColor = ((Color)(SurfaceColor)).ToSKColor();
-            SKColor shadowColor = ((Color)ShadowColor).ToSKColor();
+            SKColor surfaceColor = previousSurfaceColor.Value.ToSKColor();
+            SKColor shadowColor = previousShadowColor.Value.ToSKColor();
             CornerRadius corner = (CornerRadius)CornerRadius;
-            ShadowPositionTemplate position = ShadowPosition;
 
-            float left = (float)shadow.Left;
-            float top = (float)shadow.Top;
-            float right = (float)shadow.Right;
-            float bottom = (float)shadow.Bottom;
+            var with = (float)(info.Width - shadow.HorizontalThickness);
+            var height = (float)(info.Height - shadow.VerticalThickness);
+
+            var rect = new SKRect();
+            rect.Offset((float)shadow.Left, (float)shadow.Top);
+            rect.Size = new SKSize(with, height);
+
+            var roundRect = previousRoundRect = new SKRoundRect(rect, (float)corner.TopRight,
+            (float)corner.BottomLeft);
+            canvas.Clear();
+            
+
+            var paint = previousPaint = new SKPaint
+            {
+                Style = SKPaintStyle.Fill,
+                Color = surfaceColor,
+                IsAntialias = true
+            };
+            // set drop shadow with position x/y of 2, and blur x/y of 4
+            paint.ImageFilter = SKImageFilter.CreateDropShadow(0, 0, 4, 4, shadowColor,
+                SKDropShadowImageFilterShadowMode.DrawShadowAndForeground);
+
+            canvas.DrawRoundRect(roundRect, paint);
+            canvas.Flush();
+#if DEBUG
+            Debug.WriteLine($"Drawed G: #{++draws}");
+#endif
+            //await Task.Delay(300);
+            isDrawing = false;
+            return Task.CompletedTask;
+        }
+
+        protected bool UpdateShadowPosition()
+        {
+            var shadow = (Thickness)ShadowSize;
+
+            if (!HasChanges()) return false;
+            if (previousPaddin == Padding && previousMargin == Margin) return true;
 
             switch (ShadowPosition)
             {
                 case ShadowPositionTemplate.AtThePadding:
-                    left = (float)Padding.Left;
-                    top = (float)Padding.Top;
-                    right = (float)Padding.Right;
-                    bottom = (float)Padding.Bottom;
-                    this.canvas.Margin = new Thickness(-left, -top, -right, -bottom);
+                    shadow.Left = (float)Padding.Left;
+                    shadow.Top = (float)Padding.Top;
+                    shadow.Right = (float)Padding.Right;
+                    shadow.Bottom = (float)Padding.Bottom;
+                    this.canvas.Margin = new Thickness(-shadow.Left, -shadow.Top, -shadow.Right, -shadow.Bottom);
                     break;
                 case ShadowPositionTemplate.AtTheMargin:
-                    left = (float)Margin.Left;
-                    top = (float)Margin.Top;
-                    right = (float)Margin.Right;
-                    bottom = (float)Margin.Bottom;
-                    var l = Padding.Left + left;
-                    var t = Padding.Top + top;
-                    var r = Padding.Right + right;
-                    var b = Padding.Bottom + bottom;
+                    shadow.Left = (float)Margin.Left;
+                    shadow.Top = (float)Margin.Top;
+                    shadow.Right = (float)Margin.Right;
+                    shadow.Bottom = (float)Margin.Bottom;
+                    var l = Padding.Left + shadow.Left;
+                    var t = Padding.Top + shadow.Top;
+                    var r = Padding.Right + shadow.Right;
+                    var b = Padding.Bottom + shadow.Bottom;
                     this.canvas.Margin = new Thickness(-l, -t, -r, -b);
                     break;
                 case ShadowPositionTemplate.AtTheMiddle:
-                    l = Padding.Left + left / 2;
-                    t = Padding.Top + top / 2;
-                    r = Padding.Right + right / 2;
-                    b = Padding.Bottom + bottom / 2;
-                    var ml = Margin.Left + left / 2;
-                    var mt = Margin.Top + top / 2;
-                    var mr = Margin.Right + right / 2;
-                    var mb = Margin.Bottom + bottom / 2;
+                    l = Padding.Left + shadow.Left / 2;
+                    t = Padding.Top + shadow.Top / 2;
+                    r = Padding.Right + shadow.Right / 2;
+                    b = Padding.Bottom + shadow.Bottom / 2;
+                    var ml = Margin.Left + shadow.Left / 2;
+                    var mt = Margin.Top + shadow.Top / 2;
+                    var mr = Margin.Right + shadow.Right / 2;
+                    var mb = Margin.Bottom + shadow.Bottom / 2;
                     Padding = new Thickness(l, t, r, b);
                     Margin = new Thickness(ml, mt, mr, mb);
                     this.canvas.Margin = new Thickness(-l, -t, -r, -b);
                     break;
                 case ShadowPositionTemplate.Outside:
-                    l = Padding.Left + left;
-                    t = Padding.Top + top;
-                    r = Padding.Right + right;
-                    b = Padding.Bottom + bottom;
+                    l = Padding.Left + shadow.Left;
+                    t = Padding.Top + shadow.Top;
+                    r = Padding.Right + shadow.Right;
+                    b = Padding.Bottom + shadow.Bottom;
                     this.canvas.Margin = new Thickness(-l, -t, -r, -b);
                     break;
                 case ShadowPositionTemplate.Inside:
-                default:
-                    l = Padding.Left + left;
-                    t = Padding.Top + top;
-                    r = Padding.Right + right;
-                    b = Padding.Bottom + bottom;
+                    l = Padding.Left + shadow.Left;
+                    t = Padding.Top + shadow.Top;
+                    r = Padding.Right + shadow.Right;
+                    b = Padding.Bottom + shadow.Bottom;
                     Padding = new Thickness(l, t, r, b);
                     this.canvas.Margin = new Thickness(-l, -t, -r, -b);
                     break;
+                default:
+                    return false;
             }
+            ShadowSize = shadow;
+            previousPaddin = Padding;
+            previousMargin = Margin;
+#if DEBUG
+            Debug.WriteLine($"Repositioned G: #{++repositions}");
+#endif
+            return false;
+        }
 
-            var with = (info.Width - (left + right));
-            var height = (info.Height - (top + bottom));
-
-            var rect = new SKRect();
-            rect.Offset(left, top);
-            rect.Size = new SKSize(with, height);
-
-            using (var roundRect = new SKRoundRect(rect, (float)corner.TopRight,
-                (float)corner.BottomLeft))
-            {
-                canvas.Clear();
-
-                var paint = new SKPaint
-                {
-                    Style = SKPaintStyle.Fill,
-                    Color = surfaceColor,
-                    IsAntialias = true
-                };
-                // set drop shadow with position x/y of 2, and blur x/y of 4
-                paint.ImageFilter = SKImageFilter.CreateDropShadow(0, 0, 4, 4, shadowColor,
-                    SKDropShadowImageFilterShadowMode.DrawShadowAndForeground);
-
-                //canvas.ClipRoundRect(roundRect);
-                canvas.DrawRoundRect(roundRect, paint);
-            }
+        private bool HasChanges()
+        {
+            if (previousBounds != this.Bounds) hasChanges = true;
+            else if (previousSurfaceColor != (Color)SurfaceColor ||
+                previousShadowColor != (Color)ShadowColor) hasChanges = true;
+            else if (previousPaddin != Padding || previousMargin != Margin) hasChanges = true;
+            else hasChanges = false;
+            return hasChanges.Value;
         }
 
         #endregion
@@ -260,15 +320,91 @@ namespace CheckListNotes.Pages.UserControls
 
         public void Dispose()
         {
-            Children.Clear();
-            isDisposing = null;
+            if (canvas != null)
+            {
+                canvas.PaintSurface -= OnPaintSurface;
+                canvas = null;
+            }
+            hasChanges = null;
+            isDrawing = null;
+            previousBounds = null;
+            previousPaddin = null;
+            previousMargin = null;
             stringToColor = null;
             stringToThickness = null;
             stringToCornerRadius = null;
-            canvas = null;
+            previousSurfaceColor = null;
+            previousShadowColor = null;
+            previousRoundRect = null;
+            previousPaint = null;
+            Children.Clear();
 #if DEBUG
-            Debug.WriteLine("Object destroyect: [ Name: {0}, Id: {1} ].", nameof(MaterialPanel), this.GetHashCode());
+            Debug.WriteLine("Object destroyect: [ Name: {0}, Id: {1} ].", nameof(MaterialGrid), this.GetHashCode());
 #endif
+            isDisposing = null;
+        }
+
+        #endregion
+    }
+
+    public class FixedSKCanvasView : SKCanvasView
+    {
+        #region Atributes
+
+#if DEBUG
+        int draws = 0;
+#endif
+        bool? isDisposing;
+        Rectangle? previousBounds;
+        Thickness? previousPaddin;
+        Thickness? previousMargin;
+
+        #endregion
+
+        public FixedSKCanvasView() : base() => isDisposing = false;
+
+        #region Override
+
+        protected override void OnPaintSurface(SKPaintSurfaceEventArgs e)
+        {
+            //base.PaintSurface?.Invoke(this, e);
+            if (this.Parent == null || this.Parent.Bounds().IsEmpty) return;
+            if (!(this.Parent is Layout layout)) return;
+            if (previousBounds == this.Bounds && previousPaddin == layout.Padding &&
+                previousMargin == layout.Margin) return;
+            previousBounds = this.Bounds;
+            previousPaddin = layout.Padding;
+            previousMargin = layout.Margin;
+#if DEBUG
+            Debug.WriteLine($"Drawed O: #{++draws}");
+#endif
+            base.OnPaintSurface(e);
+        }
+
+        #endregion
+
+        #region Disposable
+
+        ~FixedSKCanvasView()
+        {
+            if (isDisposing == false) Dispose(true);
+        }
+
+        public void Dispose(bool isDisposing)
+        {
+            this.isDisposing = isDisposing;
+            if (this.isDisposing == true) Dispose();
+        }
+
+        public void Dispose()
+        {
+            previousBounds = null;
+            previousPaddin = null;
+            previousMargin = null;
+#if DEBUG
+            Debug.WriteLine("Object destroyect: [ Name: {0}, Id: {1} ].", nameof(FixedSKCanvasView), this.GetHashCode());
+#endif
+            isDisposing = null;
         }
 
         #endregion
