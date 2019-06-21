@@ -3,18 +3,13 @@
     x:Class="CheckListNotes.Pages.UserControls.TaskCell"
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters">
+    xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters"
+    xmlns:local="clr-namespace:CheckListNotes.Pages.UserControls">
 
     <Grid
-        Margin="0,5"
+        Margin="0,10"
         ColumnSpacing="0"
         RowSpacing="0">
-        <!--#region Rows-->
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <!--#endregion-->
-
         <!--#region Resources-->
         <Grid.Resources>
             <ResourceDictionary>
@@ -33,6 +28,7 @@
             Opacity="0"
             TranslationX="-100">
             <Label
+                FontAttributes="Bold"
                 Text="{DynamicResource ButtonEditText}"
                 TextColor="{DynamicResource FontColor}"
                 VerticalOptions="Center" />
@@ -44,6 +40,7 @@
             Opacity="0"
             TranslationX="100">
             <Label
+                FontAttributes="Bold"
                 HorizontalOptions="End"
                 Text="{DynamicResource ButtonDeleteText}"
                 TextColor="{DynamicResource FontColor}"
@@ -52,11 +49,11 @@
         <!--#endregion-->
 
         <!--#region Content-->
-        <Frame
+        <local:MaterialGrid
             x:Name="FrameCell"
             Margin="10,0"
-            BackgroundColor="{DynamicResource ContentDP01}"
-            HasShadow="True">
+            Padding="10"
+            SurfaceColor="{DynamicResource ContentDP01}">
             <StackLayout>
                 <!--#region Text-->
                 <Grid RowSpacing="0">
@@ -131,7 +128,7 @@
                 </StackLayout>
                 <!--#endregion-->
             </StackLayout>
-        </Frame>
+        </local:MaterialGrid>
         <!--#endregion-->
     </Grid>
 

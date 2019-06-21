@@ -4,6 +4,7 @@
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters"
+    xmlns:uc="clr-namespace:CheckListNotes.Pages.UserControls"
     BackgroundColor="{DynamicResource ContentDP00}">
 
     <!--#region Resources-->
@@ -25,41 +26,11 @@
             </Grid.RowDefinitions>
             <!--#endregion-->
 
-            <!--#region Header-->
-            <Grid BackgroundColor="{DynamicResource ContentDP03}">
-                <!--#region Columns-->
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <!--#endregion-->
-
-                <Button
-                    BackgroundColor="#00FFFFFF"
-                    Command="{Binding GoBack}"
-                    Text="Back"
-                    TextColor="{DynamicResource FontColor}" />
-                <Label
-                    Grid.ColumnSpan="3"
-                    Margin="0,10"
-                    FontAttributes="Bold"
-                    HorizontalOptions="FillAndExpand"
-                    HorizontalTextAlignment="Center"
-                    LineBreakMode="TailTruncation"
-                    Text="{DynamicResource TaskDetailsPageTitle}"
-                    TextColor="{DynamicResource FontColor}" />
-                <Button
-                    Grid.Column="2"
-                    BackgroundColor="#00FFFFFF"
-                    Command="{Binding GoToOptions}"
-                    Text="Opt"
-                    TextColor="{DynamicResource FontColor}" />
-            </Grid>
-            <!--#endregion-->
-
             <!--#region Body-->
-            <Grid Grid.Row="1" RowSpacing="0">
+            <Grid
+                Grid.Row="1"
+                Margin="0,-10,0,0"
+                RowSpacing="0">
                 <!--#region Rows-->
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
@@ -68,8 +39,11 @@
                 <!--#endregion-->
 
                 <!--#region Content-->
-                <ScrollView HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Default">
-                    <StackLayout Padding="10,0" BindingContext="{Binding Task}">
+                <ScrollView
+                    Margin="0,0,0,-10"
+                    HorizontalScrollBarVisibility="Never"
+                    VerticalScrollBarVisibility="Default">
+                    <StackLayout Padding="10,20,10,50" BindingContext="{Binding Task}">
                         <Label
                             FontAttributes="Bold"
                             Text="{DynamicResource TaskDetailsLabelTaskName}"
@@ -102,31 +76,76 @@
                 <!--#endregion-->
 
                 <!--#region Footer-->
-                <Grid
+                <uc:MaterialGrid
                     Grid.Row="1"
-                    Padding="10,5"
-                    BackgroundColor="{DynamicResource ContentDP03}">
+                    Padding="0,10,0,0"
+                    ColumnSpacing="0"
+                    CornerRadius="0"
+                    ShadowPosition="AtThePadding"
+                    SurfaceColor="{DynamicResource ContentDP03}">
                     <!--#region Columns-->
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <!--#endregion-->
 
                     <Button
-                        BackgroundColor="#00FFFFFF"
-                        Command="{Binding Edit}"
-                        Text="{DynamicResource ButtonEditText}"
-                        TextColor="{DynamicResource FontColor}" />
-                    <Button
-                        Grid.Column="1"
-                        BackgroundColor="#00FFFFFF"
+                        Margin="4"
+                        BackgroundColor="{StaticResource Transparent}"
                         Command="{Binding Remove}"
                         Text="{DynamicResource ButtonDeleteText}"
                         TextColor="{DynamicResource Error}" />
-                </Grid>
+                    <Button
+                        Grid.Column="2"
+                        Margin="4"
+                        BackgroundColor="{StaticResource Transparent}"
+                        Command="{Binding Edit}"
+                        Text="{DynamicResource ButtonEditText}"
+                        TextColor="{DynamicResource FontColor}" />
+                </uc:MaterialGrid>
                 <!--#endregion-->
             </Grid>
+            <!--#endregion-->
+
+            <!--#region Header-->
+            <uc:MaterialGrid
+                Padding="0,0,0,10"
+                ColumnSpacing="0"
+                CornerRadius="0"
+                ShadowPosition="AtThePadding"
+                SurfaceColor="{DynamicResource ContentDP03}">
+                <!--#region Columns-->
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <!--#endregion-->
+
+                <Label
+                    Grid.ColumnSpan="3"
+                    Margin="0,10"
+                    FontAttributes="Bold"
+                    HorizontalOptions="FillAndExpand"
+                    HorizontalTextAlignment="Center"
+                    LineBreakMode="TailTruncation"
+                    Text="{DynamicResource TaskDetailsPageTitle}"
+                    TextColor="{DynamicResource FontColor}"
+                    VerticalOptions="CenterAndExpand" />
+                <uc:SVGImaggeButton
+                    Margin="4"
+                    Command="{Binding GoBack}"
+                    IconColor="{DynamicResource FontColor}"
+                    SVGSource="Back-Button" />
+                <uc:SVGImaggeButton
+                    Grid.Column="2"
+                    Margin="4"
+                    Command="{Binding GoToOptions}"
+                    IconColor="{DynamicResource FontColor}"
+                    SVGSource="Settings" />
+            </uc:MaterialGrid>
             <!--#endregion-->
         </Grid>
     </ContentPage.Content>

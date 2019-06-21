@@ -98,11 +98,10 @@
                 <!--#endregion-->
 
                 <Label
-                    x:Name="LabelTitle"
                     Grid.ColumnSpan="3"
                     Margin="0,10"
                     FontAttributes="Bold"
-                    HorizontalOptions="FillAndExpand"
+                    HorizontalOptions="Center"
                     HorizontalTextAlignment="Center"
                     LineBreakMode="TailTruncation"
                     Text="{DynamicResource ListOfListPageTitle}"

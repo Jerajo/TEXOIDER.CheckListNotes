@@ -30,35 +30,45 @@
             <!--#endregion-->
 
             <!--#region Header-->
-            <Grid BackgroundColor="{DynamicResource ContentDP03}">
+            <Grid
+                x:Name="GridHeader"
+                BackgroundColor="{DynamicResource ContentDP03}"
+                ColumnSpacing="0">
                 <!--#region Columns-->
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <!--#endregion-->
 
-                <Button
-                    BackgroundColor="#00FFFFFF"
-                    Command="{Binding GoBack}"
-                    Text="Back"
-                    TextColor="{DynamicResource FontColor}" />
                 <Label
-                    Grid.ColumnSpan="3"
+                    Grid.ColumnSpan="4"
                     Margin="0,10"
                     FontAttributes="Bold"
-                    HorizontalOptions="FillAndExpand"
+                    HorizontalOptions="Center"
                     HorizontalTextAlignment="Center"
                     LineBreakMode="TailTruncation"
                     Text="{Binding PageTitle}"
-                    TextColor="{DynamicResource FontColor}" />
-                <Button
+                    TextColor="{DynamicResource FontColor}"
+                    VerticalOptions="CenterAndExpand" />
+                <uc:SVGImaggeButton
+                    Margin="4"
+                    Command="{Binding GoBack}"
+                    IconColor="{DynamicResource FontColor}"
+                    SVGSource="Back-Button" />
+                <uc:SVGImaggeButton
                     Grid.Column="2"
-                    BackgroundColor="#00FFFFFF"
+                    Margin="0,4"
+                    IconColor="{DynamicResource FontColor}"
+                    SVGSource="Search" />
+                <uc:SVGImaggeButton
+                    Grid.Column="3"
+                    Margin="4"
                     Command="{Binding GoToOptions}"
-                    Text="Opt"
-                    TextColor="{DynamicResource FontColor}" />
+                    IconColor="{DynamicResource FontColor}"
+                    SVGSource="Settings" />
             </Grid>
             <!--#endregion-->
 
@@ -74,6 +84,7 @@
                 <!--#region Content-->
                 <uc:TabViewControlExtended
                     Grid.RowSpan="1"
+                    Margin="0,0,0,-10"
                     CurrentIndex="{Binding TabIndex}"
                     HeaderBackgroundColor="{DynamicResource ContentDP02}"
                     HeaderSelectionUnderlineColor="{DynamicResource ContentPrimary}"
@@ -123,17 +134,36 @@
                 <!--#endregion-->
 
                 <!--#region Footer-->
-                <StackLayout
+                <!--Android
+                <uc:SVGImaggeButton
+                    Margin="20"
+                    BackgroundColor="{DynamicResource ContentPrimary}"
+                    Command="{Binding AddNewTask}"
+                    CornerRadius="40"
+                    HeightRequest="80"
+                    HorizontalOptions="End"
+                    IconColor="{DynamicResource FontColorInverse}"
+                    SVGSource="Add-New"
+                    VerticalOptions="End"
+                    WidthRequest="80" />-->
+                <uc:MaterialGrid
                     Grid.Row="1"
-                    Padding="10,5"
-                    BackgroundColor="{DynamicResource ContentDP03}">
+                    Padding="0,10,0,0"
+                    ColumnSpacing="0"
+                    CornerRadius="0"
+                    HeightRequest="{Binding HeightRequest, Source={x:Reference GridHeader}}"
+                    ShadowPosition="AtThePadding"
+                    SurfaceColor="{DynamicResource ContentDP03}">
                     <Button
-                        BackgroundColor="#00FFFFFF"
+                        Margin="4"
+                        BackgroundColor="{StaticResource Transparent}"
                         Command="{Binding AddNewTask}"
+                        HorizontalOptions="End"
                         IsTabStop="False"
                         Text="{DynamicResource TaskListButtonNewTaskText}"
-                        TextColor="{DynamicResource FontColor}" />
-                </StackLayout>
+                        TextColor="{DynamicResource ContentPrimary}"
+                        VerticalOptions="Center" />
+                </uc:MaterialGrid>
                 <!--#endregion-->
             </Grid>
             <!--#endregion-->

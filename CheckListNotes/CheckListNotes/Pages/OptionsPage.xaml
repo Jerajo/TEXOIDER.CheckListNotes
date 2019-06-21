@@ -4,6 +4,7 @@
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters"
+    xmlns:uc="clr-namespace:CheckListNotes.Pages.UserControls"
     BackgroundColor="{DynamicResource ContentDP00}">
 
     <!--#region Resources-->
@@ -26,34 +27,8 @@
             </Grid.RowDefinitions>
             <!--#endregion-->
 
-            <!--#region Header-->
-            <Grid BackgroundColor="{DynamicResource ContentDP03}">
-                <!--#region Columns-->
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <!--#endregion-->
-
-                <Button
-                    BackgroundColor="#00FFFFFF"
-                    Command="{Binding GoBack}"
-                    Text="Back"
-                    TextColor="{DynamicResource FontColor}" />
-                <Label
-                    Grid.ColumnSpan="2"
-                    Margin="0,10"
-                    FontAttributes="Bold"
-                    HorizontalOptions="FillAndExpand"
-                    HorizontalTextAlignment="Center"
-                    LineBreakMode="TailTruncation"
-                    Text="{DynamicResource OptionsPageTitle}"
-                    TextColor="{DynamicResource FontColor}" />
-            </Grid>
-            <!--#endregion-->
-
             <!--#region Body-->
-            <ScrollView Grid.Row="1">
+            <ScrollView Grid.Row="1" Margin="0,-10,0,0">
                 <StackLayout Padding="10">
                     <!--#region Theme-->
                     <Grid ColumnSpacing="10">
@@ -196,6 +171,38 @@
                     <!--#endregion-->
                 </StackLayout>
             </ScrollView>
+            <!--#endregion-->
+
+            <!--#region Header-->
+            <uc:MaterialGrid
+                Padding="0,0,0,10"
+                ColumnSpacing="0"
+                CornerRadius="0"
+                ShadowPosition="AtThePadding"
+                SurfaceColor="{DynamicResource ContentDP03}">
+                <!--#region Columns-->
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <!--#endregion-->
+
+                <Label
+                    Grid.ColumnSpan="2"
+                    Margin="0,10"
+                    FontAttributes="Bold"
+                    HorizontalOptions="FillAndExpand"
+                    HorizontalTextAlignment="Center"
+                    LineBreakMode="TailTruncation"
+                    Text="{DynamicResource OptionsPageTitle}"
+                    TextColor="{DynamicResource FontColor}"
+                    VerticalOptions="CenterAndExpand" />
+                <uc:SVGImaggeButton
+                    Margin="4"
+                    Command="{Binding GoBack}"
+                    IconColor="{DynamicResource FontColor}"
+                    SVGSource="Back-Button" />
+            </uc:MaterialGrid>
             <!--#endregion-->
         </Grid>
     </ContentPage.Content>
