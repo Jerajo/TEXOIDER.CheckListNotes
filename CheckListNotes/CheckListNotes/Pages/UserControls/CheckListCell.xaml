@@ -10,12 +10,6 @@
         Margin="0,10"
         ColumnSpacing="0"
         RowSpacing="0">
-        <!--#region Rows-->
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <!--#endregion-->
-
         <!--#region Resources-->
         <Grid.Resources>
             <ResourceDictionary>
@@ -33,6 +27,7 @@
             Opacity="0"
             TranslationX="-100">
             <Label
+                FontAttributes="Bold"
                 Text="{DynamicResource ButtonEditText}"
                 TextColor="{DynamicResource FontColor}"
                 VerticalOptions="Center" />
@@ -44,6 +39,7 @@
             Opacity="0"
             TranslationX="100">
             <Label
+                FontAttributes="Bold"
                 HorizontalOptions="End"
                 Text="{DynamicResource ButtonDeleteText}"
                 TextColor="{DynamicResource FontColor}"

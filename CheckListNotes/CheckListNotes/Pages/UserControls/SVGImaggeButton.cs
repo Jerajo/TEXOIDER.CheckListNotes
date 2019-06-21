@@ -73,10 +73,10 @@ namespace CheckListNotes.Pages.UserControls
 
         private static void OnPropertyChanged(BindableObject bindable, object oldValue, object newValue)
         {
-            var constrol = (SVGImaggeButton)bindable;
-            if (constrol?.Parent == null || 
-                constrol?.Parent.Bounds().IsEmpty == true) return;
-            constrol?.InvalidateMeasure();
+            var control = (SVGImaggeButton)bindable;
+            if (control?.Parent == null ||
+                control?.Parent.Bounds().IsEmpty == true) return;
+            control?.InvalidateMeasure();
         }
 
         protected override void OnPropertyChanged([CallerMemberName] string propertyName = null)
