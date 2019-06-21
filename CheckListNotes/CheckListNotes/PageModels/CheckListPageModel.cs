@@ -32,24 +32,7 @@ namespace CheckListNotes.PageModels
             set
             {
                 tabIndex = value;
-                Task.Run(() => 
-                {
-                    Device.BeginInvokeOnMainThread(() => 
-                    {
-                        if (tabIndex > 0)
-                        {
-                            Tasks.Clear();
-                            foreach (var task in GetTasks(GetAllTasks(), true))
-                                CheckedTasks.Add(task);
-                        }
-                        else
-                        {
-                            CheckedTasks.Clear();
-                            foreach (var task in GetTasks(GetAllTasks(), false))
-                                Tasks.Add(task);
-                        }
-                    });
-                });
+                Task.Run(() => LoadTask(tabIndex));
             }
         }
 
@@ -226,58 +209,72 @@ namespace CheckListNotes.PageModels
 
         #region Initialize components
 
-        private Task InitializeComponent(object data)
+        private async Task InitializeComponent(object data)
         {
-            return Task.Run(() =>
+            if (!string.IsNullOrEmpty(GlobalDataService.CurrentIndex))
             {
-                Device.BeginInvokeOnMainThread(async () => {
-                    List<CheckTaskModel> taskList;
-                    if (!string.IsNullOrEmpty(GlobalDataService.CurrentIndex))
-                    {
-                        var task = await GlobalDataService.GetCurrentTask();
-                        CheckListModel = new CheckListViewModel
-                        {
-                            IsTask = task.IsTaskGroup,
-                            LastId = task.LastSubId,
-                            Name = task.Name
-                        };
-                        taskList = task.SubTasks ?? new List<CheckTaskModel>();
-                    }
-                    else
-                    {
-                        var list = await GlobalDataService.GetCurrentList();
-                        CheckListModel = new CheckListViewModel
-                        {
-                            IsTask = false,
-                            LastId = list.LastId,
-                            Name = list.Name
-                        };
-                        taskList = list.CheckListTasks ?? new List<CheckTaskModel>();
-                    }
+                var task = await GlobalDataService.GetCurrentTask();
+                CheckListModel = new CheckListViewModel
+                {
+                    IsTask = task.IsTaskGroup,
+                    LastId = task.LastSubId,
+                    Name = task.Name
+                };
+            }
+            else
+            {
+                var list = await GlobalDataService.GetCurrentList();
+                CheckListModel = new CheckListViewModel
+                {
+                    IsTask = false,
+                    LastId = list.LastId,
+                    Name = list.Name
+                };
+            }
 
-                    PageTitle = CheckListModel.Name;
+            PageTitle = CheckListModel.Name;
 
-                    Tasks = new FulyObservableCollection<CheckTaskViewModel>();
-                    Tasks.ItemPropertyChanged += ItemPropertyChanged;
+            Tasks = new FulyObservableCollection<CheckTaskViewModel>();
+            Tasks.ItemPropertyChanged += ItemPropertyChanged;
 
-                    CheckedTasks = new FulyObservableCollection<CheckTaskViewModel>();
-                    CheckedTasks.ItemPropertyChanged += ItemPropertyChanged;
+            CheckedTasks = new FulyObservableCollection<CheckTaskViewModel>();
+            CheckedTasks.ItemPropertyChanged += ItemPropertyChanged;
 
-                    Randomizer = new Random();
+            Randomizer = new Random();
 
-                    TabIndex = (int)data;
+            int index = (int)data;
+            if (index > 0) TabIndex = index;
+            else LoadTask(index);
 
-                    if (TabIndex <= 0 && Tasks.Count <= 0) 
-                        foreach (var task in GetTasks(GetAllTasks(), false)) Tasks.Add(task);
-
-                    RefreshTaskColor();
-                });
-            });
+            RefreshTaskColor();
         }
 
         #endregion
 
         #region Tasks Helpers
+
+        private async void LoadTask(int idex)
+        {
+            await Task.Delay(400);
+            if (idex == 0)
+            {
+                CheckedTasks.Clear();
+                foreach (var task in GetTasks(GetAllTasks(), false))
+                {
+                    await Task.Delay(100);
+                    Tasks.Add(task);
+                }
+            }
+            else
+            {
+                Tasks.Clear();
+                foreach (var task in GetTasks(GetAllTasks(), true))
+                {
+                    await Task.Delay(100);
+                    CheckedTasks.Add(task);
+                }
+            }
+        }
 
         private List<CheckTaskModel> GetAllTasks()
         {
@@ -288,30 +285,26 @@ namespace CheckListNotes.PageModels
             return tasks ?? new List<CheckTaskModel>();
         }
 
-        private IEnumerable<CheckTaskViewModel> GetTasks(List<CheckTaskModel> tasks, bool value)
+        private List<CheckTaskViewModel> GetTasks(List<CheckTaskModel> tasks, bool value)
         {
-            if (tasks.Count <= 0) yield break;
-            else
-            {
-                foreach (var task in tasks.Where(m => m.IsChecked == value))
-                    yield return new CheckTaskViewModel
-                    {
-                        Id = task.Id,
-                        Name = task.Name,
-                        ToastId = task.ToastId,
-                        CompletedDate = task.CompletedDate,
-                        ExpirationDate = task.ExpirationDate,
-                        HasExpiration = task.ExpirationDate != null,
-                        CompletedTasks = task.SubTasks?.Where(m => m.IsChecked == true).Count() ?? 0,
-                        Expiration = task.ExpirationDate?.TimeOfDay,
-                        TotalTasks = task.SubTasks?.Count ?? 0,
-                        ReminderTime = task.ReminderTime,
-                        IsTaskGroup = task.IsTaskGroup,
-                        IsChecked = task.IsChecked ?? false,
-                        NotifyOn = task.NotifyOn,
-                        IsDaily = task.IsDaily
-                    };
-            }
+            return tasks.Where(m => m.IsChecked == value)
+                .Select(task => new CheckTaskViewModel
+                {
+                    Id = task.Id,
+                    Name = task.Name,
+                    ToastId = task.ToastId,
+                    CompletedDate = task.CompletedDate,
+                    ExpirationDate = task.ExpirationDate,
+                    HasExpiration = task.ExpirationDate != null,
+                    CompletedTasks = task.SubTasks?.Where(m => m.IsChecked == true).Count() ?? 0,
+                    Expiration = task.ExpirationDate?.TimeOfDay,
+                    TotalTasks = task.SubTasks?.Count ?? 0,
+                    ReminderTime = task.ReminderTime,
+                    IsTaskGroup = task.IsTaskGroup,
+                    IsChecked = task.IsChecked ?? false,
+                    NotifyOn = task.NotifyOn,
+                    IsDaily = task.IsDaily
+                }).ToList();
         }
 
         #endregion
