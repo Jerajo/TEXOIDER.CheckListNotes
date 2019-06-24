@@ -155,14 +155,14 @@ namespace CheckListNotes.Pages.UserControls
             control?.canvas?.InvalidateSurface();
         }
 
-        protected async void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
+        protected void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
-            if (this.Parent == null || this.Bounds.IsEmpty) return;
-            if (SurfaceColor is null || ShadowColor is null || ShadowSize is null || CornerRadius is null || isDrawing == true) return;
+            if (isDrawing == true || this.Parent == null || this.Bounds.IsEmpty) return;
+            if (SurfaceColor is null || ShadowColor is null || ShadowSize is null || CornerRadius is null) return;
 #if DEBUG
             Debug.WriteLine($"Invalidated G: #{++invalidations}");
 #endif
-            if (UpdateShadowPosition()) await RedrawSurface(e);
+            if (UpdateShadowPosition()) RedrawSurface(e);
             else if (previousRoundRect != null && previousPaint != null)
             {
                 SKCanvas canvas = e.Surface.Canvas;
@@ -180,7 +180,7 @@ namespace CheckListNotes.Pages.UserControls
 
         #region Methods
 
-        private Task RedrawSurface(SKPaintSurfaceEventArgs e)
+        private void RedrawSurface(SKPaintSurfaceEventArgs e)
         {
             isDrawing = true;
             previousBounds = this.Bounds;
@@ -223,7 +223,7 @@ namespace CheckListNotes.Pages.UserControls
 #endif
             //await Task.Delay(300);
             isDrawing = false;
-            return Task.CompletedTask;
+            //return Task.CompletedTask;
         }
 
         protected bool UpdateShadowPosition()

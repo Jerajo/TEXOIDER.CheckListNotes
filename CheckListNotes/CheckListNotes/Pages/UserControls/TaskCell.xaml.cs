@@ -63,11 +63,12 @@ namespace CheckListNotes.Pages.UserControls
         private async void SwitchToggled(object sender, ToggledEventArgs e)
         {
             SwitchIsCompleted.IsEnabled = false;
-            SetValue(IsLockedProperty, true);
+            IsLocked = true;
             this.ForceUpdateSize();
             await Task.Delay(TimeSpan.FromSeconds(1));
-            SetValue(IsLockedProperty, false);
+            IsLocked = false;
             SwitchIsCompleted.IsEnabled = true;
+            this.ForceUpdateSize();
         }
 
         #endregion

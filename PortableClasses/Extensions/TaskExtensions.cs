@@ -23,6 +23,12 @@ namespace PortableClasses.Extensions
                     if (count >= maxTries) throw ex;
                     Task.Delay(TimeSpan.FromMilliseconds(100)).Wait();
                 }
+                catch (AggregateException ex)
+                {
+                    ShowDebugError(ex.Message);
+                    if (count >= maxTries) throw ex;
+                    Task.Delay(TimeSpan.FromMilliseconds(100)).Wait();
+                }
                 catch (Exception) { throw; }
             }
 
@@ -39,6 +45,12 @@ namespace PortableClasses.Extensions
                 {
                     task.Wait();
                     isCompleted = true;
+                }
+                catch (AggregateException ex)
+                {
+                    ShowDebugError(ex.Message);
+                    if (count >= maxTries) throw ex;
+                    Task.Delay(TimeSpan.FromMilliseconds(100)).Wait();
                 }
                 catch (UnauthorizedAccessException ex)
                 {

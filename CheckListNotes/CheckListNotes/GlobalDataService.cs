@@ -21,9 +21,10 @@ namespace CheckListNotes
     {
         #region Atributes
 
-        private static readonly string storageFolder = FileSystem.AppDataDirectory;
-        private static bool hasLoaded = false;
-        private static Random randomizer = new Random();
+        static readonly string storageFolder = FileSystem.AppDataDirectory;
+        static Random randomizer = new Random();
+        static bool isProcesing = false;
+        static bool hasLoaded = false;
 
         #endregion
 
@@ -44,6 +45,19 @@ namespace CheckListNotes
         /// Indicate whether the data is loading or not.
         /// </summary>
         public static bool IsLoading { get; private set; }
+
+        /// <summary>
+        /// Indicate whether the app is procesing and action or not.
+        /// </summary>
+        public static bool IsProcesing
+        {
+            get => isProcesing;
+            set
+            {
+                isProcesing = value;
+                Task.Run(async () => isProcesing = await isProcesing.ToggleOn(300));
+            }
+        }
 
         /// <summary>
         /// Storage the last requested list name.

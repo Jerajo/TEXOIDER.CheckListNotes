@@ -82,55 +82,36 @@
                 <!--#endregion-->
 
                 <!--#region Content-->
-                <uc:TabViewControlExtended
+                <uc:TabView
                     Grid.RowSpan="1"
                     Margin="0,0,0,-10"
-                    CurrentIndex="{Binding TabIndex}"
-                    HeaderBackgroundColor="{DynamicResource ContentDP02}"
-                    HeaderSelectionUnderlineColor="{DynamicResource ContentPrimary}"
-                    HeaderTabTextColor="{DynamicResource FontColor}"
-                    HeaderTabTextFontAttributes="Bold">
-                    <uc:TabViewControlExtended.ItemSource>
-                        <tvs:TabItem x:Name="TabItemPendientTask">
-                            <ListView
-                                HasUnevenRows="true"
-                                ItemsSource="{Binding Tasks}"
-                                SelectedItem="{Binding SelectedTask}">
-                                <ListView.Behaviors>
-                                    <behavior:EventToCommandBehavior
-                                        Command="{Binding UpdateOrRemove}"
-                                        Converter="{x:StaticResource SelectedItemToCommandParameter}"
-                                        EventName="ItemSelected" />
-                                    <behavior:ListViewCorrectDeselectItemBehavior />
-                                </ListView.Behaviors>
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <uc:TaskCell />
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                        </tvs:TabItem>
-                        <tvs:TabItem x:Name="TabItemCompletedTask">
-                            <ListView
-                                HasUnevenRows="true"
-                                ItemsSource="{Binding CheckedTasks}"
-                                SelectedItem="{Binding SelectedTask}">
-                                <ListView.Behaviors>
-                                    <behavior:EventToCommandBehavior
-                                        Command="{Binding UpdateOrRemove}"
-                                        Converter="{x:StaticResource SelectedItemToCommandParameter}"
-                                        EventName="ItemSelected" />
-                                    <behavior:ListViewCorrectDeselectItemBehavior />
-                                </ListView.Behaviors>
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <uc:TaskCell />
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                        </tvs:TabItem>
-                    </uc:TabViewControlExtended.ItemSource>
-                </uc:TabViewControlExtended>
+                    Index="{Binding TabIndex}">
+                    <uc:TabView.ItemSource>
+                        <ListView
+                            HasUnevenRows="true"
+                            ItemsSource="{Binding Tasks}"
+                            SelectedItem="{Binding SelectedTask}">
+                            <ListView.Behaviors>
+                                <behavior:EventToCommandBehavior
+                                    Command="{Binding UpdateOrRemove}"
+                                    Converter="{x:StaticResource SelectedItemToCommandParameter}"
+                                    EventName="ItemSelected" />
+                                <behavior:ListViewCorrectDeselectItemBehavior />
+                            </ListView.Behaviors>
+                            <ListView.Header>
+                                <TextCell Height="10" Text="Hola" />
+                            </ListView.Header>
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <uc:TaskCell />
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                            <ListView.Footer>
+                                <TextCell Height="50" Text="Mundo" />
+                            </ListView.Footer>
+                        </ListView>
+                    </uc:TabView.ItemSource>
+                </uc:TabView>
                 <!--#endregion-->
 
                 <!--#region Footer-->

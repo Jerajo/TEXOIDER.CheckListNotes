@@ -210,7 +210,8 @@ namespace CheckListNotes.PageModels
             IsDisposing = true;
             if (ListOfCheckLists != null)
             {
-                ListOfCheckLists.Clear();
+                ListOfCheckLists.ClearItems();
+                ListOfCheckLists.Dispose();
                 ListOfCheckLists = null;
             }
             if (Errors != null)
@@ -219,6 +220,7 @@ namespace CheckListNotes.PageModels
                 Errors = null;
             }
             base.ViewIsDisappearing(sender, e);
+            GC.Collect();
             IsDisposing = false;
         }
 
@@ -226,43 +228,38 @@ namespace CheckListNotes.PageModels
 
         #region Auxiliary Methods
 
-        private Task InitializeComponet(object data)
+        private async Task InitializeComponet(object data)
         {
-            return Task.Run(() => 
-            {
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    InitData = data ?? 0;
+            InitData = data ?? 0;
 
-                    ListOfCheckLists = new FulyObservableCollection<CheckListViewModel>();
+            ListOfCheckLists = new FulyObservableCollection<CheckListViewModel>();
             
-                    foreach (var item in GlobalDataService.GetAllLists())
-                    {
-                        ListOfCheckLists.Add(new CheckListViewModel
-                        {
-                            LastId = item.LastId,
-                            Name = item.Name,
-                            OldName = item.Name,
-                            CompletedTasks = item.CheckListTasks.Where(m => 
-                                m.IsChecked == true).Count(),
-                            TotalTasks = item.CheckListTasks.Count()
-                        });
-                    }
-
-                    Errors = new List<string>();
-
-                    var exampleListName = AppResourcesLisener.Languages["ExampleListName"];
-                    if (ListOfCheckLists.Any(m => m.Name == exampleListName))
-                    {
-                        AppResourcesLisener.Current.PropertyChanged += OnLanguageChanged;
-                        ExampleListName = exampleListName;
-                    }
-
-                    //TODO: Implement business logic for licence: [free, premium].
-                    //var deviceHelper = DependencyService.Get<IDeviceHelper>();
-                    //And so on...
+            foreach (var item in GlobalDataService.GetAllLists())
+            {
+                await Task.Delay(100);
+                ListOfCheckLists.Add(new CheckListViewModel
+                {
+                    LastId = item.LastId,
+                    Name = item.Name,
+                    OldName = item.Name,
+                    CompletedTasks = item.CheckListTasks.Where(m => 
+                        m.IsChecked == true).Count(),
+                    TotalTasks = item.CheckListTasks.Count()
                 });
-            });
+            }
+
+            Errors = new List<string>();
+
+            var exampleListName = AppResourcesLisener.Languages["ExampleListName"];
+            if (ListOfCheckLists.Any(m => m.Name == exampleListName))
+            {
+                AppResourcesLisener.Current.PropertyChanged += OnLanguageChanged;
+                ExampleListName = exampleListName;
+            }
+
+            //TODO: Implement business logic for licence: [free, premium].
+            //var deviceHelper = DependencyService.Get<IDeviceHelper>();
+            //And so on...
         }
 
         private bool ValidateNewCheckListName()

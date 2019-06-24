@@ -19,7 +19,6 @@ namespace PortableClasses.Implementations
 
         #region Events
 
-        //public EventHandler<ItemPropertyChangedEventArgs> ItemPropertyChanged { get; set; }
 
         /// <summary>
         /// Occurs when an item is added, removed, changed, moved, or the entire list is
@@ -66,7 +65,7 @@ namespace PortableClasses.Implementations
             base.OnCollectionChanged(e);
         }
 
-        protected override void ClearItems()
+        public new void ClearItems()
         {
             UnobserveAll();
             base.ClearItems();
@@ -82,16 +81,6 @@ namespace PortableClasses.Implementations
             foreach (T item in enumerator) Add(item);
         }
 
-        //protected void OnItemPropertyChanged(ItemPropertyChangedEventArgs e)
-        //{
-        //    ItemPropertyChanged?.Invoke(this, e);
-        //}
-
-        //protected void OnItemPropertyChanged(int index, PropertyChangedEventArgs e)
-        //{
-        //    OnItemPropertyChanged(new ItemPropertyChangedEventArgs(index, e));
-        //}
-
         public void ObserveAll()
         {
             foreach (T item in Items)
@@ -103,17 +92,6 @@ namespace PortableClasses.Implementations
             foreach (T item in Items)
                 item.PropertyChanged -= OnItemPropertyChanged;
         }
-
-        //private void ChildPropertyChanged(object sender, PropertyChangedEventArgs e)
-        //{
-        //    T typedSender = (T)sender;
-        //    int i = Items.IndexOf(typedSender);
-
-        //    if (i < 0)
-        //        throw new ArgumentException("Received property notification from item not in collection");
-
-        //    OnItemPropertyChanged(i, e);
-        //}
 
         #endregion
 

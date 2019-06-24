@@ -12,6 +12,7 @@ using PortableClasses.Extensions;
 using PortableClasses.Implementations;
 using CheckListNotes.Models.Interfaces;
 using CheckListNotes.PageModels.Commands;
+using System.Threading;
 
 namespace CheckListNotes.PageModels
 {
@@ -24,17 +25,39 @@ namespace CheckListNotes.PageModels
 
         #region Atributes
 
-        private int tabIndex = 0;
+        private int? tabIndex;
 
         public int TabIndex
         {
-            get => tabIndex;
+            get => tabIndex ?? -1;
             set
             {
+                if (tabIndex == value && Tasks != null) return;
                 tabIndex = value;
-                Task.Run(() => LoadTask(tabIndex));
+                RunTaskSafe();
+                async void RunTaskSafe()
+                {
+                    try
+                    {
+                        if (loadingTask == null) loadingTask = Task.Run(() => LoadTask(value, 
+                            taskHanlder.Token), taskHanlder.Token);
+                        else
+                        {
+                            if (!loadingTask.IsCompleted) taskHanlder.Cancel();
+                            await Task.Delay(200);
+                            taskHanlder = new CancellationTokenSource();
+                            loadingTask = Task.Run(() => LoadTask(value, taskHanlder.Token),
+                                taskHanlder.Token);
+                        }
+                        await loadingTask;
+                    }
+                    catch (OperationCanceledException) {}
+                }
             }
         }
+
+        private Task loadingTask;
+        private CancellationTokenSource taskHanlder = new CancellationTokenSource();
 
         public CheckListViewModel CheckListModel { get; set; }
 
@@ -60,7 +83,7 @@ namespace CheckListNotes.PageModels
 
         public FulyObservableCollection<CheckTaskViewModel> Tasks { get; set; }
 
-        public FulyObservableCollection<CheckTaskViewModel> CheckedTasks { get; set; }
+        //public FulyObservableCollection<CheckTaskViewModel> CheckedTasks { get; set; }
 
         public Random Randomizer { get; private set; }
 
@@ -121,7 +144,7 @@ namespace CheckListNotes.PageModels
                 if (resoult)
                 {
                     if (TabIndex <= 0) Tasks.Remove(model);
-                    else CheckedTasks.Remove(model);
+                    //else CheckedTasks.Remove(model);
                     try { GlobalDataService.RemoveTask(model.Id); }
                     catch (Exception ex) { await ShowAlertError(ex.Message); }
                     finally { IsLooked = false; }
@@ -181,26 +204,30 @@ namespace CheckListNotes.PageModels
         {
             IsDisposing = true;
             CheckListModel = null;
-            if (Tasks != null)
-            {
-                Tasks.Clear();
-                Tasks.ItemPropertyChanged -= ItemPropertyChanged;
-                Tasks = null;
-            }
-            if (CheckedTasks != null)
-            {
-                CheckedTasks.Clear();
-                CheckedTasks.ItemPropertyChanged -= ItemPropertyChanged;
-                CheckedTasks = null;
-            }
             if (Errors != null)
             {
                 Errors.Clear();
                 Errors = null;
             }
             Randomizer = null;
+            ClearCollection(Tasks);
+            tabIndex = null;
+            //ClearCollection(CheckedTasks);
             base.ViewIsDisappearing(sender, e);
+            GC.Collect();
             IsDisposing = false;
+        }
+
+        private void ClearCollection(FulyObservableCollection<CheckTaskViewModel> colecction)
+        {
+            if (colecction != null)
+            {
+                colecction.ClearItems();
+                colecction.ItemPropertyChanged -= ItemPropertyChanged;
+                colecction.Dispose();
+                colecction = null;
+                GC.Collect();
+            }
         }
 
         #endregion
@@ -234,17 +261,12 @@ namespace CheckListNotes.PageModels
 
             PageTitle = CheckListModel.Name;
 
-            Tasks = new FulyObservableCollection<CheckTaskViewModel>();
-            Tasks.ItemPropertyChanged += ItemPropertyChanged;
-
-            CheckedTasks = new FulyObservableCollection<CheckTaskViewModel>();
-            CheckedTasks.ItemPropertyChanged += ItemPropertyChanged;
-
             Randomizer = new Random();
 
-            int index = (int)data;
-            if (index > 0) TabIndex = index;
-            else LoadTask(index);
+            TabIndex = (int)data;
+            //int index = (int)data;
+            //if (index > 0) TabIndex = index;
+            //else LoadTask(index);
 
             RefreshTaskColor();
         }
@@ -253,27 +275,24 @@ namespace CheckListNotes.PageModels
 
         #region Tasks Helpers
 
-        private async void LoadTask(int idex)
+        private Task LoadTask(int index, CancellationToken token)
         {
-            await Task.Delay(400);
-            if (idex == 0)
+            if (token.IsCancellationRequested) return Task.FromCanceled(token);
+            ClearCollection(Tasks);
+            if (token.IsCancellationRequested) return Task.FromCanceled(token);
+
+            var value = index == 1;
+            Tasks = new FulyObservableCollection<CheckTaskViewModel>();
+            Tasks.ItemPropertyChanged += ItemPropertyChanged;
+
+            foreach (var task in GetTasks(GetAllTasks(), value))
             {
-                CheckedTasks.Clear();
-                foreach (var task in GetTasks(GetAllTasks(), false))
-                {
-                    await Task.Delay(100);
-                    Tasks.Add(task);
-                }
+                if (token.IsCancellationRequested) return Task.FromCanceled(token);
+                Tasks.Add(task);
+                Task.Delay(100).Wait();
             }
-            else
-            {
-                Tasks.Clear();
-                foreach (var task in GetTasks(GetAllTasks(), true))
-                {
-                    await Task.Delay(100);
-                    CheckedTasks.Add(task);
-                }
-            }
+
+            return Task.CompletedTask;
         }
 
         private List<CheckTaskModel> GetAllTasks()
@@ -324,9 +343,11 @@ namespace CheckListNotes.PageModels
             {
                 try
                 {
-                    if (task.IsChecked == true && IsDisposing == false) Tasks.Remove(task);
-                    else if (IsDisposing == false) CheckedTasks.Remove(task);
+                    if (IsDisposing == true) return;
+                    //if (task.IsChecked == true && IsDisposing == false) Tasks.Remove(task);
+                    //else if (IsDisposing == false) CheckedTasks.Remove(task);
                     await SaveChangesAsync(task);
+                    Tasks.Remove(task);
                 }
                 catch (Exception ex)
                 {
@@ -359,7 +380,7 @@ namespace CheckListNotes.PageModels
                 }
                 else if (task.NotifyOn != ToastTypesTime.None)
                     await UnregisterToast(task.ToastId);
-                Tasks.Remove(task);
+                //Tasks.Remove(task);
             }
             else if (IsDisposing == false)
             {
@@ -375,7 +396,7 @@ namespace CheckListNotes.PageModels
                 }
                 else if (task.NotifyOn != ToastTypesTime.None &&
                     task.ReminderTime > DateTime.Now) await RegisterToast(task);
-                CheckedTasks.Remove(task);
+                //CheckedTasks.Remove(task);
             }
 
             GlobalDataService.UpdateTask(task);
