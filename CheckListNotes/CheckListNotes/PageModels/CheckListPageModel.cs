@@ -104,6 +104,7 @@ namespace CheckListNotes.PageModels
 
         private void SaveListPositionsCommand()
         {
+            // TODO: Save the entire list with update list method instead
             foreach (var task in Tasks) GlobalDataService.UpdateTask(task);
         }
 
@@ -115,6 +116,7 @@ namespace CheckListNotes.PageModels
             {
                 NotifyOn = ToastTypesTime.None,
                 ExpirationDate = DateTime.Now.AddHours(5),
+                Position = Tasks?.Count ?? 0,
                 IsChecked = (TabIndex > 0) ? true : false
             };
             await PushPageModel<TaskPageModel>(model);
