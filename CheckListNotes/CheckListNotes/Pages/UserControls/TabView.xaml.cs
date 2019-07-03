@@ -17,7 +17,7 @@ namespace CheckListNotes.Pages.UserControls
 
         #endregion
 
-        public TabView() { InitializeComponent(); Init(); }
+        public TabView() : base() { InitializeComponent(); Init(); }
 
         #region Bindable Properties
 

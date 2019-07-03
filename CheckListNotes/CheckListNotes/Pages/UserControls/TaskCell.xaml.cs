@@ -10,25 +10,14 @@ namespace CheckListNotes.Pages.UserControls
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class TaskCell : ViewCell
     {
-        private double x = 0, y = 0;
+        #region Atributes
 
-        public TaskCell()
-        {
-            InitializeComponent();
+        double x = 0, y = 0;
+        bool? isDisposing;
 
-            var panGestureReconizer = new PanGestureRecognizer();
-            panGestureReconizer.PanUpdated += Animate;
+        #endregion
 
-            FrameCell.GestureRecognizers.Clear();
-            FrameCell.GestureRecognizers.Add(panGestureReconizer);
-
-            this.SetBinding(IsLockedProperty, "IsAnimating");
-            this.SetBinding(SelectedReasonForProperty, "SelectedReason");
-
-            SwitchIsCompleted.Toggled += SwitchToggled;
-
-            Resice(); // Resise cell heght
-        }
+        public TaskCell() : base() { InitializeComponent(); Init(); }
 
         #region SETTERS AND GETTERS
 
@@ -64,25 +53,49 @@ namespace CheckListNotes.Pages.UserControls
         {
             SwitchIsCompleted.IsEnabled = false;
             IsLocked = true;
-            this.ForceUpdateSize();
-            await Task.Delay(TimeSpan.FromSeconds(1));
+            await Task.Delay(300);
             IsLocked = false;
             SwitchIsCompleted.IsEnabled = true;
-            this.ForceUpdateSize();
         }
+
+        private static void SelectedReasonPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            if (!(bindable is TaskCell control)) return;
+            var reasonFor = (SelectedFor)newValue;
+            if (reasonFor == SelectedFor.Create) control.ResetAnimations();
+        }
+
+        protected virtual async void OnPadUpdated(object sender, PanUpdatedEventArgs e) =>
+            await Animate(e);
 
         #endregion
 
         #region Auxiliary Methods
 
-        private async void Resice()
+        #region Initialize Comonets
+
+        private void Init()
         {
-            await Task.Delay(TimeSpan.FromSeconds(1));
-            ForceUpdateSize();
+            isDisposing = false;
+            var panGestureReconizer = new PanGestureRecognizer();
+            panGestureReconizer.PanUpdated += OnPadUpdated;
+
+            FrameCell.GestureRecognizers.Clear();
+            FrameCell.GestureRecognizers.Add(panGestureReconizer);
+
+            this.SetBinding(IsLockedProperty, "IsAnimating");
+            this.SetBinding(SelectedReasonForProperty, "SelectedReason");
+
+            SwitchIsCompleted.Toggled += SwitchToggled;
         }
 
-        private async void Animate(object sender, PanUpdatedEventArgs e)
+        #endregion
+
+        #region Animation
+
+        private async Task Animate(PanUpdatedEventArgs e)
         {
+            if (isDisposing == true) return;
             if (e.StatusType == GestureStatus.Running)
             {
                 FrameCell.TranslationX = x = e.TotalX;
@@ -139,12 +152,7 @@ namespace CheckListNotes.Pages.UserControls
             x = 0;
         }
 
-        private static void SelectedReasonPropertyChanged(BindableObject bindable, object oldValue, object newValue)
-        {
-            var reasonFor = (SelectedFor)newValue;
-            var binging = bindable as TaskCell;
-            if (reasonFor == SelectedFor.Create) binging.ResetAnimations();
-        }
+        #endregion
 
         #endregion
 
@@ -152,9 +160,11 @@ namespace CheckListNotes.Pages.UserControls
 
         ~TaskCell()
         {
+            isDisposing = false;
 #if DEBUG
             Debug.WriteLine($"Object destroyect: Name: {nameof(TaskCell)}, Id: {this.GetHashCode()}].");
 #endif
+            isDisposing = null;
         }
 
         #endregion

@@ -1,7 +1,9 @@
 ﻿using System;
+using FreshMvvm;
 using System.Linq;
-using Xamarin.Forms;
 using PropertyChanged;
+using System.Threading;
+using System.Diagnostics;
 using System.Windows.Input;
 using CheckListNotes.Models;
 using PortableClasses.Enums;
@@ -12,52 +14,36 @@ using PortableClasses.Extensions;
 using PortableClasses.Implementations;
 using CheckListNotes.Models.Interfaces;
 using CheckListNotes.PageModels.Commands;
-using System.Threading;
 
 namespace CheckListNotes.PageModels
 {
     [AddINotifyPropertyChangedInterface]
     public class CheckListPageModel : BasePageModel, IPageModel
     {
+        #region Atributes
+
+        Task loadingTask;
+        string previousIndex;
+        int? tabIndex, previousTabIndex;
+        CancellationTokenSource taskHanlder = new CancellationTokenSource();
+
+        #endregion
+
         public CheckListPageModel() : base() { }
 
         #region SETTERS AND GETTERS
 
         #region Atributes
 
-        private int? tabIndex;
-
         public int TabIndex
         {
             get => tabIndex ?? -1;
             set
             {
-                if (tabIndex == value && Tasks != null) return;
-                tabIndex = value;
-                RunTaskSafe();
-                async void RunTaskSafe()
-                {
-                    try
-                    {
-                        if (loadingTask == null) loadingTask = Task.Run(() => LoadTask(value, 
-                            taskHanlder.Token), taskHanlder.Token);
-                        else
-                        {
-                            if (!loadingTask.IsCompleted) taskHanlder.Cancel();
-                            await Task.Delay(200);
-                            taskHanlder = new CancellationTokenSource();
-                            loadingTask = Task.Run(() => LoadTask(value, taskHanlder.Token),
-                                taskHanlder.Token);
-                        }
-                        await loadingTask;
-                    }
-                    catch (OperationCanceledException) {}
-                }
+                if ((previousIndex != GlobalDataService.CurrentIndex
+                    || tabIndex != value) && value != -1) { tabIndex = value; }
             }
         }
-
-        private Task loadingTask;
-        private CancellationTokenSource taskHanlder = new CancellationTokenSource();
 
         public CheckListViewModel CheckListModel { get; set; }
 
@@ -71,19 +57,13 @@ namespace CheckListNotes.PageModels
                 {
                     IsLooked = true;
                     GlobalDataService.CurrentIndex = task.Id;
-                    if (task.IsTaskGroup == true)
-                    {
-                        ViewIsDisappearing(null, null);
-                        Init(TabIndex);
-                    }
-                    else PushPageModel<TaskDetailsPageModel>(TabIndex).Wait();
+                    if (task.IsTaskGroup == true) RefreshUI();
+                    else PushPageModel<TaskDetailsPageModel>(TabIndex);
                 }
             }
         }
 
         public FulyObservableCollection<CheckTaskViewModel> Tasks { get; set; }
-
-        //public FulyObservableCollection<CheckTaskViewModel> CheckedTasks { get; set; }
 
         public Random Randomizer { get; private set; }
 
@@ -111,11 +91,21 @@ namespace CheckListNotes.PageModels
             get => new DelegateCommand(new Action(GoToOptionsCommand));
         }
 
+        public ICommand SaveListPositions
+        {
+            get => new DelegateCommand(new Action(SaveListPositionsCommand));
+        }
+
         #endregion
 
         #endregion
 
         #region Commands
+
+        private void SaveListPositionsCommand()
+        {
+            foreach (var task in Tasks) GlobalDataService.UpdateTask(task);
+        }
 
         private async void AddNewTaskCommand()
         {
@@ -143,10 +133,12 @@ namespace CheckListNotes.PageModels
                 var resoult = await ShowAlertQuestion(title, message);
                 if (resoult)
                 {
-                    if (TabIndex <= 0) Tasks.Remove(model);
-                    //else CheckedTasks.Remove(model);
-                    try { GlobalDataService.RemoveTask(model.Id); }
-                    catch (Exception ex) { await ShowAlertError(ex.Message); }
+                    try { GlobalDataService.RemoveTask(model.Id); Tasks.Remove(model); }
+                    catch (Exception ex)
+                    {
+                        await ShowAlertError(ex.Message);
+                        model.SelectedReason = SelectedFor.Create;
+                    }
                     finally { IsLooked = false; }
                 }
                 else model.SelectedReason = SelectedFor.Create;
@@ -210,22 +202,23 @@ namespace CheckListNotes.PageModels
                 Errors = null;
             }
             Randomizer = null;
-            ClearCollection(Tasks);
+            ClearCollection();
             tabIndex = null;
-            //ClearCollection(CheckedTasks);
+            previousIndex = null;
+            previousTabIndex = null;
             base.ViewIsDisappearing(sender, e);
             GC.Collect();
             IsDisposing = false;
         }
 
-        private void ClearCollection(FulyObservableCollection<CheckTaskViewModel> colecction)
+        private void ClearCollection()
         {
-            if (colecction != null)
+            if (Tasks != null)
             {
-                colecction.ClearItems();
-                colecction.ItemPropertyChanged -= ItemPropertyChanged;
-                colecction.Dispose();
-                colecction = null;
+                Tasks.ClearItems();
+                Tasks.ItemPropertyChanged -= ItemPropertyChanged;
+                Tasks.Dispose();
+                Tasks = null;
                 GC.Collect();
             }
         }
@@ -241,32 +234,23 @@ namespace CheckListNotes.PageModels
             if (!string.IsNullOrEmpty(GlobalDataService.CurrentIndex))
             {
                 var task = await GlobalDataService.GetCurrentTask();
-                CheckListModel = new CheckListViewModel
-                {
-                    IsTask = task.IsTaskGroup,
-                    LastId = task.LastSubId,
-                    Name = task.Name
-                };
+                CheckListModel = new CheckListViewModel(task.Name, true);
             }
             else
             {
                 var list = await GlobalDataService.GetCurrentList();
-                CheckListModel = new CheckListViewModel
-                {
-                    IsTask = false,
-                    LastId = list.LastId,
-                    Name = list.Name
-                };
+                CheckListModel = new CheckListViewModel(list.Name);
             }
 
             PageTitle = CheckListModel.Name;
 
             Randomizer = new Random();
 
+            Tasks = new FulyObservableCollection<CheckTaskViewModel>();
+            Tasks.ItemPropertyChanged += ItemPropertyChanged;
+            this.WhenAny(RunTaskSafe, m => m.TabIndex);
+
             TabIndex = (int)data;
-            //int index = (int)data;
-            //if (index > 0) TabIndex = index;
-            //else LoadTask(index);
 
             RefreshTaskColor();
         }
@@ -275,20 +259,47 @@ namespace CheckListNotes.PageModels
 
         #region Tasks Helpers
 
-        private Task LoadTask(int index, CancellationToken token)
+        private async void RunTaskSafe(string propertyName)
+        {
+            if (previousIndex == GlobalDataService.CurrentIndex && previousTabIndex == tabIndex) return;
+            previousIndex = GlobalDataService.CurrentIndex;
+            previousTabIndex = tabIndex;
+            try
+            {
+                if (loadingTask == null) loadingTask = Task.Run(() => LoadTask(
+                    taskHanlder.Token), taskHanlder.Token);
+                else
+                {
+                    if (!loadingTask.IsCompleted) taskHanlder.Cancel();
+                    await Task.Delay(200);
+                    taskHanlder = new CancellationTokenSource();
+                    loadingTask = Task.Run(() => LoadTask(taskHanlder.Token),
+                        taskHanlder.Token);
+                }
+                await loadingTask;
+            }
+            catch (OperationCanceledException ex)
+            {
+#if DEBUG
+                Debug.WriteLine(ex.Message + $" On the class: {nameof(CheckListPageModel)} method: {nameof(RunTaskSafe)}.");
+#endif
+            }
+            catch (Exception ex) { await ShowAlertError(ex.Message); }
+        }
+
+        private Task LoadTask(CancellationToken token)
         {
             if (token.IsCancellationRequested) return Task.FromCanceled(token);
-            ClearCollection(Tasks);
+            if (Tasks != null) Tasks.ClearItems();
             if (token.IsCancellationRequested) return Task.FromCanceled(token);
 
-            var value = index == 1;
-            Tasks = new FulyObservableCollection<CheckTaskViewModel>();
-            Tasks.ItemPropertyChanged += ItemPropertyChanged;
+            var value = TabIndex == 1;
 
             foreach (var task in GetTasks(GetAllTasks(), value))
             {
-                if (token.IsCancellationRequested) return Task.FromCanceled(token);
-                Tasks.Add(task);
+                if (token.IsCancellationRequested && Tasks != null)
+                    return Task.FromCanceled(token);
+                if (IsDisposing == false) Tasks?.Add(task);
                 Task.Delay(100).Wait();
             }
 
@@ -306,24 +317,24 @@ namespace CheckListNotes.PageModels
 
         private List<CheckTaskViewModel> GetTasks(List<CheckTaskModel> tasks, bool value)
         {
-            return tasks.Where(m => m.IsChecked == value)
+            return tasks.Where(m => m.IsChecked == value).OrderBy(m => m.Position)
                 .Select(task => new CheckTaskViewModel
-                {
-                    Id = task.Id,
-                    Name = task.Name,
-                    ToastId = task.ToastId,
-                    CompletedDate = task.CompletedDate,
-                    ExpirationDate = task.ExpirationDate,
-                    HasExpiration = task.ExpirationDate != null,
-                    CompletedTasks = task.SubTasks?.Where(m => m.IsChecked == true).Count() ?? 0,
-                    Expiration = task.ExpirationDate?.TimeOfDay,
-                    TotalTasks = task.SubTasks?.Count ?? 0,
-                    ReminderTime = task.ReminderTime,
-                    IsTaskGroup = task.IsTaskGroup,
-                    IsChecked = task.IsChecked ?? false,
-                    NotifyOn = task.NotifyOn,
-                    IsDaily = task.IsDaily
-                }).ToList();
+            {
+                Id = task.Id,
+                Name = task.Name,
+                ToastId = task.ToastId,
+                Position = task.Position,
+                CompletedDate = task.CompletedDate,
+                ExpirationDate = task.ExpirationDate,
+                HasExpiration = task.ExpirationDate != null,
+                CompletedTasks = task.SubTasks?.Where(m => m.IsChecked == true).Count() ?? 0,
+                Expiration = task.ExpirationDate?.TimeOfDay,
+                TotalTasks = task.SubTasks?.Count ?? 0,
+                ReminderTime = task.ReminderTime,
+                IsTaskGroup = task.IsTaskGroup,
+                NotifyOn = task.NotifyOn,
+                IsDaily = task.IsDaily
+            }).ToList();
         }
 
         #endregion
@@ -334,9 +345,8 @@ namespace CheckListNotes.PageModels
         // prevent doble changes and execute only on IsChecked value change
         private async void ItemPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (IsDisposing == true || e.PropertyName != "IsChecked") return;
-            if (!(sender is CheckTaskViewModel task)) return;
-            if (task?.isAnimating == true) return;
+            if (IsDisposing == true || !(sender is CheckTaskViewModel task)) return;
+            else if (task?.isAnimating == true || e.PropertyName != "IsChecked") return;
             task.isAnimating = true;
 
             if (task.IsValid)
@@ -344,19 +354,11 @@ namespace CheckListNotes.PageModels
                 try
                 {
                     if (IsDisposing == true) return;
-                    //if (task.IsChecked == true && IsDisposing == false) Tasks.Remove(task);
-                    //else if (IsDisposing == false) CheckedTasks.Remove(task);
                     await SaveChangesAsync(task);
                     Tasks.Remove(task);
                 }
-                catch (Exception ex)
-                {
-                    await ShowAlertError(ex.Message);
-                }
-                finally
-                {
-                    task = null;
-                }
+                catch (Exception ex) { await ShowAlertError(ex.Message); }
+                finally { task = null; }
             }
             else await ShowAlertError(task.ErrorMessage);
         }
@@ -366,7 +368,7 @@ namespace CheckListNotes.PageModels
         {
             if (IsDisposing == true) return;
             if (task == null) throw new ArgumentNullException(nameof(task));
-            if (task.IsChecked == true && IsDisposing == false)
+            if (task.IsChecked == true)
             {
                 if (task.IsDaily == true)
                 {
@@ -380,9 +382,8 @@ namespace CheckListNotes.PageModels
                 }
                 else if (task.NotifyOn != ToastTypesTime.None)
                     await UnregisterToast(task.ToastId);
-                //Tasks.Remove(task);
             }
-            else if (IsDisposing == false)
+            else
             {
                 if (task.IsDaily == true)
                 {
@@ -396,7 +397,6 @@ namespace CheckListNotes.PageModels
                 }
                 else if (task.NotifyOn != ToastTypesTime.None &&
                     task.ReminderTime > DateTime.Now) await RegisterToast(task);
-                //CheckedTasks.Remove(task);
             }
 
             GlobalDataService.UpdateTask(task);

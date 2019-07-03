@@ -1,58 +1,27 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?>
-<ViewCell
-    x:Class="CheckListNotes.Pages.UserControls.TaskCell"
+<ContentView
+    x:Class="CheckListNotes.Pages.UserControls.CardView"
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters"
     xmlns:local="clr-namespace:CheckListNotes.Pages.UserControls">
 
-    <Grid
-        Margin="0,10"
-        ColumnSpacing="0"
-        RowSpacing="0">
-        <!--#region Resources-->
-        <Grid.Resources>
-            <ResourceDictionary>
-                <c:DoubleToGridLengthConverter x:Key="DoubleToGridLength" />
-                <c:StringToBoolConverter x:Key="StringToBool" />
-                <c:InverseBoolConverter x:Key="InverseBool" />
-            </ResourceDictionary>
-        </Grid.Resources>
-        <!--#endregion-->
+    <!--#region Resources-->
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <c:DoubleToGridLengthConverter x:Key="DoubleToGridLength" />
+            <c:StringToBoolConverter x:Key="StringToBool" />
+            <c:InverseBoolConverter x:Key="InverseBool" />
+        </ResourceDictionary>
+    </ContentView.Resources>
+    <!--#endregion-->
 
-        <!--#region Background Content-->
-        <Grid
-            x:Name="GridEdit"
-            Padding="20"
-            BackgroundColor="{DynamicResource Good}"
-            Opacity="0"
-            TranslationX="-100">
-            <Label
-                FontAttributes="Bold"
-                Text="{DynamicResource ButtonEditText}"
-                TextColor="{DynamicResource FontColor}"
-                VerticalOptions="Center" />
-        </Grid>
-        <Grid
-            x:Name="GridDelete"
-            Padding="20"
-            BackgroundColor="{DynamicResource Error}"
-            Opacity="0"
-            TranslationX="100">
-            <Label
-                FontAttributes="Bold"
-                HorizontalOptions="End"
-                Text="{DynamicResource ButtonDeleteText}"
-                TextColor="{DynamicResource FontColor}"
-                VerticalOptions="Center" />
-        </Grid>
-        <!--#endregion-->
-
-        <!--#region Content-->
+    <Grid x:Name="MainGrid">
         <local:MaterialGrid
-            x:Name="FrameCell"
+            x:Name="MaterialContainer"
             Margin="10,0"
             Padding="10"
+            x:FieldModifier="public"
             SurfaceColor="{DynamicResource ContentDP01}">
             <StackLayout>
                 <!--#region Text-->
@@ -95,6 +64,7 @@
                         IsTabStop="False"
                         IsToggled="{Binding IsChecked, Mode=TwoWay}"
                         IsVisible="{Binding IsTaskGroup, Converter={x:StaticResource InverseBool}, Mode=OneWay}"
+                        PropertyChanging="SwitchToggling"
                         VerticalOptions="Center" />
                     <!--#endregion-->
                 </Grid>
@@ -128,7 +98,6 @@
                 <!--#endregion-->
             </StackLayout>
         </local:MaterialGrid>
-        <!--#endregion-->
     </Grid>
 
-</ViewCell>
+</ContentView>

@@ -87,5 +87,17 @@ namespace CheckListNotes.Pages
         }
 
         #endregion
+
+        private void Button_Clicked(object sender, EventArgs e)
+        {
+            if (!(sender is Button control)) return;
+            if (!(control.Parent is StackLayout parent)) return;
+
+            var index = parent.Children.IndexOf(control);
+            parent.Children.Remove(control);
+            if (index == 0) parent.Children.Insert(index + 1, control);
+            else if (index == 1) parent.Children.Add(control);
+            else parent.Children.Insert(0, control);
+        }
     }
 }

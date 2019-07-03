@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using Xamarin.Forms;
 using Xamarin.Essentials;
-using Newtonsoft.Json.Linq;
 using CheckListNotes.Models;
 using PortableClasses.Enums;
 using System.Threading.Tasks;
@@ -25,6 +24,8 @@ namespace CheckListNotes
         static Random randomizer = new Random();
         static bool isProcesing = false;
         static bool hasLoaded = false;
+        static string listName;
+        static string taskIndex;
 
         #endregion
 
@@ -62,17 +63,29 @@ namespace CheckListNotes
         /// <summary>
         /// Storage the last requested list name.
         /// </summary>
-        public static string CurrentListName { get; set; }
+        public static string CurrentListName
+        {
+            get => listName;
+            set { PreviousListName = listName; listName = value; }
+        }
+
+        /// <summary>
+        /// Storage the last requested task id.
+        /// </summary>
+        public static string CurrentIndex
+        {
+            get => taskIndex;
+            set
+            {
+                PreviousIndex = (value != null) ? taskIndex : value;
+                taskIndex = value;
+            }
+        }
 
         /// <summary>
         /// Storage the previous requested list name.
         /// </summary>
         public static string PreviousListName { get; set; }
-
-        /// <summary>
-        /// Storage the last requested task id.
-        /// </summary>
-        public static string CurrentIndex { get; set; }
 
         /// <summary>
         /// Storage the previous requested task id.
@@ -206,19 +219,28 @@ namespace CheckListNotes
                 var model = await GetCurrentList();
 
                 CheckTaskModel task;
+                int? lastPosition = null;
                 if (index?.Contains(".") == true)
                 {
                     var parentTask = IndexNavigation(model.CheckListTasks, 
                         index.RemoveLastSplit('.'));
                     task = parentTask.SubTasks.Find(m => m.Id == index);
+                    if (task.IsChecked != data.IsChecked)
+                        lastPosition = GetLastIndex(parentTask.SubTasks, data.IsChecked);
                     task.IsChecked = data.IsChecked;
                     parentTask.IsChecked = !parentTask.SubTasks.Any(m => m.IsChecked == false);
                 }
-                else task = model.CheckListTasks.Find(m => m.Id == data.Id);
+                else
+                {
+                    task = model.CheckListTasks.Find(m => m.Id == data.Id);
+                    if (task.IsChecked != data.IsChecked)
+                        lastPosition = GetLastIndex(model.CheckListTasks, data.IsChecked);
+                }
 
                 task.Name = data.Name;
                 task.ToastId = data.ToastId;
                 task.NotifyOn = data.NotifyOn;
+                task.Position = lastPosition ?? data.Position;
                 task.ReminderTime = data.ReminderTime;
                 task.ExpirationDate = data.ExpirationDate;
                 task.CompletedDate = data.CompletedDate;
@@ -226,6 +248,9 @@ namespace CheckListNotes
                 task.IsChecked = data.IsChecked;
                 task.IsDaily = data.IsDaily;
                 await Write(model, $"{storageFolder}/Data/{model.Name}.bin");
+
+                int GetLastIndex(List<CheckTaskModel> list, bool value) =>
+                    list.Where(m => m.IsChecked == value).Count();
             }
         }
 

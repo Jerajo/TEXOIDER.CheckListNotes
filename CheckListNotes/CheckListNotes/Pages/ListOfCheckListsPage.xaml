@@ -185,6 +185,31 @@
                 </uc:MaterialGrid>
             </Grid>
             <!--#endregion-->
+
+            <StackLayout
+                Grid.Row="1"
+                Margin="20"
+                Padding="0,10,0,100"
+                BackgroundColor="{DynamicResource ContentDP00}"
+                HorizontalOptions="FillAndExpand"
+                IsVisible="False"
+                VerticalOptions="Center">
+                <Button
+                    BackgroundColor="Red"
+                    Clicked="Button_Clicked"
+                    Text="Primero"
+                    TextColor="{DynamicResource FontColor}" />
+                <Button
+                    BackgroundColor="Blue"
+                    Clicked="Button_Clicked"
+                    Text="Segundo"
+                    TextColor="{DynamicResource FontColor}" />
+                <Button
+                    BackgroundColor="Green"
+                    Clicked="Button_Clicked"
+                    Text="Tercero"
+                    TextColor="{DynamicResource FontColor}" />
+            </StackLayout>
         </Grid>
     </ContentPage.Content>
 </ContentPage>

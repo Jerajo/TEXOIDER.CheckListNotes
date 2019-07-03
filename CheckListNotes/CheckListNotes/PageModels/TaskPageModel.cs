@@ -113,62 +113,56 @@ namespace CheckListNotes.PageModels
         {
             IsLooked = !(HasLoaded = false);
 
-            await System.Threading.Tasks.Task.Run(() => 
-            { 
-                Device.BeginInvokeOnMainThread(async () =>
-                {
-                    var language = AppResourcesLisener.Languages;
+            var language = AppResourcesLisener.Languages;
 
-                    if (!(initData is CheckTaskModel task))
-                        task = await GlobalDataService.GetCurrentTask();
+            if (!(initData is CheckTaskModel task))
+                task = await GlobalDataService.GetCurrentTask();
 
-                    if (initData is int index) InitData = index;
-                    else InitData = task.IsChecked == true ? 1 : 0;
+            if (initData is int index) InitData = index;
+            else InitData = task.IsChecked == true ? 1 : 0;
 
-                    IsEditing = (!string.IsNullOrEmpty(task.Name)) ? true : false;
+            IsEditing = (!string.IsNullOrEmpty(task.Name)) ? true : false;
 
-                    PageTitle = (IsEditing == true) ? 
-                        language["TaskFormPageTitleOnEdition"] :
-                        language["TaskFormPageTitle"];
+            PageTitle = (IsEditing == true) ? 
+                language["TaskFormPageTitleOnEdition"] :
+                language["TaskFormPageTitle"];
             
-                    Task = new CheckTaskViewModel
-                    {
-                        Id = task.Id,
-                        Name = task.Name,
-                        ToastId = task.ToastId,
-                        LastSubId = task.LastSubId,
-                        TotalTasks = task.SubTasks?.Count ?? 0,
-                        CompletedDate = task.CompletedDate,
-                        ExpirationDate = task.ExpirationDate,
-                        HasExpiration = task.ExpirationDate != null,
-                        Expiration = task.ExpirationDate?.TimeOfDay,
-                        ReminderTime = task.ReminderTime,
-                        IsTaskGroup = task.IsTaskGroup ?? false,
-                        IsChecked = task.IsChecked ?? false,
-                        NotifyOn = task.NotifyOn ?? ToastTypesTime.None,
-                        IsDaily = task.IsDaily ?? false
-                    };
+            Task = new CheckTaskViewModel
+            {
+                Id = task.Id,
+                Name = task.Name,
+                ToastId = task.ToastId,
+                Position = task.Position,
+                TotalTasks = task.SubTasks?.Count ?? 0,
+                CompletedDate = task.CompletedDate,
+                ExpirationDate = task.ExpirationDate,
+                HasExpiration = task.ExpirationDate != null,
+                Expiration = task.ExpirationDate?.TimeOfDay,
+                ReminderTime = task.ReminderTime,
+                IsTaskGroup = task.IsTaskGroup ?? false,
+                IsChecked = task.IsChecked ?? false,
+                NotifyOn = task.NotifyOn ?? ToastTypesTime.None,
+                IsDaily = task.IsDaily ?? false
+            };
 
-                    OldTask = new CheckTaskViewModel
-                    {
-                        Name = Task.Name,
-                        ToastId = Task.ToastId,
-                        LastSubId = Task.LastSubId,
-                        TotalTasks = Task.TotalTasks,
-                        IsTaskGroup = Task.IsTaskGroup,
-                        ReminderTime = Task.ReminderTime,
-                        CompletedDate = Task.CompletedDate,
-                        ExpirationDate = Task.ExpirationDate,
-                        HasExpiration = Task.HasExpiration,
-                        Expiration = Task.Expiration,
-                        IsChecked = Task.IsChecked,
-                        NotifyOn = Task.NotifyOn,
-                        IsDaily = Task.IsDaily
-                    };
+            OldTask = new CheckTaskViewModel
+            {
+                Name = Task.Name,
+                ToastId = Task.ToastId,
+                Position = Task.Position,
+                TotalTasks = Task.TotalTasks,
+                IsTaskGroup = Task.IsTaskGroup,
+                ReminderTime = Task.ReminderTime,
+                CompletedDate = Task.CompletedDate,
+                ExpirationDate = Task.ExpirationDate,
+                HasExpiration = Task.HasExpiration,
+                Expiration = Task.Expiration,
+                IsChecked = Task.IsChecked,
+                NotifyOn = Task.NotifyOn,
+                IsDaily = Task.IsDaily
+            };
 
-                    Task.PropertyChanged += TaskPropertyChanged;
-                });
-            });
+            Task.PropertyChanged += TaskPropertyChanged;
 
             Randomizer = new Random();
             base.Init(initData);
@@ -223,7 +217,6 @@ namespace CheckListNotes.PageModels
                 if (Task.NotifyOn != ToastTypesTime.None) Task.ReminderTime = GetReminderTiem();
             }
 
-
             if (e.PropertyName == nameof(Task.Expiration))
             {
                 Task.expirationDate = Task.ExpirationDate.ChangeTime(Task.Expiration.Value);
@@ -233,10 +226,7 @@ namespace CheckListNotes.PageModels
             if (e.PropertyName == nameof(Task.IsTaskGroup))
             {
                 if (Task.IsTaskGroup == true)
-                {
-                    Task.LastSubId = OldTask.LastSubId ?? 0;
                     Task.TotalTasks = OldTask.TotalTasks;
-                }
                 if (Task.IsTaskGroup == false && Task.TotalTasks > 0)
                 {
                     var language = AppResourcesLisener.Languages;
@@ -244,11 +234,7 @@ namespace CheckListNotes.PageModels
                     var message = language["TaskFormSwictIsTaskGroupActionMessage"];
                     var resoult = await ShowAlertQuestion(title, message);
                     if (!resoult) Task.IsTaskGroup = true;
-                    else 
-                    {
-                        Task.TotalTasks = 0;
-                        Task.LastSubId = null;
-                    }
+                    else Task.TotalTasks = 0;
                 }
             }
 

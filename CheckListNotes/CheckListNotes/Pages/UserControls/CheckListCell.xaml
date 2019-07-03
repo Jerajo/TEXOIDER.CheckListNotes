@@ -58,6 +58,7 @@
                 <Label
                     FontAttributes="Bold"
                     FontSize="14"
+                    LineBreakMode="CharacterWrap"
                     Text="{Binding Name}"
                     TextColor="{DynamicResource FontColor}" />
                 <Label

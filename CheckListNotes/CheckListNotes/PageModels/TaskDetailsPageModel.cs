@@ -91,14 +91,7 @@ namespace CheckListNotes.PageModels
         {
             if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
-            if (GlobalDataService.PreviousIndex != null)
-            {
-                GlobalDataService.CurrentListName = GlobalDataService.PreviousListName.Substring(0);
-                GlobalDataService.CurrentIndex = GlobalDataService.PreviousIndex.Substring(0);
-                GlobalDataService.CurrentListName = null;
-                GlobalDataService.PreviousIndex = null;
-            }
-            else if (Task.Id.Contains("."))
+            if (Task.Id.Contains("."))
                 GlobalDataService.CurrentIndex = Task.Id.RemoveLastSplit('.');
             else GlobalDataService.CurrentIndex = null;
             await PopPageModel(InitData);

@@ -3,9 +3,7 @@
     x:Class="CheckListNotes.Pages.CheckListPage"
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:behavior="clr-namespace:CheckListNotes.Pages.Behaviors"
     xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters"
-    xmlns:tvs="clr-namespace:Xam.Plugin.TabView;assembly=Xam.Plugin.TabView"
     xmlns:uc="clr-namespace:CheckListNotes.Pages.UserControls"
     BackgroundColor="{DynamicResource ContentDP00}">
 
@@ -87,29 +85,12 @@
                     Margin="0,0,0,-10"
                     Index="{Binding TabIndex}">
                     <uc:TabView.ItemSource>
-                        <ListView
-                            HasUnevenRows="true"
+                        <uc:ViewBoadCardList
+                            x:Name="CardBoard"
                             ItemsSource="{Binding Tasks}"
-                            SelectedItem="{Binding SelectedTask}">
-                            <ListView.Behaviors>
-                                <behavior:EventToCommandBehavior
-                                    Command="{Binding UpdateOrRemove}"
-                                    Converter="{x:StaticResource SelectedItemToCommandParameter}"
-                                    EventName="ItemSelected" />
-                                <behavior:ListViewCorrectDeselectItemBehavior />
-                            </ListView.Behaviors>
-                            <ListView.Header>
-                                <TextCell Height="10" Text="Hola" />
-                            </ListView.Header>
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <uc:TaskCell />
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                            <ListView.Footer>
-                                <TextCell Height="50" Text="Mundo" />
-                            </ListView.Footer>
-                        </ListView>
+                            SelectedItem="{Binding SelectedTask}"
+                            UpdatedListCommand="{Binding SaveListPositions}"
+                            UpdatedOrDeleteItemCommand="{Binding UpdateOrRemove}" />
                     </uc:TabView.ItemSource>
                 </uc:TabView>
                 <!--#endregion-->

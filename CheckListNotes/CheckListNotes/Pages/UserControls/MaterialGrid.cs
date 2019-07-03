@@ -34,20 +34,7 @@ namespace CheckListNotes.Pages.UserControls
 
         #endregion
 
-        public MaterialGrid() : base()
-        {
-            hasChanges = false;
-            isDrawing = false;
-            isDisposing = false;
-            previousSurfaceColor = Color.Transparent;
-            previousShadowColor = Color.Transparent;
-            stringToColor = new StringToColorConverter();
-            stringToThickness = new StringToThicknessConverter();
-            stringToCornerRadius = new StringToCornerRadiusConverter();
-            canvas = new SKCanvasView();
-            canvas.PaintSurface += OnPaintSurface;
-            Children.Add(canvas);
-        }
+        public MaterialGrid() : base() => InitializeComponets();
 
         #region Bindable Properties
 
@@ -108,36 +95,6 @@ namespace CheckListNotes.Pages.UserControls
 
         #region Events
 
-        #region Coerce Value Call Back
-
-        private Color GetColor(object value)
-        {
-            if (value is Color color) return color;
-            else if (value is DynamicResource resource)
-                return (Color)App.Current.Resources[resource.Key];
-            else return stringToColor?.Convert(value) ?? Color.Transparent;
-        }
-
-        private Thickness GetThickness(object value)
-        {
-            if (value is Thickness size) return size;
-            else if (value is DynamicResource resource)
-                return (Thickness)App.Current.Resources[resource.Key];
-            else return stringToThickness?.Convert(value) ?? new Thickness(5);
-        }
-
-        private CornerRadius GetCornerRadius(object value)
-        {
-            if (value is CornerRadius corner) return corner;
-            else if (value is DynamicResource resource)
-                return (CornerRadius)App.Current.Resources[resource.Key];
-            else return stringToCornerRadius?.Convert(value) ?? new CornerRadius(5);
-        }
-
-        #endregion
-
-        #region Property Changed
-
         protected override void OnPropertyChanged(string propertyName)
         {
             base.OnPropertyChanged(propertyName);
@@ -160,7 +117,7 @@ namespace CheckListNotes.Pages.UserControls
             if (isDrawing == true || this.Parent == null || this.Bounds.IsEmpty) return;
             if (SurfaceColor is null || ShadowColor is null || ShadowSize is null || CornerRadius is null) return;
 #if DEBUG
-            Debug.WriteLine($"Invalidated G: #{++invalidations}");
+            //Debug.WriteLine($"Invalidated G: #{++invalidations}");
 #endif
             if (UpdateShadowPosition()) RedrawSurface(e);
             else if (previousRoundRect != null && previousPaint != null)
@@ -169,16 +126,35 @@ namespace CheckListNotes.Pages.UserControls
                 canvas.DrawRoundRect(previousRoundRect, previousPaint);
                 canvas.Flush();
 #if DEBUG
-                Debug.WriteLine($"Drawed G: #{++draws}");
+                //Debug.WriteLine($"Drawed G: #{++draws}");
 #endif
             }
         }
 
         #endregion
 
+        #region Methods
+
+        #region Initilizalize Components
+
+        private void InitializeComponets()
+        {
+            hasChanges = false;
+            isDrawing = false;
+            isDisposing = false;
+            previousSurfaceColor = Color.Transparent;
+            previousShadowColor = Color.Transparent;
+            stringToColor = new StringToColorConverter();
+            stringToThickness = new StringToThicknessConverter();
+            stringToCornerRadius = new StringToCornerRadiusConverter();
+            canvas = new SKCanvasView();
+            canvas.PaintSurface += OnPaintSurface;
+            Children.Add(canvas);
+        }
+
         #endregion
 
-        #region Methods
+        #region Draw
 
         private void RedrawSurface(SKPaintSurfaceEventArgs e)
         {
@@ -219,12 +195,16 @@ namespace CheckListNotes.Pages.UserControls
             canvas.DrawRoundRect(roundRect, paint);
             canvas.Flush();
 #if DEBUG
-            Debug.WriteLine($"Drawed G: #{++draws}");
+            //Debug.WriteLine($"Drawed G: #{++draws}");
 #endif
             //await Task.Delay(300);
             isDrawing = false;
             //return Task.CompletedTask;
         }
+
+        #endregion
+
+        #region Calclulate
 
         protected bool UpdateShadowPosition()
         {
@@ -288,10 +268,14 @@ namespace CheckListNotes.Pages.UserControls
             previousPaddin = Padding;
             previousMargin = Margin;
 #if DEBUG
-            Debug.WriteLine($"Repositioned G: #{++repositions}");
+            //Debug.WriteLine($"Repositioned G: #{++repositions}");
 #endif
             return false;
         }
+
+        #endregion
+
+        #region Auxiliary Methods
 
         private bool HasChanges()
         {
@@ -302,6 +286,32 @@ namespace CheckListNotes.Pages.UserControls
             else hasChanges = false;
             return hasChanges.Value;
         }
+
+        private Color GetColor(object value)
+        {
+            if (value is Color color) return color;
+            else if (value is DynamicResource resource)
+                return (Color)App.Current.Resources[resource.Key];
+            else return stringToColor?.Convert(value) ?? Color.Transparent;
+        }
+
+        private Thickness GetThickness(object value)
+        {
+            if (value is Thickness size) return size;
+            else if (value is DynamicResource resource)
+                return (Thickness)App.Current.Resources[resource.Key];
+            else return stringToThickness?.Convert(value) ?? new Thickness(5);
+        }
+
+        private CornerRadius GetCornerRadius(object value)
+        {
+            if (value is CornerRadius corner) return corner;
+            else if (value is DynamicResource resource)
+                return (CornerRadius)App.Current.Resources[resource.Key];
+            else return stringToCornerRadius?.Convert(value) ?? new CornerRadius(5);
+        }
+
+        #endregion
 
         #endregion
 
@@ -340,69 +350,6 @@ namespace CheckListNotes.Pages.UserControls
             Children.Clear();
 #if DEBUG
             Debug.WriteLine("Object destroyect: [ Name: {0}, Id: {1} ].", nameof(MaterialGrid), this.GetHashCode());
-#endif
-            isDisposing = null;
-        }
-
-        #endregion
-    }
-
-    public class FixedSKCanvasView : SKCanvasView
-    {
-        #region Atributes
-
-#if DEBUG
-        int draws = 0;
-#endif
-        bool? isDisposing;
-        Rectangle? previousBounds;
-        Thickness? previousPaddin;
-        Thickness? previousMargin;
-
-        #endregion
-
-        public FixedSKCanvasView() : base() => isDisposing = false;
-
-        #region Override
-
-        protected override void OnPaintSurface(SKPaintSurfaceEventArgs e)
-        {
-            //base.PaintSurface?.Invoke(this, e);
-            if (this.Parent == null || this.Parent.Bounds().IsEmpty) return;
-            if (!(this.Parent is Layout layout)) return;
-            if (previousBounds == this.Bounds && previousPaddin == layout.Padding &&
-                previousMargin == layout.Margin) return;
-            previousBounds = this.Bounds;
-            previousPaddin = layout.Padding;
-            previousMargin = layout.Margin;
-#if DEBUG
-            Debug.WriteLine($"Drawed O: #{++draws}");
-#endif
-            base.OnPaintSurface(e);
-        }
-
-        #endregion
-
-        #region Disposable
-
-        ~FixedSKCanvasView()
-        {
-            if (isDisposing == false) Dispose(true);
-        }
-
-        public void Dispose(bool isDisposing)
-        {
-            this.isDisposing = isDisposing;
-            if (this.isDisposing == true) Dispose();
-        }
-
-        public void Dispose()
-        {
-            previousBounds = null;
-            previousPaddin = null;
-            previousMargin = null;
-#if DEBUG
-            Debug.WriteLine("Object destroyect: [ Name: {0}, Id: {1} ].", nameof(FixedSKCanvasView), this.GetHashCode());
 #endif
             isDisposing = null;
         }

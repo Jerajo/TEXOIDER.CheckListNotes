@@ -17,6 +17,12 @@ namespace CheckListNotes.Pages
             NavigationPage.SetHasNavigationBar(this, false);
         }
 
+        protected override void OnDisappearing()
+        {
+            CardBoard.ClearValues();
+            base.OnDisappearing();
+        }
+
         #region Dispose
 
         ~CheckListPage()

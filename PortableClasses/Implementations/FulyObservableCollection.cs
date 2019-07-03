@@ -19,7 +19,6 @@ namespace PortableClasses.Implementations
 
         #region Events
 
-
         /// <summary>
         /// Occurs when an item is added, removed, changed, moved, or the entire list is
         /// refreshed.
@@ -67,8 +66,13 @@ namespace PortableClasses.Implementations
 
         public new void ClearItems()
         {
+            if (Items?.Count <= 0) return;
             UnobserveAll();
+            var eventArgs = new NotifyCollectionChangedEventArgs
+                (NotifyCollectionChangedAction.Remove, new List<T>(Items), startingIndex: 0);
+            OnCollectionChanged(eventArgs);
             base.ClearItems();
+            GC.Collect();
         }
 
         #endregion
