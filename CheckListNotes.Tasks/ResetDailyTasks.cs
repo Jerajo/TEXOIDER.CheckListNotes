@@ -9,7 +9,6 @@ using PortableClasses.Services;
 using PortableClasses.Extensions;
 using System.Collections.Generic;
 using Windows.ApplicationModel.Background;
-using Windows.System;
 
 namespace CheckListNotes.Tasks
 {
@@ -66,7 +65,7 @@ namespace CheckListNotes.Tasks
                         fileService.Read<InitFile>(initFilePath)).TryTo();
 
                     if (initFile == null) CancelTask();
-                    else if (initFile.LastResetTime.TimeOfDay == DateTime.Now.TimeOfDay)
+                    else if (initFile.LastResetTime.DayOfYear == DateTime.Now.DayOfYear)
                         CancelTask();
                     else
                     {
@@ -101,8 +100,9 @@ namespace CheckListNotes.Tasks
                         await Task.Run(() => fileService.Write(list, filePath)).TryTo();
                     }
 
-                    //var success = await Launcher.LaunchUriAsync(new Uri("startnotes:"));
-                    var success = await (new CMD()).ExecuteAsync("start startnotes:");
+                    // --------------------/ DEPRECATED \--------------------
+                    //X var success = await Launcher.LaunchUriAsync(new Uri("startnotes:"));
+                    //X var success = await (new CMD()).ExecuteAsync("/C start startnotes:");
                 }
             }
             catch (Exception ex)
@@ -138,12 +138,14 @@ namespace CheckListNotes.Tasks
                     {
                         hasChanges = true;
                         task.IsChecked = false;
+                        task.CompletedDate = null;
                     }
                 }
                 else if (task.IsChecked == true && (taskGroupIsDaily | task.IsDaily == true))
                 {
                     hasChanges = true;
                     task.IsChecked = false;
+                    task.CompletedDate = null;
                     if (task.NotifyOn != ToastTypesTime.None)
                         RegisterUnregistedDailyToast(task);
                 }
