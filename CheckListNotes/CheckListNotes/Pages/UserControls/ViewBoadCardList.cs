@@ -148,8 +148,8 @@ namespace CheckListNotes.Pages.UserControls
         {
             if (isDisposing == true) return;
             if (!e.IsInContact && selectedFor == null) return;
-            if (card == null && GetControlByPosition(e) == null) return;
-            if (!(card.BindingContext is CheckTaskViewModel item)) return;
+            if (card == null && GetControlByPosition(e) == null) { ClearValues(); return; }
+            if (!(card.BindingContext is CheckTaskViewModel item)) { ClearValues();  return; }
             if (selectedFor == null && !await SelectFor(item, e)) return;
             if (selectedFor == SelectedFor.Insert) await VerticalAnimation(item, e);
             else if (selectedFor != null) await HorizontalAnimation(item, e);
@@ -372,6 +372,10 @@ namespace CheckListNotes.Pages.UserControls
             ClearValues();
             isDisposing = false;
         }
+
+        #endregion
+
+        #region Public
 
         public void ClearValues()
         {
