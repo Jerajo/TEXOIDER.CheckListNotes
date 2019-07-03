@@ -40,7 +40,10 @@
 
                 <!--#region Content-->
                 <ScrollView HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Default">
-                    <StackLayout Padding="10,20,10,50" BindingContext="{Binding Task}">
+                    <StackLayout
+                        x:Name="Container"
+                        Padding="10,20,10,50"
+                        BindingContext="{Binding Task}">
                         <Label Text="{DynamicResource TaskFormEditorTaskNameTitle}" TextColor="{DynamicResource FontColor}" />
                         <Editor
                             AutoSize="TextChanges"
