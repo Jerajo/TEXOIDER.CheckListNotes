@@ -4,7 +4,6 @@ using Xamarin.Forms;
 using PropertyChanged;
 using System.Diagnostics;
 using PortableClasses.Enums;
-using System.ComponentModel;
 using System.Collections.Generic;
 
 namespace CheckListNotes.Models
@@ -28,7 +27,7 @@ namespace CheckListNotes.Models
 
         public string Id { get; set; }
         public string Name { get; set; }
-        public int? LastSubId { get; set; }
+        public int? Position { get; set; }
         public string ToastId { get; set; }
         public bool? IsTaskGroup { get; set; }
         public bool IsChecked { get => IsCompleted; set => IsCompleted = value; } 
@@ -104,8 +103,8 @@ namespace CheckListNotes.Models
                 var language = AppResourcesLisener.Languages;
                 if (IsCompleted)
                 {
-                    var dateText = ExpirationDate?.ToString("dd/MM/yyyy");
-                    var timeText = ExpirationDate?.ToString("hh:mm tt");
+                    var dateText = CompletedDate?.ToString("dd/MM/yyyy");
+                    var timeText = CompletedDate?.ToString("hh:mm tt");
                     if (IsDaily == true)
                         text = string.Format(language["TaskListTaskCellDailyCompletionText"], timeText);
                     else text = string.Format(language["TaskListTaskCellNormalCompletionText"],
@@ -270,15 +269,14 @@ namespace CheckListNotes.Models
         /// <returns>Retorna verdadero o falso segun el resultado.</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null || GetType() != obj.GetType()) return false;
-
-            var value = obj as CheckTaskViewModel;
+            if (!(obj is CheckTaskViewModel value)) return false;
 
             if (value.Name != this.Name) return false;
             if (value.ToastId != this.ToastId) return false;
             if (value.NotifyOn != this.NotifyOn) return false;
-            if (value.LastSubId != this.LastSubId) return false;
+            if (value.Position != this.Position) return false;
             if (value.IsTaskGroup != this.IsTaskGroup) return false;
+            if (value.HasExpiration != this.HasExpiration) return false;
             if (value.ExpirationDate != this.ExpirationDate) return false;
             if (value.CompletedDate != this.CompletedDate) return false;
             if (value.ReminderTime != this.ReminderTime) return false;
@@ -286,7 +284,7 @@ namespace CheckListNotes.Models
             if (value.IsChecked != this.IsChecked) return false;
             if (value.IsDaily != this.IsDaily) return false;
 
-            return true;
+            return base.Equals(obj);
         }
 
         public override int GetHashCode() => base.GetHashCode();
@@ -315,8 +313,8 @@ namespace CheckListNotes.Models
             Name = null;
             isDaily = null;
             ToastId = null;
+            Position = null;
             notifyOn = null;
-            LastSubId = null;
             TotalTasks = null;
             expiration = null;
             IsTaskGroup = null;
@@ -344,14 +342,19 @@ namespace CheckListNotes.Models
 
         #endregion
 
+        public CheckListViewModel() { }
+        public CheckListViewModel(string name, bool isTask = false)
+        { Name = name; IsTask = isTask; }
+
         #region Base Atributes
 
         public int? LastId { get; set; }
-        public bool? IsTask { get; set; }
-        public string Name { get; set; }
+        public int? Position { get; set; }
         public string OldName { get; set; }
         public int? CompletedTasks { get; set; }
         public int? TotalTasks { get; set; }
+        public bool? IsTask { get; set; }
+        public string Name { get; set; }
 
         #endregion
 
@@ -421,6 +424,7 @@ namespace CheckListNotes.Models
             isAnimating = null;
             isDisposing = null;
             TotalTasks = null;
+            Position = null;
             OldName = null;
             LastId = null;
             IsTask = null;

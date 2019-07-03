@@ -9,7 +9,7 @@
     {
         public string Id { get; set; }
         public string Name { get; set; }
-        public int? LastSubId { get; set; }
+        public int? Position { get; set; }
         public string ToastId { get; set; }
         public DateTime? ReminderTime { get; set; }
         public DateTime? ExpirationDate { get; set; }
@@ -26,14 +26,14 @@
         {
             Id = null;
             Name = null;
-            LastSubId = null;
             ToastId = null;
+            Position = null;
             ReminderTime = null;
             ExpirationDate = null;
-            NotifyOn = null;
             CompletedDate = null;
             IsTaskGroup = null;
             IsChecked = null;
+            NotifyOn = null;
             IsDaily = null;
             if (SubTasks != null)
             {
