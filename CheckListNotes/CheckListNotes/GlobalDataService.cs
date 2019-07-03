@@ -222,13 +222,13 @@ namespace CheckListNotes
                 int? lastPosition = null;
                 if (index?.Contains(".") == true)
                 {
+                    UpdateTasksCompletisionInCascade(model.CheckListTasks, index, data.IsChecked);
                     var parentTask = IndexNavigation(model.CheckListTasks, 
                         index.RemoveLastSplit('.'));
                     task = parentTask.SubTasks.Find(m => m.Id == index);
                     if (task.IsChecked != data.IsChecked)
                         lastPosition = GetLastIndex(parentTask.SubTasks, data.IsChecked);
                     task.IsChecked = data.IsChecked;
-                    parentTask.IsChecked = !parentTask.SubTasks.Any(m => m.IsChecked == false);
                 }
                 else
                 {
@@ -251,6 +251,27 @@ namespace CheckListNotes
 
                 int GetLastIndex(List<CheckTaskModel> list, bool value) =>
                     list.Where(m => m.IsChecked == value).Count();
+            }
+        }
+
+        public static void UpdateTasksCompletisionInCascade(List<CheckTaskModel> list, string index, bool value, int deep = 0)
+        {
+            if (deep == 0)
+            {
+                var parentTask = IndexNavigation(list, index.RemoveLastSplit('.'));
+                var task = parentTask.SubTasks.Find(m => m.Id == index);
+                task.IsChecked = value;
+                parentTask.IsChecked = !parentTask.SubTasks.Any(m => m.IsChecked == false);
+                UpdateTasksCompletisionInCascade(list, index, value, deep + 2);
+            }
+            else
+            {
+                var lastIndex = index.Split('.').Length - 1;
+                var range = lastIndex - deep;
+                var newIndex = index.GetSplitRange(0, range, '.');
+                var parentTask = IndexNavigation(list, index.GetSplitRange(0, range, '.'));
+                parentTask.IsChecked = !parentTask.SubTasks.Any(m => m.IsChecked == false);
+                if (range > 0) UpdateTasksCompletisionInCascade(list, index, value, deep + 1);
             }
         }
 
@@ -388,11 +409,11 @@ namespace CheckListNotes
 
         #region Navigation
 
-        public static CheckTaskModel IndexNavigation(List<CheckTaskModel> list, string uri, int deep = 1)
+        public static CheckTaskModel IndexNavigation(List<CheckTaskModel> list, string uri, int deep = 0)
         {
             using (var cleaner = new ExplicitGarbageCollector())
             { 
-                if (uri.Contains(".") && deep < uri.Split('.').Length)
+                if (uri.Contains(".") && deep < uri.Split('.').Length - 1)
                 {
                     var taskId = uri.GetSplitRange(".", endValue: deep);
                     var model = list.FirstOrDefault(m => m.Id == taskId);
