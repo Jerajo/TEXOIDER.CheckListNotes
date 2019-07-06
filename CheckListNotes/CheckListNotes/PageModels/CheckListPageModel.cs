@@ -63,7 +63,7 @@ namespace CheckListNotes.PageModels
             }
         }
 
-        public FulyObservableCollection<CheckTaskViewModel> Tasks { get; set; }
+        public FulyObservableCollection<ICardModel> Tasks { get; set; }
 
         public Random Randomizer { get; private set; }
 
@@ -102,10 +102,30 @@ namespace CheckListNotes.PageModels
 
         #region Commands
 
-        private void SaveListPositionsCommand()
+        private async void SaveListPositionsCommand()
         {
-            // TODO: Save the entire list with update list method instead
-            foreach (var task in Tasks) GlobalDataService.UpdateTask(task);
+            if (IsLooked == true || IsDisposing == true || Tasks is null || Tasks.Count < 2) return;
+            IsLooked = true;
+            var model = await GlobalDataService.GetCurrentList();
+            var value = TabIndex == 1;
+            List<CheckTaskModel> list;
+            if (!string.IsNullOrEmpty(GlobalDataService.CurrentIndex))
+            {
+                var parentTask = GlobalDataService.IndexNavigation(model.CheckListTasks,
+                    GlobalDataService.CurrentIndex.RemoveLastSplit());
+                list = parentTask?.SubTasks.Where(m => m.IsChecked == value).ToList();
+            }
+            else list = model?.CheckListTasks.Where(m => m.IsChecked == value).ToList();
+
+            if (list is null || list.Count < 2) return;
+            foreach (var task in list)
+            {
+                var item = Tasks.FirstOrDefault(m => m.Id == task.Id);
+                if (item is null || task.Position == item.Position) continue;
+                else task.Position = item.Position;
+            }
+            await GlobalDataService.UpdateList(model);
+            IsLooked = false;
         }
 
         private async void AddNewTaskCommand()
@@ -132,10 +152,21 @@ namespace CheckListNotes.PageModels
                 var language = AppResourcesLisener.Languages;
                 var title = string.Format(language["AlertDeleteTitle"], model.Name);
                 var message = language["TaskListDeleteTaskMessage"];
-                var resoult = await ShowAlertQuestion(title, message);
+                var resoult = await ShowAlertQuestion(title, message, ButtonModel.ButtonDelete, ButtonModel.ButtonCancel);
                 if (resoult)
                 {
-                    try { GlobalDataService.RemoveTask(model.Id); Tasks.Remove(model); }
+                    try
+                    {
+                        GlobalDataService.RemoveTask(model.Id);
+                        Tasks.Remove(model);
+                        foreach (var item in Tasks)
+                        {
+                            var index = Tasks.IndexOf(item);
+                            if (item.Position == index) continue;
+                            else item.Position = index;
+                        }
+                        IsLooked = false; SaveListPositionsCommand();
+                    }
                     catch (Exception ex)
                     {
                         await ShowAlertError(ex.Message);
@@ -165,7 +196,7 @@ namespace CheckListNotes.PageModels
         {
             if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
-            if (CheckListModel.IsTask == true)
+            if (CheckListModel.IsTaskGroup == true)
             {
                 var currentIndex = GlobalDataService.CurrentIndex;
                 GlobalDataService.CurrentIndex = currentIndex.RemoveLastSplit('.');
@@ -194,7 +225,7 @@ namespace CheckListNotes.PageModels
             IsLooked = !(HasLoaded = true);
         }
 
-        protected override void ViewIsDisappearing(object sender, EventArgs e)
+        protected override void OnDisposing()
         {
             IsDisposing = true;
             CheckListModel = null;
@@ -208,7 +239,6 @@ namespace CheckListNotes.PageModels
             tabIndex = null;
             previousIndex = null;
             previousTabIndex = null;
-            base.ViewIsDisappearing(sender, e);
             GC.Collect();
             IsDisposing = false;
         }
@@ -221,7 +251,6 @@ namespace CheckListNotes.PageModels
                 Tasks.ItemPropertyChanged -= ItemPropertyChanged;
                 Tasks.Dispose();
                 Tasks = null;
-                GC.Collect();
             }
         }
 
@@ -248,7 +277,7 @@ namespace CheckListNotes.PageModels
 
             Randomizer = new Random();
 
-            Tasks = new FulyObservableCollection<CheckTaskViewModel>();
+            Tasks = new FulyObservableCollection<ICardModel>();
             Tasks.ItemPropertyChanged += ItemPropertyChanged;
             this.WhenAny(RunTaskSafe, m => m.TabIndex);
 
@@ -272,9 +301,12 @@ namespace CheckListNotes.PageModels
                     taskHanlder.Token), taskHanlder.Token);
                 else
                 {
-                    if (!loadingTask.IsCompleted) taskHanlder.Cancel();
-                    await Task.Delay(200);
-                    taskHanlder = new CancellationTokenSource();
+                    if (!loadingTask.IsCompleted)
+                    {
+                        taskHanlder.Cancel();
+                        await Task.Delay(200);
+                        taskHanlder = new CancellationTokenSource();
+                    }
                     loadingTask = Task.Run(() => LoadTask(taskHanlder.Token),
                         taskHanlder.Token);
                 }
@@ -291,17 +323,17 @@ namespace CheckListNotes.PageModels
 
         private Task LoadTask(CancellationToken token)
         {
-            if (token.IsCancellationRequested) return Task.FromCanceled(token);
+            token.ThrowIfCancellationRequested();
             if (Tasks != null) Tasks.ClearItems();
-            if (token.IsCancellationRequested) return Task.FromCanceled(token);
+            token.ThrowIfCancellationRequested();
 
             var value = TabIndex == 1;
 
             foreach (var task in GetTasks(GetAllTasks(), value))
             {
-                if (token.IsCancellationRequested && Tasks != null)
-                    return Task.FromCanceled(token);
-                if (IsDisposing == false) Tasks?.Add(task);
+                if (Tasks == null || IsDisposing == true || token.IsCancellationRequested)
+                    throw new OperationCanceledException(token);
+                Tasks?.Add(task);
                 Task.Delay(100).Wait();
             }
 
@@ -416,8 +448,9 @@ namespace CheckListNotes.PageModels
             {
                 if (TabIndex == 0 && Tasks != null && Tasks?.Count > 0)
                 {
-                    foreach (var task in Tasks.Where(m => m.HasExpiration == true))
-                        task.RisePropertyChanged(nameof(task.CellBackgroundColor));
+                    foreach (var item in Tasks.Where(m => m.HasExpiration == true))
+                        if (item is CheckTaskViewModel task)
+                            task.RisePropertyChanged(nameof(task.CellBackgroundColor));
                 }
                 await Task.Delay(TimeSpan.FromMinutes(1));
             }

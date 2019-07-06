@@ -35,17 +35,6 @@ namespace CheckListNotes.Pages.UserControls
             control.MaterialContainer.ShadowColor = newValue;
         }
 
-        protected virtual void SwitchToggling(object sender, PropertyChangingEventArgs e)
-        {
-            if (e.PropertyName != nameof(SwitchIsCompleted.IsToggled)) return;
-            Device.BeginInvokeOnMainThread(async () =>
-            {
-                SwitchIsCompleted.IsEnabled = false;
-                await Task.Delay(300);
-                SwitchIsCompleted.IsEnabled = true;
-            });
-        }
-
         #endregion
 
         #region Methods

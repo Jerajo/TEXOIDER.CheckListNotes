@@ -19,7 +19,7 @@
     <!--#endregion-->
 
     <ContentPage.Content>
-        <Grid RowSpacing="0">
+        <Grid x:Name="MainGrid" RowSpacing="0">
             <!--#region Rows-->
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -117,6 +117,7 @@
                     ShadowPosition="AtThePadding"
                     SurfaceColor="{DynamicResource ContentDP03}">
                     <Button
+                        x:Name="NewTaskButton"
                         Margin="4"
                         BackgroundColor="{StaticResource Transparent}"
                         Command="{Binding AddNewTask}"
@@ -125,6 +126,12 @@
                         Text="{DynamicResource TaskListButtonNewTaskText}"
                         TextColor="{DynamicResource ContentPrimary}"
                         VerticalOptions="Center" />
+                    <Label
+                        HorizontalOptions="Center"
+                        IsVisible="{Binding IsLooked}"
+                        Text="{DynamicResource LoadingMessage}"
+                        TextColor="{DynamicResource FontColor}"
+                        VerticalOptions="FillAndExpand" />
                 </uc:MaterialGrid>
                 <!--#endregion-->
             </Grid>

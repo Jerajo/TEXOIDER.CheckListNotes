@@ -1,16 +1,11 @@
-﻿using Xamarin.Forms;
+﻿using System.IO;
+using SkiaSharp;
+using System.Text;
+using Xamarin.Forms;
 using System.Diagnostics;
 using CheckListNotes.Models;
-using System;
-using System.IO;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using Xamarin.Forms.Xaml;
+using SkiaSharp.Views.Forms;
 using SVG = SkiaSharp.Extended.Svg;
-using SkiaSharp;
-using System.Xml;
-using System.Text;
-using Xamarin.Essentials;
 
 namespace CheckListNotes
 {
@@ -95,45 +90,57 @@ namespace CheckListNotes
     {
         public ImageSource this[string index]
         {
-            get
-            {
-                var svgText = (string)App.Current.Resources[index];
-                using (var xmlReader = new MemoryStream(Encoding.Default.GetBytes(svgText)))
-                    return GetSvg(xmlReader, index);
-            }
+            get => GetImageSource(index);
         }
 
-        private ImageSource GetSvg(Stream strm, string index)
+        public ImageSource GetImageSource(string index, Color? color = null, int? size = null) => ImageSource.FromStream(() => 
         {
-            string sFile = $"{FileSystem.AppDataDirectory}/{Path.GetFileNameWithoutExtension(index)}.png";
-
-            if (File.Exists(sFile))
-                return ImageSource.FromStream(() => File.OpenRead(sFile));
-
+            var imgSize = size ?? (int)App.Current.Resources["IconsSize"];
+            var imgColor = color ?? AppResourcesLisener.Themes["FontColorInverse"];
+            var svgText = (string)App.Current.Resources[index];
+            var xmlReader = new MemoryStream(Encoding.Default.GetBytes(svgText));
             SVG.SKSvg svg = new SVG.SKSvg();
-            svg.Load(strm);
+            svg.Load(xmlReader);
 
-            using (SKBitmap bitmap = new SKBitmap((int)svg.CanvasSize.Width, (int)svg.CanvasSize.Height))
-            using (SKCanvas canvas = new SKCanvas(bitmap))
-            {
-                canvas.DrawPicture(svg.Picture);
-                canvas.Flush();
-                canvas.Save();
+            SKBitmap bitmap = new SKBitmap((int)svg.CanvasSize.Width, (int)svg.CanvasSize.Height);
+            SKCanvas canvas = new SKCanvas(bitmap);
 
-                using (SKImage image = SKImage.FromBitmap(bitmap))
-                using (SKData data = image.Encode(SKEncodedImageFormat.Png, 100))
-                using (MemoryStream memStream = new MemoryStream())
-                {
-                    data.SaveTo(memStream);
-                    memStream.Seek(0, SeekOrigin.Begin);
-                    //imgSource = ImageSource.FromStream(() => memStream);
-                    
-                    FileStream fileStream = new FileStream(sFile, FileMode.Create);
-                    memStream.CopyTo(fileStream);
-                    return ImageSource.FromStream(() => File.OpenRead(sFile));
-                }
-            }
+            var paint = new SKPaint();
+            paint.ColorFilter = SKColorFilter.CreateBlendMode(imgColor.ToSKColor(), SKBlendMode.SrcIn);
+
+            canvas.Clear();
+            canvas.DrawPicture(svg.Picture, paint);
+            canvas.Flush();
+            canvas.Save();
+
+            SKImage image = SKImage.FromBitmap(GetResizedBitmap(bitmap, imgSize));
+            SKData data = image.Encode(SKEncodedImageFormat.Png, 100);
+            return data.AsStream();
+        });
+
+        private SKBitmap GetResizedBitmap(SKBitmap bitmap, int size)
+        {
+            SKBitmap scaledBitmap = new SKBitmap(size, size);
+            var resoult = bitmap.ScalePixels(scaledBitmap, SKFilterQuality.High);
+            return resoult ? scaledBitmap : bitmap;
         }
+
+        /*x //-------------------------// Deprecated //-------------------------//
+         * string sFile = $"{FileSystem.AppDataDirectory}/{Path.GetFileNameWithoutExtension(index)}.png";
+         * if (File.Exists(sFile))
+         *     return ImageSource.FromStream(() => File.OpenRead(sFile));
+         *     
+         * //Save data in a file 
+         * using (MemoryStream memStream = new MemoryStream())
+         * {
+         *     data.SaveTo(memStream);
+         *     memStream.Seek(0, SeekOrigin.Begin);
+         *     imgSource = ImageSource.FromStream(() => memStream);
+         *     FileStream fileStream = new FileStream(sFile, FileMode.Create);
+         *     memStream.CopyTo(fileStream);
+         *     return ImageSource.FromStream(() => File.OpenRead(sFile));
+         * }
+         */
     }
 
     public class ThemeResources

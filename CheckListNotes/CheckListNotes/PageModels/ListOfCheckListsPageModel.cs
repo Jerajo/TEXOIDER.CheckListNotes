@@ -46,7 +46,7 @@ namespace CheckListNotes.PageModels
             }
         }
 
-        public FulyObservableCollection<CheckListViewModel> ListOfCheckLists { get; set; }
+        public FulyObservableCollection<ICardModel> ListOfCheckLists { get; set; }
 
         public string ExampleListName { get; private set; }
 
@@ -79,11 +79,32 @@ namespace CheckListNotes.PageModels
             get => new DelegateCommand(new Action(CancelCommand));
         }
 
+        public ICommand SaveListPositions
+        {
+            get => new DelegateCommand(new Action(SaveListPositionsCommand));
+        }
+
         #endregion
 
         #endregion
 
         #region Commands
+
+        private async void SaveListPositionsCommand()
+        {
+            if (IsLooked == true || IsDisposing == true || ListOfCheckLists is null || ListOfCheckLists.Count < 2) return;
+            IsLooked = true;
+            foreach (var list in ListOfCheckLists)
+            {
+                var model = await GlobalDataService.GetCurrentList(list.Name);
+                if (model.Position != list.Position)
+                {
+                    model.Position = list.Position;
+                    await GlobalDataService.UpdateList(model);
+                }
+            }
+            IsLooked = false;
+        }
 
         private async void SaveCommand()
         {
@@ -102,7 +123,7 @@ namespace CheckListNotes.PageModels
                     }
                     if (!string.IsNullOrEmpty(oldName))
                     {
-                        await GlobalDataService.UpdateList(oldName, CheckListName);
+                        await GlobalDataService.RenameList(oldName, CheckListName);
                         temporalList.OldName = temporalList.Name = CheckListName.Substring(0);
                         CheckListName = "";
                         IsLooked = false;
@@ -139,7 +160,7 @@ namespace CheckListNotes.PageModels
                 var language = AppResourcesLisener.Languages;
                 var title = string.Format(language["AlertDeleteTitle"], model.Name);
                 var message = language["ListOfListDeleteListMessage"];
-                var resoult = await ShowAlertQuestion(title, message);
+                var resoult = await ShowAlertQuestion(title, message, ButtonModel.ButtonDelete, ButtonModel.ButtonCancel);
                 if (resoult)
                 {
                     ListOfCheckLists.Remove(model);
@@ -205,7 +226,7 @@ namespace CheckListNotes.PageModels
             IsLooked = !(HasLoaded = true);
         }
 
-        protected override void ViewIsDisappearing(object sender, EventArgs e)
+        protected override void OnDisposing()
         {
             IsDisposing = true;
             if (ListOfCheckLists != null)
@@ -219,7 +240,6 @@ namespace CheckListNotes.PageModels
                 Errors.Clear();
                 Errors = null;
             }
-            base.ViewIsDisappearing(sender, e);
             GC.Collect();
             IsDisposing = false;
         }
@@ -232,9 +252,9 @@ namespace CheckListNotes.PageModels
         {
             InitData = data ?? 0;
 
-            ListOfCheckLists = new FulyObservableCollection<CheckListViewModel>();
-            
-            foreach (var item in GlobalDataService.GetAllLists())
+            ListOfCheckLists = new FulyObservableCollection<ICardModel>();
+
+            foreach (var item in GlobalDataService.GetAllLists().OrderBy(m => m.Position))
             {
                 await Task.Delay(100);
                 ListOfCheckLists.Add(new CheckListViewModel
@@ -244,7 +264,8 @@ namespace CheckListNotes.PageModels
                     OldName = item.Name,
                     CompletedTasks = item.CheckListTasks.Where(m => 
                         m.IsChecked == true).Count(),
-                    TotalTasks = item.CheckListTasks.Count()
+                    TotalTasks = item.CheckListTasks.Count(),
+                    IsTaskGroup = true
                 });
             }
 
@@ -301,7 +322,7 @@ namespace CheckListNotes.PageModels
         {
             if (!string.IsNullOrEmpty(ExampleListName))
                 AppResourcesLisener.Current.PropertyChanged -= OnLanguageChanged;
-            ViewIsDisappearing(null, null);
+            OnDisposing();
 #if DEBUG
             Debug.WriteLine("Object destroyed: [ Id: {1}, Name: {0} ].", this.GetHashCode(), nameof(ListOfCheckListsPageModel));
 #endif

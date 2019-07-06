@@ -4,13 +4,14 @@ using Xamarin.Forms.Xaml;
 using System.Diagnostics;
 using CheckListNotes.Models;
 using PortableClasses.Enums;
-using PortableClasses.Services;
 using System.Threading.Tasks;
+using PortableClasses.Services;
+using CheckListNotes.Pages.UserControls;
 
 namespace CheckListNotes.Pages
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class ListOfCheckListsPage : ContentPage
+    public partial class ListOfCheckListsPage : ContentPage, IPage
     {
         public ListOfCheckListsPage()
         {
@@ -19,8 +20,31 @@ namespace CheckListNotes.Pages
             NavigationPage.SetHasBackButton(this, false);
             NavigationPage.SetHasNavigationBar(this, false);
 
-            //AddDebugControls();
+            SizeChanged += PageSizeChanged;
+
+            AddDebugControls(); //Debug
         }
+
+        #region Events
+
+        private void PageSizeChanged(object sender, EventArgs e)
+        {
+            bool isLandSkape = Height < Width;
+        }
+
+        protected override void OnDisappearing()
+        {
+            CardBoard.ClearValues();
+            base.OnDisappearing();
+        }
+
+        #endregion
+
+        #region Methods
+
+        public Grid GetMainGrid() => MainGrid;
+
+        #endregion
 
         #region Debug Methods
 
@@ -34,19 +58,18 @@ namespace CheckListNotes.Pages
             var AlarmButton = new Button { Text = "Alertar",
                 Command = new Command(() => ShowAlarm(null, null)) };
 
-            var colorConverter = this.Resources["StringToColor"] as IValueConverter;
-            notyfyButton.SetBinding(Button.TextColorProperty, "FontColor", 
-                converter: colorConverter);
-            notyfyButton.SetBinding(BackgroundColorProperty, "ButtonBackgroundColor", 
-                converter: colorConverter);
-            AlarmButton.SetBinding(Button.TextColorProperty, "FontColor", 
-                converter: colorConverter);
-            AlarmButton.SetBinding(BackgroundColorProperty, "ButtonBackgroundColor", 
-                converter: colorConverter);
+            var fontColor = AppResourcesLisener.Themes["FontColor"];
+            notyfyButton.SetValue(Button.TextColorProperty, fontColor);
+            notyfyButton.SetValue(BackgroundColorProperty, Color.Transparent);
+            AlarmButton.SetValue(Button.TextColorProperty, fontColor);
+            AlarmButton.SetValue(BackgroundColorProperty, Color.Transparent);
+
 
             grid.Children.Add(notyfyButton, 0, 0);
             grid.Children.Add(AlarmButton, 1, 0);
-            //StackLayoutFooter.Children.Add(grid);
+            Footer.RowDefinitions.Add(new RowDefinition());
+            Footer.RowDefinitions.Add(new RowDefinition());
+            Footer.Children.Add(grid, 0, 1);
         }
 
         [Conditional("DEBUG")]
@@ -86,18 +109,8 @@ namespace CheckListNotes.Pages
             }
         }
 
+        
+
         #endregion
-
-        private void Button_Clicked(object sender, EventArgs e)
-        {
-            if (!(sender is Button control)) return;
-            if (!(control.Parent is StackLayout parent)) return;
-
-            var index = parent.Children.IndexOf(control);
-            parent.Children.Remove(control);
-            if (index == 0) parent.Children.Insert(index + 1, control);
-            else if (index == 1) parent.Children.Add(control);
-            else parent.Children.Insert(0, control);
-        }
     }
 }

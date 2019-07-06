@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Linq;
 using Xamarin.Forms;
+using TouchTracking;
 using System.Diagnostics;
 using Xamarin.Forms.Xaml;
 using System.Collections;
+using TouchTracking.Forms;
 using System.Windows.Input;
 using CheckListNotes.Models;
+using PortableClasses.Enums;
+using System.ComponentModel;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using PortableClasses.Implementations;
-using PortableClasses.Enums;
-using TouchTracking.Forms;
-using TouchTracking;
-using System.ComponentModel;
-using PortableClasses.Extensions;
-using System.Collections.Generic;
 
 namespace CheckListNotes.Pages.UserControls
 {
@@ -49,27 +48,27 @@ namespace CheckListNotes.Pages.UserControls
 
         #region Bindable Properties
 
-        public FulyObservableCollection<CheckTaskViewModel> ItemsSource
+        public FulyObservableCollection<ICardModel> ItemsSource
         {
-            get => (FulyObservableCollection<CheckTaskViewModel>)GetValue(ItemsSourceProperty);
+            get => (FulyObservableCollection<ICardModel>)GetValue(ItemsSourceProperty);
             set => SetValue(ItemsSourceProperty, value);
         }
 
         public static readonly BindableProperty ItemsSourceProperty =
             BindableProperty.Create(nameof(ItemsSource),
-            typeof(FulyObservableCollection<CheckTaskViewModel>),
+            typeof(FulyObservableCollection<ICardModel>),
             typeof(ViewBoadCardList), null, BindingMode.TwoWay,
             propertyChanged: ItemsSourcePropertyChanged);
 
-        public CheckTaskViewModel SelectedItem
+        public ICardModel SelectedItem
         {
-            get => (CheckTaskViewModel)GetValue(SelectedItemProperty);
+            get => (ICardModel)GetValue(SelectedItemProperty);
             set => SetValue(SelectedItemProperty, value);
         }
 
         public static readonly BindableProperty SelectedItemProperty =
             BindableProperty.Create(nameof(SelectedItem),
-            typeof(CheckTaskViewModel), typeof(ViewBoadCardList), null, BindingMode.OneWayToSource);
+            typeof(ICardModel), typeof(ViewBoadCardList), null, BindingMode.OneWayToSource);
 
         public double SwipeDistance
         {
@@ -112,12 +111,12 @@ namespace CheckListNotes.Pages.UserControls
         private static void ItemsSourcePropertyChanged(BindableObject bindable, object oldValue, object newValue)
         {
             if (!(bindable is ViewBoadCardList control)) return;
-            if (newValue is FulyObservableCollection<CheckTaskViewModel> newList)
+            if (newValue is FulyObservableCollection<ICardModel> newList)
             {
                 newList.CollectionChanged += control.OnCollectionChanged;
                 newList.ItemPropertyChanged += control.OnSelectedReasonPropertyChanged;
             }
-            else if (oldValue is FulyObservableCollection<CheckTaskViewModel> oldList)
+            else if (oldValue is FulyObservableCollection<ICardModel> oldList)
             {
                 oldList.CollectionChanged -= control.OnCollectionChanged;
                 oldList.ItemPropertyChanged -= control.OnSelectedReasonPropertyChanged;
@@ -139,7 +138,7 @@ namespace CheckListNotes.Pages.UserControls
                 { // ContentSecundary
                     control.ShadowColor = (Color)App.Current.Resources["ContentPrimary"];
                     await control.ScaleTo(.98, 300, Easing.SpringOut);
-                    SelectedItem = control.BindingContext as CheckTaskViewModel;
+                    SelectedItem = control.BindingContext as ICardModel;
                 });
             }
         }
@@ -149,15 +148,15 @@ namespace CheckListNotes.Pages.UserControls
             if (isDisposing == true) return;
             if (!e.IsInContact && selectedFor == null) return;
             if (card == null && GetControlByPosition(e) == null) { ClearValues(); return; }
-            if (!(card.BindingContext is CheckTaskViewModel item)) { ClearValues();  return; }
-            if (selectedFor == null && !await SelectFor(item, e)) return;
-            if (selectedFor == SelectedFor.Insert) await VerticalAnimation(item, e);
-            else if (selectedFor != null) await HorizontalAnimation(item, e);
+            if (!(card.BindingContext is ICardModel)) { ClearValues();  return; }
+            if (selectedFor == null && !await SelectFor(e)) return;
+            if (selectedFor == SelectedFor.Insert) await VerticalAnimation(e);
+            else if (selectedFor != null) await HorizontalAnimation(e);
         }
 
         protected virtual void OnSelectedReasonPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (isDisposing == true || !(sender is CheckTaskViewModel item)) return;
+            if (isDisposing == true || !(sender is ICardModel item)) return;
             if (e.PropertyName == "SelectedReason" && item.SelectedReason == SelectedFor.Create)
                 ResetAnimations();
         }
@@ -186,10 +185,10 @@ namespace CheckListNotes.Pages.UserControls
                     }
                     else
                     {
-                        if (ContainerCount == 0) AddItem(newItems[0] as CheckTaskViewModel);
+                        if (ContainerCount == 0) AddItem(newItems[0] as ICardModel);
                         else
                         {
-                            AddItem(newItems[0] as CheckTaskViewModel, newIndex);
+                            AddItem(newItems[0] as ICardModel, newIndex);
                             if (newIndex < lastIndex) UpdateAfectedItems(newIndex);
                         }
                     }
@@ -210,7 +209,7 @@ namespace CheckListNotes.Pages.UserControls
                         RemoveItem(oldIndex);
                         if (oldIndex < lastIndex) UpdateAfectedItems(oldIndex);
                     }
-                    break;
+                    GC.Collect(); break;
             }
             void UpdateAfectedItems(int? value = null)
             {
@@ -241,7 +240,7 @@ namespace CheckListNotes.Pages.UserControls
             Container = new StackLayout
             {
                 VerticalOptions = LayoutOptions.FillAndExpand,
-                Padding = new Thickness(0, 10, 0, 100),
+                Padding = new Thickness(0, 20, 0, 100),
                 Spacing = 20
             };
             Container.Effects.Add(touchEffet);
@@ -253,49 +252,47 @@ namespace CheckListNotes.Pages.UserControls
 
         #region Items Animations
 
-        private Task VerticalAnimation(CheckTaskViewModel item, TouchActionEventArgs e)
+        private Task VerticalAnimation(TouchActionEventArgs e)
         {
             if (isDisposing == true) return Task.CompletedTask;
+            var item = (ICardModel)card.BindingContext;
             if (e.Type == TouchActionType.Moved && e.IsInContact)
             {
                 var bounds = card.Bounds;
                 y = e.Location.Y - (bounds.Y + bounds.Height / 2);
                 card.TranslationY = y;
-                var z = card.Y;
                 distance.Y = Math.Abs(bounds.Y - Math.Abs(y));
 
                 if (previousContent != null && previousContent.Y > distance.Y)
                 {
-                    MoveItem(previousContent, position);
+                    MoveItem(previousContent, position--);
                     nextContent = previousContent;
-                    item.Position = --position;
                     MoveItem(backgroundContent, position);
                     previousContent = position > 0 ?
                         Container.Children.ElementAt(position - 1) : null;
-                    UpdatedListCommand?.Execute(null);
                 }
                 else if (nextContent != null && nextContent.Y < distance.Y)
                 {
-                    MoveItem(previousContent, position);
+                    MoveItem(previousContent, position++);
                     previousContent = nextContent;
-                    item.Position = ++position;
                     MoveItem(backgroundContent, position);
                     nextContent = position < ContainerCount - 2 ?
                         Container.Children.ElementAt(position + 1) : null;
-                    UpdatedListCommand?.Execute(null);
                 }
             }
             else if (isDisposing == false)
             {
                 ResetAnimations();
-                item.IsAnimating = false;
+                UpdatedListCommand?.Execute(null);
+                if (item != null) item.IsAnimating = false;
             }
             return Task.CompletedTask;
         }
 
-        private async Task HorizontalAnimation(CheckTaskViewModel item, TouchActionEventArgs e)
+        private async Task HorizontalAnimation(TouchActionEventArgs e)
         {
             if (isDisposing == true) return;
+            var item = (ICardModel)card.BindingContext;
             if (e.Type == TouchActionType.Moved && e.IsInContact)
             {
                 x = e.Location.X - (mousePoint.X - controlPoint.X);
@@ -397,12 +394,12 @@ namespace CheckListNotes.Pages.UserControls
             if (Container?.Children == null) return;
             foreach (var item in items)
             {
-                if (startIndex != null) AddItem(item as CheckTaskViewModel, startIndex++);
-                else AddItem(item as CheckTaskViewModel);
+                if (startIndex != null) AddItem(item as ICardModel, startIndex++);
+                else AddItem(item as ICardModel);
             }
         }
 
-        protected virtual void AddItem(CheckTaskViewModel item, int? index = null)
+        protected virtual void AddItem(ICardModel item, int? index = null)
         {
             Device.BeginInvokeOnMainThread(() =>
             {
@@ -432,7 +429,6 @@ namespace CheckListNotes.Pages.UserControls
                 if (this.Container?.Children.Count <= 0) return;
                 this.Container.Children[index].BindingContext = null;
                 this.Container.Children.RemoveAt(index);
-                GC.Collect();
             });
         }
 
@@ -448,14 +444,15 @@ namespace CheckListNotes.Pages.UserControls
             if (this.Container?.Children.Contains(item) == false) return;
             this.Container.Children.Remove(item);
             this.Container.Children.Insert(index, item);
-            if (item is CardView control && control.BindingContext is CheckTaskViewModel model) model.Position = index;
+            if (item.BindingContext is ICardModel model && model.Position != index)
+                model.Position = index;
         }
 
         #endregion
 
         #region Auxiliary Methods
 
-        private CardView CreateCard(CheckTaskViewModel item)
+        private CardView CreateCard(ICardModel item)
         {
             if (item == null) return null;
             var control = new CardView();
@@ -483,8 +480,11 @@ namespace CheckListNotes.Pages.UserControls
             return null;
         }
 
-        private Task<bool> SelectFor(CheckTaskViewModel item, TouchActionEventArgs e)
+        private Task<bool> SelectFor(TouchActionEventArgs e)
         {
+            var item = (ICardModel)card.BindingContext;
+            if (item is null) return Task.FromResult(false);
+
             var diferenceX = mousePoint.X - e.Location.X;
             var diferenceY = mousePoint.Y - e.Location.Y;
             if (diferenceX == diferenceY) return Task.FromResult(false);
@@ -533,26 +533,45 @@ namespace CheckListNotes.Pages.UserControls
                 case SelectedFor.Update:
                 case SelectedFor.Delete:
                     var grid = new Grid();
+                    var stackPanel = new StackLayout
+                    {
+                        HorizontalOptions = LayoutOptions.Start,
+                        Orientation = StackOrientation.Horizontal
+                    };
+                    var sgvImage = new Image
+                    {
+                        Source = AppResourcesLisener.Images["Data-Edit"],
+                    };
                     var label = new Label
                     {
-                        Margin = 10,
                         VerticalOptions = LayoutOptions.CenterAndExpand,
-                        HorizontalOptions = LayoutOptions.Start,
                         Text = AppResourcesLisener.Languages["ButtonEditText"],
                         TextColor = AppResourcesLisener.Themes["FontColorInverse"],
                         FontAttributes = FontAttributes.Bold
                     };
-                    grid.Children.Add(label);
+                    stackPanel.Children.Add(sgvImage);
+                    stackPanel.Children.Add(label);
+                    grid.Children.Add(stackPanel);
+                    var stackPanel2 = new StackLayout
+                    {
+                        HorizontalOptions = LayoutOptions.End,
+                        Orientation = StackOrientation.Horizontal
+                    };
+                    var sgvImage2 = new Image
+                    {
+                        Source = AppResourcesLisener.Images["Garbage-Closed"],
+                    };
                     var label2 = new Label
                     {
-                        Margin = 10,
                         VerticalOptions = LayoutOptions.CenterAndExpand,
-                        HorizontalOptions = LayoutOptions.End,
                         Text = AppResourcesLisener.Languages["ButtonDeleteText"],
                         TextColor = AppResourcesLisener.Themes["FontColorInverse"],
                         FontAttributes = FontAttributes.Bold
                     };
-                    grid.Children.Add(label2); return grid;
+                    stackPanel2.Children.Add(label2);
+                    stackPanel2.Children.Add(sgvImage2);
+                    grid.Children.Add(stackPanel2);
+                    return grid;
                 default: return null;
             }
         }
@@ -564,7 +583,7 @@ namespace CheckListNotes.Pages.UserControls
             for (var i = index; i < ItemsSource.Count; i++) UpdateItem(ItemsSource[i]);
         }
 
-        private void UpdateItem(CheckTaskViewModel item)
+        private void UpdateItem(ICardModel item)
         {
             if (ItemsSource == null || ItemsSource.Count <= 0) return;
             var position = ItemsSource.IndexOf(item);

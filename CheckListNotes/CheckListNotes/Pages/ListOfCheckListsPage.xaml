@@ -3,7 +3,6 @@
     x:Class="CheckListNotes.Pages.ListOfCheckListsPage"
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:behavior="clr-namespace:CheckListNotes.Pages.Behaviors"
     xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters"
     xmlns:uc="clr-namespace:CheckListNotes.Pages.UserControls"
     BackgroundColor="{DynamicResource ContentDP00}">
@@ -20,7 +19,7 @@
     <!--#endregion-->
 
     <ContentPage.Content>
-        <Grid RowSpacing="0">
+        <Grid x:Name="MainGrid" RowSpacing="0">
             <!--#region Rows-->
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -33,29 +32,42 @@
                 Grid.Row="1"
                 Margin="0,-10,0,0"
                 RowSpacing="0">
+                <!--#region Rows-->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <!--#endregion-->
+
                 <!--#region Content-->
-                <ListView
-                    x:Name="ListViewTaskList"
-                    HasUnevenRows="true"
+                <uc:ViewBoadCardList
+                    x:Name="CardBoard"
+                    Margin="0,0,0,-10"
                     ItemsSource="{Binding ListOfCheckLists}"
-                    SelectedItem="{Binding SelectedCheckList}">
-                    <ListView.Behaviors>
-                        <behavior:EventToCommandBehavior
-                            Command="{Binding UpdateOrRemove}"
-                            Converter="{x:StaticResource SelectedItemToCommandParameter}"
-                            EventName="ItemSelected" />
-                        <behavior:ListViewCorrectDeselectItemBehavior />
-                    </ListView.Behaviors>
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
-                            <uc:CheckListCell />
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                    SelectedItem="{Binding SelectedCheckList}"
+                    UpdatedListCommand="{Binding SaveListPositions}"
+                    UpdatedOrDeleteItemCommand="{Binding UpdateOrRemove}" />
                 <!--#endregion-->
 
                 <!--#region Footer-->
+                <uc:MaterialGrid
+                    x:Name="Footer"
+                    Grid.Row="1"
+                    Padding="0,10,0,0"
+                    ColumnSpacing="0"
+                    CornerRadius="0"
+                    ShadowPosition="AtThePadding"
+                    SurfaceColor="{DynamicResource ContentDP03}">
+                    <Label
+                        HorizontalOptions="Center"
+                        IsVisible="{Binding IsLooked}"
+                        Text="{DynamicResource LoadingMessage}"
+                        TextColor="{DynamicResource FontColor}"
+                        VerticalOptions="FillAndExpand" />
+                </uc:MaterialGrid>
+
                 <uc:SVGImaggeButton
+                    Grid.RowSpan="2"
                     Margin="20"
                     BackgroundColor="{DynamicResource ContentPrimary}"
                     Command="{Binding OpenForm}"
@@ -84,6 +96,7 @@
 
             <!--#region Header-->
             <uc:MaterialGrid
+                x:Name="GridHeader"
                 Padding="0,0,0,10"
                 ColumnSpacing="0"
                 CornerRadius="0"
@@ -185,31 +198,6 @@
                 </uc:MaterialGrid>
             </Grid>
             <!--#endregion-->
-
-            <StackLayout
-                Grid.Row="1"
-                Margin="20"
-                Padding="0,10,0,100"
-                BackgroundColor="{DynamicResource ContentDP00}"
-                HorizontalOptions="FillAndExpand"
-                IsVisible="False"
-                VerticalOptions="Center">
-                <Button
-                    BackgroundColor="Red"
-                    Clicked="Button_Clicked"
-                    Text="Primero"
-                    TextColor="{DynamicResource FontColor}" />
-                <Button
-                    BackgroundColor="Blue"
-                    Clicked="Button_Clicked"
-                    Text="Segundo"
-                    TextColor="{DynamicResource FontColor}" />
-                <Button
-                    BackgroundColor="Green"
-                    Clicked="Button_Clicked"
-                    Text="Tercero"
-                    TextColor="{DynamicResource FontColor}" />
-            </StackLayout>
         </Grid>
     </ContentPage.Content>
 </ContentPage>

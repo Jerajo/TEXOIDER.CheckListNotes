@@ -9,7 +9,7 @@ using System.Collections.Generic;
 namespace CheckListNotes.Models
 {
     [AddINotifyPropertyChangedInterfaceAttribute]
-    public class CheckTaskViewModel : BaseModel, IDisposable
+    public class CheckTaskViewModel : BaseModel, ICardModel, IDisposable
     {
         #region Atributes
 
@@ -332,7 +332,7 @@ namespace CheckListNotes.Models
     }
 
     [AddINotifyPropertyChangedInterfaceAttribute]
-    public class CheckListViewModel : BaseModel, IDisposable
+    public class CheckListViewModel : BaseModel, ICardModel, IDisposable
     {
         #region Atributes
 
@@ -344,16 +344,20 @@ namespace CheckListNotes.Models
 
         public CheckListViewModel() { }
         public CheckListViewModel(string name, bool isTask = false)
-        { Name = name; IsTask = isTask; }
+        { Name = name; IsTaskGroup = isTask; }
 
         #region Base Atributes
 
+        public string Id { get; set; }
         public int? LastId { get; set; }
         public int? Position { get; set; }
         public string OldName { get; set; }
+        public bool? HasExpiration { get; set; }
+        public string CompletedDateText { get; }
+        public string ExpirationDateText { get; }
         public int? CompletedTasks { get; set; }
+        public bool? IsTaskGroup { get; set; }
         public int? TotalTasks { get; set; }
-        public bool? IsTask { get; set; }
         public string Name { get; set; }
 
         #endregion
@@ -399,6 +403,11 @@ namespace CheckListNotes.Models
             }
         }
 
+        public Color CellBackgroundColor
+        {
+            get => AppResourcesLisener.Themes["ContentDP02"];
+        }
+
         #endregion
 
         #region Dispose
@@ -421,14 +430,16 @@ namespace CheckListNotes.Models
         {
             CompletedTasks = null;
             selectedReason = null;
+            HasExpiration = null;
+            IsTaskGroup = null;
             isAnimating = null;
             isDisposing = null;
             TotalTasks = null;
             Position = null;
             OldName = null;
             LastId = null;
-            IsTask = null;
             Name = null;
+            Id = null;
         }
 
         #endregion

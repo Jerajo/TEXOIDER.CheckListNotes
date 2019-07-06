@@ -4,12 +4,19 @@
     xmlns="http://xamarin.com/schemas/2014/forms"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:CheckListNotes.Pages.UserControls">
-    <Grid>
+    <Grid RowSpacing="0">
         <!--#region Rows-->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <!--#endregion-->
+
+        <!--#region Content-->
+        <ContentView
+            x:Name="ItemsContainer"
+            Grid.Row="1"
+            Margin="0,-10,0,0" />
         <!--#endregion-->
 
         <!--#region Header-->
@@ -41,7 +48,7 @@
                     BackgroundColor="{StaticResource Transparent}"
                     Clicked="OnTabTapped"
                     FontAttributes="Bold"
-                    Text="{DynamicResource TaskListCompletedTabTitle}"
+                    Text="{DynamicResource TaskListPendientTabTitle}"
                     TextColor="{DynamicResource FontColor}" />
             </Grid>
 
@@ -56,13 +63,6 @@
             </Grid>
             <!--#endregion-->
         </local:MaterialGrid>
-        <!--#endregion-->
-
-        <!--#region Content-->
-        <ContentView
-            x:Name="ItemsContainer"
-            Grid.Row="1"
-            Margin="0,-10,0,0" />
         <!--#endregion-->
     </Grid>
 </ContentView>

@@ -1,13 +1,12 @@
 ﻿using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 using System.Diagnostics;
-using System.ComponentModel;
-using System.Threading.Tasks;
+using CheckListNotes.Models;
 
 namespace CheckListNotes.Pages
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class CheckListPage : ContentPage
+    public partial class CheckListPage : ContentPage, IPage
     {
         public CheckListPage()
         {
@@ -15,6 +14,8 @@ namespace CheckListNotes.Pages
 
             NavigationPage.SetHasBackButton(this, false);
             NavigationPage.SetHasNavigationBar(this, false);
+
+            NewTaskButton.ImageSource = AppResourcesLisener.Images.GetImageSource("Add-New-Icon", AppResourcesLisener.Themes["ContentPrimary"], 26);
         }
 
         protected override void OnDisappearing()
@@ -22,6 +23,12 @@ namespace CheckListNotes.Pages
             CardBoard.ClearValues();
             base.OnDisappearing();
         }
+
+        #region Methods
+
+        public Grid GetMainGrid() => MainGrid;
+
+        #endregion
 
         #region Dispose
 

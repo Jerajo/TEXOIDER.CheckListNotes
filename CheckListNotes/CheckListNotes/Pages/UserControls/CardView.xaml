@@ -22,7 +22,7 @@
             Margin="10,0"
             Padding="10"
             x:FieldModifier="public"
-            SurfaceColor="{DynamicResource ContentDP01}">
+            SurfaceColor="{Binding CellBackgroundColor}">
             <StackLayout>
                 <!--#region Text-->
                 <Grid RowSpacing="0">
@@ -59,12 +59,10 @@
 
                     <!--#region Swich-->
                     <Switch
-                        x:Name="SwitchIsCompleted"
                         Grid.Column="1"
                         IsTabStop="False"
                         IsToggled="{Binding IsChecked, Mode=TwoWay}"
                         IsVisible="{Binding IsTaskGroup, Converter={x:StaticResource InverseBool}, Mode=OneWay}"
-                        PropertyChanging="SwitchToggling"
                         VerticalOptions="Center" />
                     <!--#endregion-->
                 </Grid>
