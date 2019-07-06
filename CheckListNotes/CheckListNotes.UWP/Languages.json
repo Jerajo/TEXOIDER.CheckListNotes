@@ -96,7 +96,7 @@
         "ExampleListToastExampleTitle": "Esto es una notificación",
         "ExampleListTaskToastExampleMessage": "Esta tarea vence en una hora",
 
-        "AlertErrorTitle": "Ha ocurrido un fallo en la operación!",
+        "AlertErrorTitle": "La operación no tuvo éxito!",
         "AlertDeleteTitle": "¿Desea eliminar \"{0}\"?",
         "AlertLoseDataTitle": "Al realizar esta acción perderá todas las subtareas!",
         "AlertLoseNotSavedDataTitle": "Al salir perderá los cambios no guardados!",
@@ -204,7 +204,7 @@
         "ExampleListToastExampleTitle": "This is a notification",
         "ExampleListTaskToastExampleMessage": "This task expires in one hour",
 
-        "AlertErrorTitle": "A fault in the operation has occurred!",
+        "AlertErrorTitle": "The operation did not succeed!",
         "AlertDeleteTitle": "Do you want to delete \"{0}\"?",
         "AlertLoseDataTitle": "By performing this action you will lose all subtasks!",
         "AlertLoseNotSavedDataTitle": "When leaving you will lose the unsaved changes!",
@@ -312,7 +312,7 @@
         "ExampleListToastExampleTitle": "Ceci est une notification",
         "ExampleListTaskToastExampleMessage": "Cette tâche expire dans une heure",
 
-        "AlertErrorTitle": "Une erreur dans l'opération est survenue!",
+        "AlertErrorTitle": "L'opération n'a pas réussi!",
         "AlertDeleteTitle": "Voulez-vous supprimer \"{0} \"?",
         "AlertLoseDataTitle": "En effectuant cette action, vous perdrez toutes les tâches subordonnées!",
         "AlertLoseNotSavedDataTitle": "En partant, vous perdrez les modifications non enregistrées!",

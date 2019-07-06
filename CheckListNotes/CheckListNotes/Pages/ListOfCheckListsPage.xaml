@@ -139,42 +139,34 @@
                 Grid.RowSpan="2"
                 BackgroundColor="{DynamicResource Blocker}"
                 IsVisible="{Binding IsNewListFormVisible}">
-                <uc:MaterialGrid
-                    Margin="60,0"
+                <StackLayout
                     Padding="20"
-                    CornerRadius="10"
-                    HorizontalOptions="FillAndExpand"
-                    ShadowSize="10"
-                    SurfaceColor="{DynamicResource ContentDP04}"
+                    BackgroundColor="{DynamicResource ContentSecundary}"
+                    HorizontalOptions="Center"
                     VerticalOptions="Center">
-                    <!--#region Rows-->
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+                    <!--#region Content-->
+                    <!--<Label
+                        FontSize="Title"
+                        Text="{DynamicResource ListOfListFormNewListTitle}"
+                        TextColor="{DynamicResource FontColor}" />-->
+                    <Label
+                        FontSize="Title"
+                        LineBreakMode="CharacterWrap"
+                        Text="{DynamicResource ListOfListEntryListNameTitle}"
+                        TextColor="{DynamicResource FontColor}" />
+                    <Entry
+                        BackgroundColor="{StaticResource Transparent}"
+                        IsSpellCheckEnabled="True"
+                        IsTextPredictionEnabled="True"
+                        Keyboard="Text"
+                        MaxLength="50"
+                        Placeholder="{DynamicResource ListOfListEntryListNamePlaceHolder}"
+                        Text="{Binding CheckListName, Mode=TwoWay}"
+                        TextColor="{DynamicResource FontColor}" />
                     <!--#endregion-->
 
-                    <Label
-                        FontAttributes="Bold"
-                        Text="{DynamicResource ListOfListFormNewListTitle}"
-                        TextColor="{DynamicResource FontColor}" />
-
-                    <StackLayout Grid.Row="1" VerticalOptions="CenterAndExpand">
-                        <Label Text="{DynamicResource ListOfListEntryListNameTitle}" TextColor="{DynamicResource FontColor}" />
-                        <Entry
-                            BackgroundColor="{StaticResource Transparent}"
-                            IsSpellCheckEnabled="True"
-                            IsTextPredictionEnabled="True"
-                            Keyboard="Text"
-                            MaxLength="50"
-                            Placeholder="{DynamicResource ListOfListEntryListNamePlaceHolder}"
-                            Text="{Binding CheckListName, Mode=TwoWay}"
-                            TextColor="{DynamicResource FontColor}" />
-                    </StackLayout>
-
                     <!--#region Buttons-->
-                    <Grid Grid.Row="2">
+                    <Grid>
                         <!--#region Culums-->
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -183,19 +175,19 @@
                         <!--#endregion-->
 
                         <Button
-                            BackgroundColor="{StaticResource Transparent}"
+                            BackgroundColor="{DynamicResource Good}"
                             Command="{Binding Save}"
                             Text="{DynamicResource ButtonSaveText}"
-                            TextColor="{DynamicResource Good}" />
+                            TextColor="{DynamicResource FontColor}" />
                         <Button
                             Grid.Column="1"
-                            BackgroundColor="{StaticResource Transparent}"
+                            BackgroundColor="{StaticResource ContentDP01}"
                             Command="{Binding Cancel}"
                             Text="{DynamicResource ButtonCancelText}"
                             TextColor="{DynamicResource FontColor}" />
                     </Grid>
                     <!--#endregion-->
-                </uc:MaterialGrid>
+                </StackLayout>
             </Grid>
             <!--#endregion-->
         </Grid>
