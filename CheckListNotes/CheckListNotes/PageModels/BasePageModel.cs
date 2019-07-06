@@ -1,11 +1,10 @@
 ﻿using System;
 using FreshMvvm;
-using Xamarin.Forms;
 using PropertyChanged;
 using CheckListNotes.Models;
-using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using CheckListNotes.Pages.UserControls;
 
 namespace CheckListNotes.PageModels
 {
@@ -39,7 +38,11 @@ namespace CheckListNotes.PageModels
         /// <summary>
         /// Indicate whether the page is loocked or not.
         /// </summary>
-        public bool? IsLooked { get; protected set; }
+        public bool? IsLooked
+        {
+            get => GlobalDataService.IsProcesing;
+            protected set => GlobalDataService.IsProcesing = value ?? false;
+        }
 
         /// <summary>
         /// Indicate whether the pageModel is disposing or not.
@@ -88,30 +91,43 @@ namespace CheckListNotes.PageModels
 
         #region Methods
 
+        #region Virtuals
+
+        protected virtual void OnDisposing() { }
+
+        #endregion
+
         #region Navigation
 
-        public Task PushPageModel<T>(object data) where T : FreshBasePageModel => CoreMethods.PushPageModel<T>(data, animate: true);
+        public Task PushPageModel<T>(object data) where T : FreshBasePageModel
+        {
+            Task.Run(() => OnDisposing());
+            return CoreMethods.PushPageModel<T>(data, animate: true);
+        }
 
-        public Task PopPageModel(object data) => CoreMethods.PopPageModel(data, animate: true);
+        public Task PopPageModel(object data)
+        {
+            Task.Run(() => OnDisposing());
+            return CoreMethods.PopPageModel(data, animate: true);
+        }
 
         #endregion
 
         #region Alerts
 
-        public Task<bool> ShowAlertQuestion(string title, string message)
+        public Task<bool> ShowAlertQuestion(string title, string message, params ButtonModel[] models)
         {
-            var language = AppResourcesLisener.Languages;
-            var accept = language["ButtonOkText"];
-            var cancel = language["ButtonCancelText"];
-            return Application.Current.MainPage.DisplayAlert(title, message, accept, cancel);
+            var page = CurrentPage as IPage;
+            var mainGrid = page.GetMainGrid();
+            return CustomDialog.Show(mainGrid, title, message, models);
         }
 
         public Task ShowAlertError(string message)
         {
-            var language = AppResourcesLisener.Languages;
-            var title = language["AlertErrorTitle"];
-            var cancel = language["ButtonOkText"];
-            return Application.Current.MainPage.DisplayAlert(title, message, cancel);
+            var page = CurrentPage as IPage;
+            var mainGrid = page.GetMainGrid();
+            var title = AppResourcesLisener.Languages["AlertErrorTitle"];
+            return CustomDialog.Show(mainGrid, title, message, ButtonModel.ButtonOk);
         }
 
         #endregion
@@ -161,8 +177,6 @@ namespace CheckListNotes.PageModels
         {
             PageTitle = null;
             HasLoaded = null;
-            IsLooked = null;
-            IsDisposing = null;
             HasChanges = null;
             IsEditing = null;
             InitData = null;
@@ -171,6 +185,7 @@ namespace CheckListNotes.PageModels
                 Errors.Clear();
                 Errors = null;
             }
+            IsDisposing = null;
         }
 
         #endregion

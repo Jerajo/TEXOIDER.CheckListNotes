@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentView
+    x:Class="CheckListNotes.Pages.UserControls.CustomDialog"
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:uc="clr-namespace:CheckListNotes.Pages.UserControls">
+
+    <Grid BackgroundColor="{DynamicResource Blocker}">
+        <uc:MaterialGrid
+            Margin="60,0"
+            Padding="20"
+            CornerRadius="10"
+            HorizontalOptions="Center"
+            ShadowSize="10"
+            SurfaceColor="{DynamicResource ContentDP04}"
+            VerticalOptions="Center">
+            <!--#region Rows-->
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <!--#endregion-->
+
+            <!--#region Body-->
+            <Label
+                x:Name="Title"
+                FontSize="Title"
+                LineBreakMode="CharacterWrap"
+                TextColor="{DynamicResource FontColor}" />
+            <Label
+                x:Name="Message"
+                Grid.Row="1"
+                LineBreakMode="CharacterWrap"
+                TextColor="{DynamicResource FontColor}" />
+            <!--#endregion-->
+
+            <!--#region Buttons-->
+            <Grid x:Name="Footer" Grid.Row="2" />
+            <!--#endregion-->
+        </uc:MaterialGrid>
+    </Grid>
+
+</ContentView>

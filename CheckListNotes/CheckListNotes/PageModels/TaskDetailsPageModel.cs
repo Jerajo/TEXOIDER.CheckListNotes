@@ -117,12 +117,11 @@ namespace CheckListNotes.PageModels
             IsLooked = !(HasLoaded = true);
         }
 
-        protected override void ViewIsDisappearing(object sender, EventArgs e)
+        protected override void OnDisposing()
         {
             IsDisposing = true;
             Task = null;
             InitData = null;
-            base.ViewIsDisappearing(sender, e);
             IsDisposing = false;
         }
 
@@ -145,22 +144,19 @@ namespace CheckListNotes.PageModels
 
             var task = await GlobalDataService.GetCurrentTask();
 
-            Device.BeginInvokeOnMainThread(() => 
-            { 
-                Task = new CheckTaskViewModel
-                {
-                    Id = task.Id,
-                    Name = task.Name,
-                    NotifyOn = task.NotifyOn,
-                    ExpirationDate = task.ExpirationDate,
-                    HasExpiration = task.ExpirationDate != null,
-                    Expiration = task.ExpirationDate?.TimeOfDay,
-                    CompletedDate = task.CompletedDate,
-                    ReminderTime = task.ReminderTime,
-                    IsChecked = task.IsChecked ?? false,
-                    IsDaily = task.IsDaily
-                };
-            });
+            Task = new CheckTaskViewModel
+            {
+                Id = task.Id,
+                Name = task.Name,
+                NotifyOn = task.NotifyOn,
+                ExpirationDate = task.ExpirationDate,
+                HasExpiration = task.ExpirationDate != null,
+                Expiration = task.ExpirationDate?.TimeOfDay,
+                CompletedDate = task.CompletedDate,
+                ReminderTime = task.ReminderTime,
+                IsChecked = task.IsChecked ?? false,
+                IsDaily = task.IsDaily
+            };
         }
 
         #endregion

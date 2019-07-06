@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Amporis.Xamarin.Forms.ColorPicker;
+using CheckListNotes.Models;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 namespace CheckListNotes.Pages
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class OptionsPage : ContentPage
+    public partial class OptionsPage : ContentPage, IPage
     {
         public OptionsPage()
         {
@@ -37,9 +38,16 @@ namespace CheckListNotes.Pages
         private async void Button_Clicked(object sender, System.EventArgs e)
         {
             var buttonColor = (sender as Button).BackgroundColor;
-            var color = await ColorPickerDialog.Show(GridMain, "Seleccione un color", buttonColor);
+            var color = await ColorPickerDialog.Show(MainGrid, 
+                AppResourcesLisener.Languages["OptionsSelectColorText"], buttonColor);
             if (color != null) (sender as Button).BackgroundColor = color;
         }
+
+        #endregion
+
+        #region Methods
+
+        public Grid GetMainGrid() => MainGrid;
 
         #endregion
 

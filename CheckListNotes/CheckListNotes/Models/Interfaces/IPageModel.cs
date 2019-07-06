@@ -5,7 +5,7 @@
     public interface IPageModel
     {
         void Init(object initData);
-        Task<bool> ShowAlertQuestion(string title, string message);
+        Task<bool> ShowAlertQuestion(string title, string message, params ButtonModel[] models);
         Task ShowAlertError(string message);
         Task PushPageModel<T>(object data) where T : FreshBasePageModel;
         Task PopPageModel(object data);

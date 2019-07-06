@@ -1,12 +1,13 @@
 ﻿using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 using System.Diagnostics;
+using CheckListNotes.Models;
 using CheckListNotes.PageModels.Converters;
 
 namespace CheckListNotes.Pages
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class TaskPage : ContentPage
+    public partial class TaskPage : ContentPage, IPage
     {
         public TaskPage()
         {
@@ -17,6 +18,12 @@ namespace CheckListNotes.Pages
 
             AddDebugControls();
         }
+
+        #region Methods
+
+        public Grid GetMainGrid() => MainGrid;
+
+        #endregion
 
         #region Debug Controls
 

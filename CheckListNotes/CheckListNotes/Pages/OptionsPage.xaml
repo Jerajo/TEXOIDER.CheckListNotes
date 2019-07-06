@@ -19,7 +19,7 @@
     <!--#endregion-->
 
     <ContentPage.Content>
-        <Grid x:Name="GridMain" RowSpacing="0">
+        <Grid x:Name="MainGrid" RowSpacing="0">
             <!--#region Rows-->
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />

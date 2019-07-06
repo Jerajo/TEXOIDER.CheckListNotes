@@ -18,7 +18,7 @@
     <!--#endregion-->
 
     <ContentPage.Content>
-        <Grid RowSpacing="0">
+        <Grid x:Name="MainGrid" RowSpacing="0">
             <!--#region Rows-->
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -92,18 +92,29 @@
                     <!--#endregion-->
 
                     <Button
+                        x:Name="DeleteButton"
                         Margin="4"
                         BackgroundColor="{StaticResource Transparent}"
                         Command="{Binding Remove}"
                         Text="{DynamicResource ButtonDeleteText}"
                         TextColor="{DynamicResource Error}" />
+
+                    <Label
+                        Grid.Column="1"
+                        HorizontalOptions="Center"
+                        IsVisible="{Binding IsLooked}"
+                        Text="{DynamicResource LoadingMessage}"
+                        TextColor="{DynamicResource FontColor}"
+                        VerticalOptions="FillAndExpand" />
+
                     <Button
+                        x:Name="EditButton"
                         Grid.Column="2"
                         Margin="4"
                         BackgroundColor="{StaticResource Transparent}"
                         Command="{Binding Edit}"
                         Text="{DynamicResource ButtonEditText}"
-                        TextColor="{DynamicResource FontColor}" />
+                        TextColor="{DynamicResource ContentPrimary}" />
                 </uc:MaterialGrid>
                 <!--#endregion-->
             </Grid>

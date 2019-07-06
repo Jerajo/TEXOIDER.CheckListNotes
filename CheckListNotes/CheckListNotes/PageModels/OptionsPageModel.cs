@@ -347,7 +347,7 @@ namespace CheckListNotes.PageModels
             IsLooked = !(HasLoaded = true);
         }
 
-        protected override void ViewIsDisappearing(object sender, EventArgs e)
+        protected override void OnDisposing()
         {
             IsDisposing = true;
             if (Themes != null)
@@ -375,7 +375,6 @@ namespace CheckListNotes.PageModels
                 TouchSounds.Clear();
                 TouchSounds = null;
             }
-            base.ViewIsAppearing(sender, e);
             IsDisposing = false;
         }
 
