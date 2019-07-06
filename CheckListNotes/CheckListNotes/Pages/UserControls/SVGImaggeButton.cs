@@ -17,7 +17,7 @@ namespace CheckListNotes.Pages.UserControls
         #region Atributes
 
 #if DEBUG
-        int invalidate = 0, draws = 0, loads = 0;
+        //int invalidate = 0, draws = 0, loads = 0;
 #endif
         bool? svgLoaded;
         bool? svgLoading;
@@ -87,7 +87,7 @@ namespace CheckListNotes.Pages.UserControls
             if (propertyName != nameof(SVGSource) && propertyName != nameof(IconColor) &&
                 propertyName != nameof(Width) && propertyName != nameof(Height)) return;
 #if DEBUG
-            Debug.WriteLine($"Invalidation #{++invalidate}");
+            //Debug.WriteLine($"Invalidation #{++invalidate}");
 #endif
             this.InvalidateMeasure();
         }
@@ -134,7 +134,7 @@ namespace CheckListNotes.Pages.UserControls
             bitmap = new SKBitmap((int)(bounds.Width * ratio), (int)(bounds.Height * ratio));
             canvas = new SKCanvas(bitmap);
 #if DEBUG
-            Debug.WriteLine($"Load #{++loads}");
+            //Debug.WriteLine($"Load #{++loads}");
 #endif
             return (svgLoaded = true).Value;
         }
@@ -180,7 +180,7 @@ namespace CheckListNotes.Pages.UserControls
                 svgLoading = false;
             });
 #if DEBUG
-            Debug.WriteLine($"Draw #{++draws}");
+            //Debug.WriteLine($"Draw #{++draws}");
 #endif
         }
 

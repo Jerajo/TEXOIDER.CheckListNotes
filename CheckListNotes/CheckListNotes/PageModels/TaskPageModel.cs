@@ -169,13 +169,12 @@ namespace CheckListNotes.PageModels
             IsLooked = HasChanges = !(HasLoaded = true);
         }
 
-        protected override void ViewIsDisappearing(object sender, EventArgs e)
+        protected override void OnDisposing()
         {
             IsDisposing = true;
             Task.PropertyChanged -= TaskPropertyChanged;
             OldTask = null;
             Task = null;
-            base.ViewIsDisappearing(sender, e);
             IsDisposing = false;
         }
 

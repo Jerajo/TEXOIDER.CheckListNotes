@@ -15,7 +15,7 @@ namespace CheckListNotes.Pages.UserControls
         #region Atributes
 
 #if DEBUG
-        int draws = 0, invalidations = 0, repositions = 0;
+        //int draws = 0, invalidations = 0, repositions = 0;
 #endif
         bool? hasChanges;
         bool? isDrawing;
@@ -95,14 +95,16 @@ namespace CheckListNotes.Pages.UserControls
 
         #region Events
 
+        protected override void OnAdded(View view)
+        {
+            base.OnAdded(view);
+            ChangeGridSpan();
+        }
+
         protected override void OnPropertyChanged(string propertyName)
         {
             base.OnPropertyChanged(propertyName);
-
-            if (ColumnDefinitions.Count > 0 && Grid.GetColumnSpan(canvas) != ColumnDefinitions.Count) Grid.SetColumnSpan(canvas, ColumnDefinitions.Count);
-
-            if (RowDefinitions.Count > 0 && Grid.GetRowSpan(canvas) != RowDefinitions.Count)
-                Grid.SetRowSpan(canvas, RowDefinitions.Count);
+            ChangeGridSpan();
         }
 
         private static void OnPropertyChanged(BindableObject bindable, object oldValue, object newValue)
@@ -276,6 +278,20 @@ namespace CheckListNotes.Pages.UserControls
         #endregion
 
         #region Auxiliary Methods
+
+        private void ChangeGridSpan()
+        {
+            if (ColumnDefinitions.Count > 0)
+            {
+                if (Grid.GetColumnSpan(canvas) != ColumnDefinitions.Count)
+                    Grid.SetColumnSpan(canvas, ColumnDefinitions.Count);
+            }
+            if (RowDefinitions.Count > 0)
+            { 
+                if (Grid.GetRowSpan(canvas) != RowDefinitions.Count)
+                    Grid.SetRowSpan(canvas, RowDefinitions.Count);
+            }
+        }
 
         private bool HasChanges()
         {

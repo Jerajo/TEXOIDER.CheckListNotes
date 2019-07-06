@@ -13,12 +13,8 @@ namespace CheckListNotes.Pages.UserControls
         bool changind;
         public bool IsChangind
         {
-            get => changind;
-            set
-            {
-                changind = value;
-                Task.Run(async () => changind = await changind.ToggleOn(1500));
-            }
+            get => (GlobalDataService.IsProcesing || changind);
+            set => GlobalDataService.IsProcesing = changind = value;
         }
 
         #endregion
@@ -46,7 +42,7 @@ namespace CheckListNotes.Pages.UserControls
             else if (changind || SelectedTabIndex == e.NewPosition) e.Canceled = true;
             else
             {
-                GlobalDataService.IsProcesing = IsChangind = true;
+                IsChangind = true;
                 base.OnPositionChanging(ref e);
             }
         }
@@ -57,6 +53,7 @@ namespace CheckListNotes.Pages.UserControls
             userChange = true;
             this.CurrentIndex = e.NewPosition;
             base.OnPositionChanged(e);
+            IsChangind = false;
         }
 
         private static void CurrentIndexPropertyChanged(BindableObject bindable, object oldValue, object newValue)
@@ -65,7 +62,6 @@ namespace CheckListNotes.Pages.UserControls
             if (control == null || control.userChange == true) return;
             if (control?.SelectedTabIndex == (int)newValue) return;
             control.userChange = false;
-            //control.SelectedTabIndex = (int)newValue;
             control?.SetPosition((int)newValue);
         }
 

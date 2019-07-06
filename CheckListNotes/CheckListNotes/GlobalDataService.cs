@@ -22,7 +22,6 @@ namespace CheckListNotes
 
         static readonly string storageFolder = FileSystem.AppDataDirectory;
         static Random randomizer = new Random();
-        static bool isProcesing = false;
         static bool hasLoaded = false;
         static string listName;
         static string taskIndex;
@@ -50,15 +49,7 @@ namespace CheckListNotes
         /// <summary>
         /// Indicate whether the app is procesing and action or not.
         /// </summary>
-        public static bool IsProcesing
-        {
-            get => isProcesing;
-            set
-            {
-                isProcesing = value;
-                Task.Run(async () => isProcesing = await isProcesing.ToggleOn(300));
-            }
-        }
+        public static bool IsProcesing { get; set; }
 
         /// <summary>
         /// Storage the last requested list name.
@@ -194,7 +185,15 @@ namespace CheckListNotes
         #region Update Methods
 
         // Update the list on LocalFolder/Data/fileName.bin
-        public static async Task UpdateList(string oldName, string newName)
+        public static async Task UpdateList(CheckListTasksModel list)
+        {
+            using (var cleaner = new ExplicitGarbageCollector())
+            {
+                await Write(list, $"{storageFolder}/Data/{list.Name}.bin");
+            }
+        }
+
+        public static async Task RenameList(string oldName, string newName)
         {
             using (var cleaner = new ExplicitGarbageCollector())
             { 
@@ -222,12 +221,15 @@ namespace CheckListNotes
                 int? lastPosition = null;
                 if (index?.Contains(".") == true)
                 {
-                    UpdateTasksCompletisionInCascade(model.CheckListTasks, index, data.IsChecked);
+                    
                     var parentTask = IndexNavigation(model.CheckListTasks, 
                         index.RemoveLastSplit('.'));
                     task = parentTask.SubTasks.Find(m => m.Id == index);
                     if (task.IsChecked != data.IsChecked)
+                    {
+                        UpdateTasksCompletisionInCascade(model.CheckListTasks, index, data.IsChecked);
                         lastPosition = GetLastIndex(parentTask.SubTasks, data.IsChecked);
+                    }
                     task.IsChecked = data.IsChecked;
                 }
                 else
@@ -441,7 +443,7 @@ namespace CheckListNotes
 
         #region Write
 
-        private static Task Write(object data, string pathToFile)
+        public static Task Write(object data, string pathToFile)
         {
             return Task.Run(() => (new FileService()).Write(data, pathToFile)).TryTo();
         }
