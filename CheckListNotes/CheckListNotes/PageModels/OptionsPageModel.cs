@@ -332,7 +332,7 @@ namespace CheckListNotes.PageModels
 
         public override async void Init(object initData)
         {
-            IsLooked = !(HasLoaded = false);
+            IsLooked = !(IsDisposing = HasLoaded = false);
 
             await Task.Run(() => 
             {
@@ -349,7 +349,6 @@ namespace CheckListNotes.PageModels
 
         protected override void OnDisposing()
         {
-            IsDisposing = true;
             if (Themes != null)
             {
                 Themes.Clear();
@@ -375,7 +374,6 @@ namespace CheckListNotes.PageModels
                 TouchSounds.Clear();
                 TouchSounds = null;
             }
-            IsDisposing = false;
         }
 
         #endregion

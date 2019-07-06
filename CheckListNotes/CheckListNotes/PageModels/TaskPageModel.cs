@@ -111,7 +111,7 @@ namespace CheckListNotes.PageModels
 
         public override async void Init(object initData)
         {
-            IsLooked = !(HasLoaded = false);
+            IsLooked = !(IsDisposing = HasLoaded = false);
 
             var language = AppResourcesLisener.Languages;
 
@@ -171,11 +171,9 @@ namespace CheckListNotes.PageModels
 
         protected override void OnDisposing()
         {
-            IsDisposing = true;
             Task.PropertyChanged -= TaskPropertyChanged;
             OldTask = null;
             Task = null;
-            IsDisposing = false;
         }
 
         #endregion

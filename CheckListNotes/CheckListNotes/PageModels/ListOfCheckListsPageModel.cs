@@ -212,7 +212,7 @@ namespace CheckListNotes.PageModels
 
         public override async void Init(object initData)
         {
-            IsLooked = !(HasLoaded = false);
+            IsLooked = !(IsDisposing = HasLoaded = false);
             await InitializeComponet(initData);
             base.Init(initData);
             IsLooked = !(HasLoaded = true);
@@ -220,7 +220,7 @@ namespace CheckListNotes.PageModels
 
         public override async void ReverseInit(object returndData)
         {
-            IsLooked = !(HasLoaded = false);
+            IsLooked = !(IsDisposing = HasLoaded = false);
             await InitializeComponet(returndData);
             base.ReverseInit(returndData);
             IsLooked = !(HasLoaded = true);
@@ -228,7 +228,6 @@ namespace CheckListNotes.PageModels
 
         protected override void OnDisposing()
         {
-            IsDisposing = true;
             if (ListOfCheckLists != null)
             {
                 ListOfCheckLists.ClearItems();
@@ -241,7 +240,6 @@ namespace CheckListNotes.PageModels
                 Errors = null;
             }
             GC.Collect();
-            IsDisposing = false;
         }
 
         #endregion

@@ -4,6 +4,7 @@ using PropertyChanged;
 using CheckListNotes.Models;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using PortableClasses.Extensions;
 using CheckListNotes.Pages.UserControls;
 
 namespace CheckListNotes.PageModels
@@ -11,7 +12,10 @@ namespace CheckListNotes.PageModels
     [AddINotifyPropertyChangedInterface]
     public class BasePageModel : FreshBasePageModel, IDisposable
     {
-        public BasePageModel() : base() { }
+        public BasePageModel() : base()
+        {
+            this.PageWasPopped += OnPageWasPopped;
+        }
 
         #region SETTERS AND GETTERS
 
@@ -101,14 +105,33 @@ namespace CheckListNotes.PageModels
 
         public Task PushPageModel<T>(object data) where T : FreshBasePageModel
         {
+            IsDisposing = true;
             Task.Run(() => OnDisposing());
             return CoreMethods.PushPageModel<T>(data, animate: true);
         }
 
         public Task PopPageModel(object data)
         {
+            IsDisposing = true;
             Task.Run(() => OnDisposing());
             return CoreMethods.PopPageModel(data, animate: true);
+        }
+
+        private void OnPageWasPopped(object sender, EventArgs e)
+        {
+            if (IsDisposing != true)
+            {
+                IsDisposing = true;
+                Task.Run(() => OnDisposing());
+                if (PreviousPageModel is CheckListPageModel && (sender is TaskDetailsPageModel || (sender is TaskPageModel model && model.IsEditing == true)))
+                {
+                    var index = GlobalDataService.CurrentIndex;
+                    if (index.Contains("."))
+                        GlobalDataService.CurrentIndex = index.RemoveLastSplit('.');
+                    else GlobalDataService.CurrentIndex = null;
+                }
+                PreviousPageModel.ReverseInit(InitData);
+            }
         }
 
         #endregion
@@ -175,6 +198,7 @@ namespace CheckListNotes.PageModels
 
         public void Dispose()
         {
+            this.PageWasPopped -= OnPageWasPopped;
             PageTitle = null;
             HasLoaded = null;
             HasChanges = null;

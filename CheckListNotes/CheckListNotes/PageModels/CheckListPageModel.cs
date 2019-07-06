@@ -41,7 +41,7 @@ namespace CheckListNotes.PageModels
             set
             {
                 if ((previousIndex != GlobalDataService.CurrentIndex
-                    || tabIndex != value) && value != -1) { tabIndex = value; }
+                    || tabIndex != value) && value != -1) { InitData = tabIndex = value; }
             }
         }
 
@@ -211,7 +211,7 @@ namespace CheckListNotes.PageModels
 
         public override async void Init(object initData)
         {
-            IsLooked = !(HasLoaded = false);
+            IsLooked = !(IsDisposing = HasLoaded = false);
             await InitializeComponent(initData);
             base.Init(initData);
             IsLooked = !(HasLoaded = true);
@@ -219,7 +219,7 @@ namespace CheckListNotes.PageModels
 
         public override async void ReverseInit(object returnedData)
         {
-            IsLooked = !(HasLoaded = false);
+            IsLooked = !(IsDisposing = HasLoaded = false);
             await InitializeComponent(returnedData);
             base.ReverseInit(returnedData);
             IsLooked = !(HasLoaded = true);
@@ -227,24 +227,12 @@ namespace CheckListNotes.PageModels
 
         protected override void OnDisposing()
         {
-            IsDisposing = true;
             CheckListModel = null;
             if (Errors != null)
             {
                 Errors.Clear();
                 Errors = null;
             }
-            Randomizer = null;
-            ClearCollection();
-            tabIndex = null;
-            previousIndex = null;
-            previousTabIndex = null;
-            GC.Collect();
-            IsDisposing = false;
-        }
-
-        private void ClearCollection()
-        {
             if (Tasks != null)
             {
                 Tasks.ClearItems();
@@ -252,6 +240,11 @@ namespace CheckListNotes.PageModels
                 Tasks.Dispose();
                 Tasks = null;
             }
+            tabIndex = null;
+            Randomizer = null;
+            previousIndex = null;
+            previousTabIndex = null;
+            GC.Collect();
         }
 
         #endregion

@@ -103,7 +103,7 @@ namespace CheckListNotes.PageModels
 
         public override async void Init(object initData)
         {
-            IsLooked = !(HasLoaded = false);
+            IsLooked = !(IsDisposing = HasLoaded = false);
             await InitializeComponent(initData);
             base.Init(initData);
             IsLooked = !(HasLoaded = true);
@@ -111,7 +111,7 @@ namespace CheckListNotes.PageModels
 
         public override async void ReverseInit(object returnedData)
         {
-            IsLooked = !(HasLoaded = false);
+            IsLooked = !(IsDisposing = HasLoaded = false);
             await InitializeComponent(returnedData);
             base.ReverseInit(returnedData);
             IsLooked = !(HasLoaded = true);
@@ -119,10 +119,8 @@ namespace CheckListNotes.PageModels
 
         protected override void OnDisposing()
         {
-            IsDisposing = true;
             Task = null;
             InitData = null;
-            IsDisposing = false;
         }
 
         #endregion
