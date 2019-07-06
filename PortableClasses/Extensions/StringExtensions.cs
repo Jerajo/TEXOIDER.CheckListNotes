@@ -57,7 +57,7 @@
             startValue = startValue ?? 0;
             endValue = endValue ?? stringSplited.Length;
             var stringShorted = "";
-            for (var i = startValue; i < endValue; i++)
+            for (var i = startValue; i <= endValue; i++)
                 stringShorted += (i == startValue) ? stringSplited[i.Value] : 
                     $".{stringSplited[i.Value]}";
             return stringShorted;

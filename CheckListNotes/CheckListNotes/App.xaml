@@ -124,10 +124,12 @@
             <x:String x:Key="ButtonDeleteText" />
             <x:String x:Key="ButtonSaveText" />
             <x:String x:Key="ButtonCancelText" />
+            <x:String x:Key="LoadingMessage" />
             <!--#endregion-->
             <!--#endregion-->
 
             <!--#region Theme-->
+            <!--#region Colors-->
             <Color x:Key="FontColor" />
             <Color x:Key="FontColorInverse" />
             <Color x:Key="ContentDP00" />
@@ -147,6 +149,15 @@
             <Color x:Key="Progress" />
             <Color x:Key="Remaining" />
             <Color x:Key="Blocker" />
+            <!--#endregion-->
+
+            <!--#region Sizes-->
+            <x:Int32 x:Key="IconsSize">50</x:Int32>
+            <x:Int32 x:Key="HeadersPadding">4</x:Int32>
+            <x:Int32 x:Key="PanelsPadding">8</x:Int32>
+            <x:Int32 x:Key="PanelsMarging">8</x:Int32>
+            <!--#endregion-->
+
             <!--#region Constanst-->
             <Color x:Key="ShadowColor" />
             <Color x:Key="Transparent">#00FFFFFF</Color>
@@ -158,6 +169,11 @@
             <x:String x:Key="Settings">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path d=&quot;M114.187 58.935h27.626V86.56h-27.626zM114.187 114.187h27.626v27.626h-27.626zM114.187 169.439h27.626v27.626h-27.626z&quot;/&gt;&lt;path fill-opacity=&quot;.511&quot; d=&quot;M-159.542 84.952h3.835v1.534h-3.835z&quot;/&gt;&lt;/svg&gt;</x:String>
             <x:String x:Key="Search">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path d=&quot;M114.343 78.855c-16.35 0-30.546 11.182-32.267 26.241-1.72 15.917 11.187 30.545 29.252 31.835 18.07 1.72 33.987-9.897 35.708-26.242 1.72-15.917-11.182-30.545-29.252-31.834zm-.432-19.79c1.721 0 3.873 0 5.594.431 30.114 2.579 52.052 26.673 49.042 53.772-1.29 9.466-5.162 18.07-11.187 25.383l36.57 39.149c4.73 4.73 3.868 12.476-1.72 16.344-5.594 4.304-13.77 3.442-18.501-1.29l-36.997-40.006c-8.604 3.441-18.07 5.162-28.394 4.3-30.114-2.58-52.052-26.669-49.042-53.773 3.01-25.383 27.104-44.31 54.635-44.31z&quot;/&gt;&lt;/svg&gt;</x:String>
             <x:String x:Key="Add-New">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path d=&quot;M111.298 59.002h33.4v52.302H197v33.4h-52.302v52.294h-33.4v-52.294H59v-33.4h52.298z&quot;/&gt;&lt;/svg&gt;</x:String>
+            <x:String x:Key="Garbage-Closed">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path d=&quot;M142.494 117.387v74.804h18.187v-74.804zm-47.057 0v74.804h18.187v-74.804zm-26.582-12.91h118.408V206.69H68.855zM98.22 49.31h59.563V68.31h39.276V88.66H58.94V68.31h39.28z&quot;/&gt;&lt;/svg&gt;</x:String>
+            <x:String x:Key="Data-Edit">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path fill=&quot;#FFF&quot; d=&quot;M79.851 156.859l41.813 22.309L80.908 197zm38.376-70.64l43 24.68-33.025 57.513-2.445-7.353-12.614-1.298-2.16-7.905-12.351-.44-3.48-8.655-9.928.97zm20.665-27.217a6.413 6.413 0 0 1 3.381.833l30.446 17.483c3.7 2.113 4.537 7.62 1.872 12.286l-3.631 6.318-43.853-25.168 3.63-6.34c1.915-3.342 5.128-5.338 8.155-5.412z&quot;/&gt;&lt;/svg&gt;</x:String>
+            <x:String x:Key="Add-New-Icon">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path d=&quot;M97.743 3h60.507v94.753H253v60.509h-94.75V253H97.743v-94.738H3v-60.51h94.743z&quot;/&gt;&lt;/svg&gt;</x:String>
+            <x:String x:Key="Garbage-Closed-Icon">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path d=&quot;M151.087 111.141v118.827h28.97V111.141zm-74.954 0v118.827h28.97V111.141zm-42.34-20.508h188.604V253H33.793zM80.566 3h94.874v30.182H238v32.326H18V33.182h62.566z&quot;/&gt;&lt;/svg&gt;</x:String>
+            <x:String x:Key="Data-Edit-Icon">&lt;svg xmlns=&quot;http://www.w3.org/2000/svg&quot; height=&quot;256&quot; width=&quot;256&quot;&gt;&lt;path d=&quot;M41 180.282l75.551 40.414L42.91 253zm69.341-127.97l77.696 44.71-59.672 104.189-4.418-13.32-22.792-2.352-3.903-14.32-22.317-.798-6.288-15.679-17.939 1.757zm37.34-49.306a11.588 11.618 0 0 1 6.109 1.51l55.012 31.671c6.685 3.828 8.198 13.804 3.382 22.257l-6.56 11.446-79.238-45.594 6.56-11.485c3.46-6.055 9.265-9.67 14.734-9.805z&quot;/&gt;&lt;/svg&gt;</x:String>
             <!--#endregion-->
         </ResourceDictionary>
     </Application.Resources>

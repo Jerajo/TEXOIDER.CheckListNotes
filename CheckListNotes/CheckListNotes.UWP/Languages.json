@@ -23,6 +23,7 @@
         "OptionsTouchSoundText": "Toque",
         "OptionsDisableSoundText": "Desabilitar",
         "OptionsSelectSoundText": "Personalizado",
+        "OptionsSelectColorText": "Seleccione un color",
 
         "ListOfListPageTitle": "Notas del día",
         "ListOfListNewListButtonText": "Nueva lista de tareas",
@@ -103,7 +104,8 @@
         "ButtonEditText": "Editar",
         "ButtonDeleteText": "Eliminar",
         "ButtonSaveText": "Guardar",
-        "ButtonCancelText": "Cancelar"
+        "ButtonCancelText": "Cancelar",
+        "LoadingMessage": "Cargando..."
     },
     "en": {
         "OptionsPageTitle": "Options",
@@ -129,6 +131,7 @@
         "OptionsTouchSoundText": "Touch",
         "OptionsDisableSoundText": "Disable",
         "OptionsSelectSoundText": "Custom",
+        "OptionsSelectColorText": "Select a color",
 
         "ListOfListPageTitle": "Check List Notes",
         "ListOfListNewListButtonText": "New task list",
@@ -209,7 +212,8 @@
         "ButtonEditText": "Edit",
         "ButtonDeleteText": "Delete",
         "ButtonSaveText": "Save",
-        "ButtonCancelText": "Cancel"
+        "ButtonCancelText": "Cancel",
+        "LoadingMessage": "Loading..."
     },
     "fr": {
         "OptionsPageTitle": "Les options",
@@ -235,6 +239,7 @@
         "OptionsTouchSoundText": "Touchez",
         "OptionsDisableSoundText": "Désactiver",
         "OptionsSelectSoundText": "Personnalisé",
+        "OptionsSelectColorText": "Choisissez une couleur",
 
         "ListOfListPageTitle": "Notes du jour",
         "ListOfListNewListButtonText": "Nouvelle liste de tâches",
@@ -315,6 +320,7 @@
         "ButtonEditText": "Éditer",
         "ButtonDeleteText": "Enlever",
         "ButtonSaveText": "Sauvegarder",
-        "ButtonCancelText": "Annuler"
+        "ButtonCancelText": "Annuler",
+        "LoadingMessage": "Chargement..."
     }
 }
