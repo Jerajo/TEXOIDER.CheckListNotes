@@ -1,6 +1,7 @@
 ﻿using System;
 using FreshMvvm;
 using System.Linq;
+using Xamarin.Forms;
 using PropertyChanged;
 using System.Threading;
 using System.Diagnostics;
@@ -35,6 +36,8 @@ namespace CheckListNotes.PageModels
 
         #region Atributes
 
+        public string Query { get; set; }
+
         public int TabIndex
         {
             get => tabIndex ?? -1;
@@ -47,7 +50,7 @@ namespace CheckListNotes.PageModels
 
         public CheckListViewModel CheckListModel { get; set; }
 
-        public CheckTaskViewModel SelectedTask
+        public CheckTaskViewModel SelectedItem
         {
             get => null;
             set
@@ -64,6 +67,8 @@ namespace CheckListNotes.PageModels
         }
 
         public FulyObservableCollection<ICardModel> Tasks { get; set; }
+
+        public FulyObservableCollection<ICardModel> SearchList { get; set; }
 
         public Random Randomizer { get; private set; }
 
@@ -96,6 +101,11 @@ namespace CheckListNotes.PageModels
             get => new DelegateCommand(new Action(SaveListPositionsCommand));
         }
 
+        public ICommand Search
+        {
+            get => new ParamCommand(new Action<object>(SearchCommand));
+        }
+
         #endregion
 
         #endregion
@@ -126,6 +136,14 @@ namespace CheckListNotes.PageModels
             }
             await GlobalDataService.UpdateList(model);
             IsLooked = false;
+        }
+
+        private void SearchCommand(object value)
+        {
+            var query = (string)value ?? "";
+            if (Query == query && SearchList?.Count > 0) return;
+            Query = query;
+            SearchQuery();
         }
 
         private async void AddNewTaskCommand()
@@ -240,6 +258,12 @@ namespace CheckListNotes.PageModels
                 Tasks.Dispose();
                 Tasks = null;
             }
+            if (SearchList != null)
+            {
+                SearchList.ClearItems();
+                SearchList.Dispose();
+                SearchList = null;
+            }
             tabIndex = null;
             Randomizer = null;
             previousIndex = null;
@@ -275,6 +299,10 @@ namespace CheckListNotes.PageModels
             this.WhenAny(RunTaskSafe, m => m.TabIndex);
 
             TabIndex = (int)data;
+
+            SearchList = new FulyObservableCollection<ICardModel>();
+
+            if (IsSearching == true || !string.IsNullOrEmpty(Query)) SearchQuery();
 
             RefreshTaskColor();
         }
@@ -362,6 +390,32 @@ namespace CheckListNotes.PageModels
                 NotifyOn = task.NotifyOn,
                 IsDaily = task.IsDaily
             }).ToList();
+        }
+
+        private void SearchQuery()
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                SearchList.ClearItems();
+                var list = GetAllTasks().Where(m => m.Name.ContainsIgnoreCase(Query)).OrderBy(m => m.Name);
+                foreach (var task in list) SearchList.Add(new CheckTaskViewModel
+                {
+                    Id = task.Id,
+                    Name = task.Name,
+                    ToastId = task.ToastId,
+                    Position = task.Position,
+                    CompletedDate = task.CompletedDate,
+                    ExpirationDate = task.ExpirationDate,
+                    HasExpiration = task.ExpirationDate != null,
+                    CompletedTasks = task.SubTasks?.Where(m => m.IsChecked == true).Count() ?? 0,
+                    Expiration = task.ExpirationDate?.TimeOfDay,
+                    TotalTasks = task.SubTasks?.Count ?? 0,
+                    ReminderTime = task.ReminderTime,
+                    IsTaskGroup = task.IsTaskGroup,
+                    NotifyOn = task.NotifyOn,
+                    IsDaily = task.IsDaily
+                });
+            });
         }
 
         #endregion

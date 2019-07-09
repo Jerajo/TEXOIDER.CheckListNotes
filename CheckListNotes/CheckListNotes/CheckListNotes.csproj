@@ -75,8 +75,8 @@
     <Compile Update="Pages\TaskDetailsPage.xaml.cs">
       <DependentUpon>TaskDetailsPage.xaml</DependentUpon>
     </Compile>
-    <Compile Update="Pages\UserControls\TaskCell.xaml.cs">
-      <DependentUpon>TaskCell.xaml</DependentUpon>
+    <Compile Update="Pages\UserControls\CardCell.xaml.cs">
+      <DependentUpon>CardCell.xaml</DependentUpon>
     </Compile>
     <Compile Update="Pages\UserControls\ButtonSvgImage.xaml.cs">
       <DependentUpon>ButtonSvgImage.xaml</DependentUpon>
@@ -105,10 +105,13 @@
     <EmbeddedResource Update="Pages\UserControls\CustomDialog.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
+    <EmbeddedResource Update="Pages\UserControls\SearchListView.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
     <EmbeddedResource Update="Pages\UserControls\TabView.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
-    <EmbeddedResource Update="Pages\UserControls\TaskCell.xaml">
+    <EmbeddedResource Update="Pages\UserControls\CardCell.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
   </ItemGroup>

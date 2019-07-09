@@ -44,7 +44,7 @@
                     x:Name="CardBoard"
                     Margin="0,0,0,-10"
                     ItemsSource="{Binding ListOfCheckLists}"
-                    SelectedItem="{Binding SelectedCheckList}"
+                    SelectedItem="{Binding SelectedItem}"
                     UpdatedListCommand="{Binding SaveListPositions}"
                     UpdatedOrDeleteItemCommand="{Binding UpdateOrRemove}" />
                 <!--#endregion-->
@@ -123,6 +123,7 @@
                 <uc:SVGImaggeButton
                     Grid.Column="1"
                     Margin="0,4"
+                    Clicked="Search"
                     IconColor="{DynamicResource FontColor}"
                     SVGSource="Search" />
                 <uc:SVGImaggeButton

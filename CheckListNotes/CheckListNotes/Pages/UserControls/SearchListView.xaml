@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentView
+    x:Class="CheckListNotes.Pages.UserControls.SearchListView"
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:uc="clr-namespace:CheckListNotes.Pages.UserControls">
+
+    <Grid BackgroundColor="{DynamicResource ContentDP00}" RowSpacing="0">
+        <!--#region Rows-->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <!--#endregion-->
+
+        <!--#region Body-->
+        <ScrollView Grid.Row="1" Margin="0,-10,0,0">
+            <StackLayout
+                x:Name="Container"
+                Padding="0,20,0,100"
+                Spacing="20" />
+        </ScrollView>
+        <!--#endregion-->
+
+        <!--#region Header-->
+        <uc:MaterialGrid
+            x:Name="GridHeader"
+            Padding="0,0,0,10"
+            ColumnSpacing="0"
+            CornerRadius="0"
+            ShadowPosition="AtThePadding"
+            SurfaceColor="{DynamicResource ContentDP03}">
+            <!--#region Columns-->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <!--#endregion-->
+
+            <uc:SVGImaggeButton
+                Margin="4"
+                Clicked="CloseSearch"
+                IconColor="{DynamicResource FontColor}"
+                SVGSource="Back-Button" />
+            <SearchBar
+                x:Name="SearchEntry"
+                Grid.Column="1"
+                Margin="0,4,4,4"
+                BackgroundColor="{StaticResource ContentDP00}"
+                CancelButtonColor="{DynamicResource Error}"
+                Keyboard="Text"
+                SearchCommand="{Binding Search}"
+                SearchCommandParameter="{Binding Text, Source={x:Reference SearchEntry}}"
+                Text="{Binding CheckListName, Mode=TwoWay}"
+                TextChanged="TextChanged"
+                TextColor="{DynamicResource FontColor}"
+                VerticalOptions="Center" />
+        </uc:MaterialGrid>
+        <!--#endregion-->
+    </Grid>
+
+</ContentView>

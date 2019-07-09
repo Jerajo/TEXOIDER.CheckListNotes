@@ -45,7 +45,7 @@ namespace CheckListNotes.PageModels
         public bool? IsLooked
         {
             get => GlobalDataService.IsProcesing;
-            protected set => GlobalDataService.IsProcesing = value ?? false;
+            set => GlobalDataService.IsProcesing = value ?? false;
         }
 
         /// <summary>
@@ -57,6 +57,11 @@ namespace CheckListNotes.PageModels
         /// Indicate whether the user is editing or not.
         /// </summary>
         public bool? IsEditing { get; protected set; } = false;
+
+        /// <summary>
+        /// Indicate whether the user is searching or not.
+        /// </summary>
+        public bool? IsSearching { get; set; } = false;
 
         /// <summary>
         /// Store a list of errors if exists.
@@ -117,7 +122,7 @@ namespace CheckListNotes.PageModels
             return CoreMethods.PopPageModel(data, animate: true);
         }
 
-        private void OnPageWasPopped(object sender, EventArgs e)
+        protected virtual void OnPageWasPopped(object sender, EventArgs e)
         {
             if (IsDisposing != true)
             {
@@ -203,6 +208,7 @@ namespace CheckListNotes.PageModels
             HasLoaded = null;
             HasChanges = null;
             IsEditing = null;
+            IsSearching = null;
             InitData = null;
             if (Errors != null)
             {

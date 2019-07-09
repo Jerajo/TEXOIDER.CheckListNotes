@@ -9,6 +9,7 @@ using PortableClasses.Enums;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using PortableClasses.Extensions;
 using System.Text.RegularExpressions;
 using PortableClasses.Implementations;
 using CheckListNotes.Models.Interfaces;
@@ -19,19 +20,23 @@ namespace CheckListNotes.PageModels
     [AddINotifyPropertyChangedInterface]
     public class ListOfCheckListsPageModel : BasePageModel, IPageModel
     {
-        private CheckListViewModel temporalList;
-
         public ListOfCheckListsPageModel() : base() { }
 
         #region SETTERS AND GETTERS
 
         #region Atributes
 
+        public string Query { get; set; }
+
         public string CheckListName { get; set; }
+
+        public string ExampleListName { get; private set; }
+
+        private CheckListViewModel TemporalList { get; set; }
 
         public bool? IsNewListFormVisible { get => IsEditing; set => IsEditing = value; }
 
-        public CheckListViewModel SelectedCheckList
+        public ICardModel SelectedItem
         {
             get => null;
             set
@@ -48,7 +53,7 @@ namespace CheckListNotes.PageModels
 
         public FulyObservableCollection<ICardModel> ListOfCheckLists { get; set; }
 
-        public string ExampleListName { get; private set; }
+        public FulyObservableCollection<ICardModel> SearchList { get; set; }
 
         #endregion
 
@@ -84,6 +89,11 @@ namespace CheckListNotes.PageModels
             get => new DelegateCommand(new Action(SaveListPositionsCommand));
         }
 
+        public ICommand Search
+        {
+            get => new ParamCommand(new Action<object>(SearchCommand));
+        }
+
         #endregion
 
         #endregion
@@ -106,11 +116,19 @@ namespace CheckListNotes.PageModels
             IsLooked = false;
         }
 
+        private void SearchCommand(object value)
+        {
+            var query = (string)value ?? "";
+            if (Query == query && SearchList?.Count > 0) return;
+            Query = query;
+            SearchQuery();
+        }
+
         private async void SaveCommand()
         {
             if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
-            var oldName = temporalList?.OldName;
+            var oldName = TemporalList?.OldName;
             if (ValidateNewCheckListName())
             {
                 try
@@ -124,7 +142,7 @@ namespace CheckListNotes.PageModels
                     if (!string.IsNullOrEmpty(oldName))
                     {
                         await GlobalDataService.RenameList(oldName, CheckListName);
-                        temporalList.OldName = temporalList.Name = CheckListName.Substring(0);
+                        TemporalList.OldName = TemporalList.Name = CheckListName.Substring(0);
                         CheckListName = "";
                         IsLooked = false;
                         CancelCommand();
@@ -136,7 +154,7 @@ namespace CheckListNotes.PageModels
                         IsNewListFormVisible = false;
                         IsLooked = false;
                         // Navigate to check list page model
-                        SelectedCheckList = new CheckListViewModel { Name = CheckListName }; 
+                        SelectedItem = new CheckListViewModel { Name = CheckListName }; 
                         return;
                     }
                 }
@@ -173,7 +191,7 @@ namespace CheckListNotes.PageModels
             else if (model.SelectedReason == SelectedFor.Update)
             {
                 IsNewListFormVisible = true;
-                temporalList = model;
+                TemporalList = model;
                 CheckListName = model.Name.Substring(0);
             }
             IsLooked = false;
@@ -193,9 +211,9 @@ namespace CheckListNotes.PageModels
             if (HasLoaded == false || IsLooked == true || IsDisposing == true) return;
             IsLooked = true;
             IsNewListFormVisible = false;
-            if (temporalList != null)
-                temporalList.SelectedReason = SelectedFor.Create;
-            temporalList = null;
+            if (TemporalList != null)
+                TemporalList.SelectedReason = SelectedFor.Create;
+            TemporalList = null;
             IsLooked = false;
         }
 
@@ -234,6 +252,12 @@ namespace CheckListNotes.PageModels
                 ListOfCheckLists.Dispose();
                 ListOfCheckLists = null;
             }
+            if (SearchList != null)
+            {
+                SearchList.ClearItems();
+                SearchList.Dispose();
+                SearchList = null;
+            }
             if (Errors != null)
             {
                 Errors.Clear();
@@ -267,6 +291,10 @@ namespace CheckListNotes.PageModels
                 });
             }
 
+            SearchList = new FulyObservableCollection<ICardModel>();
+
+            if (IsSearching == true || !string.IsNullOrEmpty(Query)) SearchQuery();
+
             Errors = new List<string>();
 
             var exampleListName = AppResourcesLisener.Languages["ExampleListName"];
@@ -286,7 +314,7 @@ namespace CheckListNotes.PageModels
             Errors.Clear();
             var name = CheckListName;
             var resourses = Application.Current.Resources;
-            if (temporalList != null && temporalList.OldName == name) return true;
+            if (TemporalList != null && TemporalList.OldName == name) return true;
             if ((new Regex("[^A-Za-z0-9 ]")).IsMatch(name))
                 Errors.Add(resourses["ListOfListErrorMessageInvalidCharacters"].ToString());
             if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name))
@@ -310,6 +338,16 @@ namespace CheckListNotes.PageModels
                 }
             }
             catch (Exception) { }
+        }
+
+        private void SearchQuery()
+        {
+            Device.BeginInvokeOnMainThread(() =>
+            {
+                SearchList.ClearItems();
+                foreach (var item in ListOfCheckLists.Where(m => m.Name.ContainsIgnoreCase(Query)))
+                    SearchList.Add(item);
+            });
         }
 
         #endregion

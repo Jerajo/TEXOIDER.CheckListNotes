@@ -1,14 +1,14 @@
 ﻿using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 using System.Diagnostics;
+using Xamarin.Forms.Xaml;
 using Xamarin.Forms.Internals;
 
 namespace CheckListNotes.Pages.UserControls
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class CardView : ContentView
+    public partial class CardCell : ContentView
     {
-        public CardView() => InitializeComponent();
+        public CardCell() => InitializeComponent();
 
         #region Bindalbe Properties
 
@@ -44,18 +44,11 @@ namespace CheckListNotes.Pages.UserControls
             else return Color.Transparent;
         }
 
-        public void InsertOrRemoveContent(View backgroundContent)
-        {
-            if (MainGrid.Children.Contains(backgroundContent))
-                MainGrid.Children.Remove(backgroundContent);
-            else MainGrid.Children.Insert(0, backgroundContent);
-        }
-
         #endregion
 
         #region Dispose
 
-        ~CardView()
+        ~CardCell()
         {
 #if DEBUG
             Debug.WriteLine($"Object destroyect: Name: {nameof(CardView)}, Id: {this.GetHashCode()}].");

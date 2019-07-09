@@ -36,20 +36,19 @@
                     <!--#region Text-->
                     <StackLayout>
                         <Label
-                            FontAttributes="Bold"
-                            FontSize="14"
+                            FontSize="Small"
                             LineBreakMode="CharacterWrap"
                             Text="{Binding Name}"
                             TextColor="{DynamicResource FontColor}"
                             VerticalOptions="StartAndExpand" />
                         <Label
-                            FontSize="12"
+                            FontSize="Micro"
                             IsVisible="{Binding ExpirationDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}"
                             Text="{Binding ExpirationDateText}"
                             TextColor="{DynamicResource FontColor}"
                             VerticalOptions="EndAndExpand" />
                         <Label
-                            FontSize="12"
+                            FontSize="Micro"
                             IsVisible="{Binding CompletedDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}"
                             Text="{Binding CompletedDateText}"
                             TextColor="{DynamicResource FontColor}"
@@ -71,7 +70,7 @@
                 <!--#region Percentage-->
                 <StackLayout IsVisible="{Binding IsTaskGroup, Mode=OneWay}">
                     <Label
-                        FontSize="12"
+                        FontSize="Micro"
                         Text="{Binding Detail}"
                         TextColor="{DynamicResource FontColor}" />
                     <Grid ColumnSpacing="0" RowSpacing="0">

@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ContentView
+    x:Class="CheckListNotes.Pages.UserControls.CardCell"
+    xmlns="http://xamarin.com/schemas/2014/forms"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:c="clr-namespace:CheckListNotes.PageModels.Converters"
+    xmlns:local="clr-namespace:CheckListNotes.Pages.UserControls">
+
+    <!--#region Resources-->
+    <ContentView.Resources>
+        <ResourceDictionary>
+            <c:DoubleToGridLengthConverter x:Key="DoubleToGridLength" />
+            <c:StringToBoolConverter x:Key="StringToBool" />
+            <c:InverseBoolConverter x:Key="InverseBool" />
+        </ResourceDictionary>
+    </ContentView.Resources>
+    <!--#endregion-->
+
+    <local:MaterialGrid
+        Margin="10,0"
+        Padding="10"
+        SurfaceColor="{Binding CellBackgroundColor}">
+        <StackLayout>
+            <!--#region Text-->
+            <StackLayout>
+                <Label
+                    FontSize="Small"
+                    LineBreakMode="CharacterWrap"
+                    Text="{Binding Name}"
+                    TextColor="{DynamicResource FontColor}"
+                    VerticalOptions="StartAndExpand" />
+                <Label
+                    FontSize="Micro"
+                    IsVisible="{Binding ExpirationDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}"
+                    Text="{Binding ExpirationDateText}"
+                    TextColor="{DynamicResource FontColor}"
+                    VerticalOptions="EndAndExpand" />
+                <Label
+                    FontSize="Micro"
+                    IsVisible="{Binding CompletedDateText, Converter={x:StaticResource StringToBool}, Mode=OneWay}"
+                    Text="{Binding CompletedDateText}"
+                    TextColor="{DynamicResource FontColor}"
+                    VerticalOptions="EndAndExpand" />
+            </StackLayout>
+            <!--#endregion-->
+
+            <!--#region Percentage-->
+            <StackLayout IsVisible="{Binding IsTaskGroup, Mode=OneWay}">
+                <Label
+                    FontSize="Micro"
+                    Text="{Binding Detail}"
+                    TextColor="{DynamicResource FontColor}" />
+                <Grid ColumnSpacing="0" RowSpacing="0">
+                    <!--#region Columns-->
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="{Binding CompletedPercentage, Converter={x:StaticResource DoubleToGridLength}, Mode=OneWay}" />
+                        <ColumnDefinition Width="{Binding PendientPercentage, Converter={x:StaticResource DoubleToGridLength}, Mode=OneWay}" />
+                    </Grid.ColumnDefinitions>
+                    <!--#endregion-->
+
+                    <BoxView
+                        Margin="0"
+                        HeightRequest="10"
+                        Color="{DynamicResource Progress}" />
+                    <BoxView
+                        Grid.Column="1"
+                        Margin="0"
+                        HeightRequest="10"
+                        Color="{DynamicResource Remaining}" />
+                </Grid>
+            </StackLayout>
+            <!--#endregion-->
+        </StackLayout>
+    </local:MaterialGrid>
+
+</ContentView>

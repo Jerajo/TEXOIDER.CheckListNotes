@@ -1,4 +1,6 @@
-﻿namespace PortableClasses.Extensions
+﻿using System.Text.RegularExpressions;
+
+namespace PortableClasses.Extensions
 {
     public static class StringExtensions
     {
@@ -106,6 +108,13 @@
                 stringShorted += i == 1 ? stringSplited[i] : $".{stringSplited[i]}";
             return stringShorted;
         }
+
+        #endregion
+
+        #region Comparition
+
+        public static bool ContainsIgnoreCase(this string source, string toCheck) =>
+            Regex.IsMatch(source, Regex.Escape(toCheck), RegexOptions.IgnoreCase);
 
         #endregion
     }
