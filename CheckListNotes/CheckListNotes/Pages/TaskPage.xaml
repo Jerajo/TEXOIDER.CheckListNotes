@@ -53,7 +53,7 @@
                             IsTextPredictionEnabled="True"
                             Keyboard="Text"
                             MaxLength="500"
-                            Placeholder="Nueva tarea"
+                            Placeholder="{DynamicResource TaskFormEditorTaskNamePlaceHolder}"
                             Text="{Binding Name}"
                             TextColor="{DynamicResource FontColor}" />
 

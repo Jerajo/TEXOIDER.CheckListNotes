@@ -4,8 +4,6 @@ using System.Diagnostics;
 using SkiaSharp.Views.Forms;
 using CheckListNotes.Models;
 using Xamarin.Forms.Internals;
-using System.Threading.Tasks;
-using CheckListNotes.Pages.Extensions;
 using CheckListNotes.PageModels.Converters;
 
 namespace CheckListNotes.Pages.UserControls
@@ -34,7 +32,7 @@ namespace CheckListNotes.Pages.UserControls
 
         #endregion
 
-        public MaterialGrid() : base() => InitializeComponets();
+        public MaterialGrid() => InitializeComponets();
 
         #region Bindable Properties
 
@@ -363,7 +361,6 @@ namespace CheckListNotes.Pages.UserControls
             previousShadowColor = null;
             previousRoundRect = null;
             previousPaint = null;
-            Children.Clear();
 #if DEBUG
             Debug.WriteLine("Object destroyect: [ Name: {0}, Id: {1} ].", nameof(MaterialGrid), this.GetHashCode());
 #endif

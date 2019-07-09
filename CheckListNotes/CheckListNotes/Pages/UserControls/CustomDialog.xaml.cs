@@ -15,7 +15,7 @@ namespace CheckListNotes.Pages.UserControls
 
         #endregion
 
-        public CustomDialog() { InitializeComponent(); Init(); }
+        public CustomDialog() { InitializeComponent(); isDisposing = false; }
 
         #region SETTERS AND GETTERS
 
@@ -32,11 +32,6 @@ namespace CheckListNotes.Pages.UserControls
         #endregion
 
         #region Methods
-
-        private void Init()
-        {
-            isDisposing = false;
-        }
 
         public static async Task<bool> Show(Grid mainGrid, string title, string message, params ButtonModel[] models)
         {
